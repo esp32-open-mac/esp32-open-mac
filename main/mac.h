@@ -1,5 +1,6 @@
 #include "hardware.h"
 typedef enum {
+    INIT,
     IDLE,
     AUTHENTICATED,
     ASSOCIATED,

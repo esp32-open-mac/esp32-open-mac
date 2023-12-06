@@ -1,18 +1,19 @@
 # ESP32 open Wi-Fi MAC proof-of-concept
 
-This is a proof-of-concept, showing how to use the ESP32 Wi-Fi hardware peripherals. Espressif (the manufacturer of the ESP32) did not document the Wi-Fi hardware peripherals in any of their (public) datasheets, so we had to reverse engineer the functionality of the hardware, see **TODO LINK TO BLOGPOST** for how this was done. The goal is to have a Wi-Fi capable, blob-free SDK/firmware for the ESP32.
+This is a proof-of-concept, showing how to use the ESP32 Wi-Fi hardware peripherals. Espressif (the manufacturer of the ESP32) did not document the Wi-Fi hardware peripherals in any of their (public) datasheets, so we had to reverse engineer the functionality of the hardware, see https://zeus.ugent.be/blog/23-24/open-source-esp32-wifi-mac/ for how this was done. The goal is to have a Wi-Fi capable, blob-free SDK/firmware for the ESP32.
 
 ## Features
 
-Currently, we can send and receive frames, without any proprietary code *running* (proprietary code is still used to initialize the hardware in the begin, but is not needed anymore after that).
+Currently, we can send and receive frames, without any proprietary code *running* (proprietary code is still used to initialize the hardware in the begin, but is not needed anymore after that). The example code currently connects to a hardcoded open access point and transmits UDP packets to a hardcoded IP address.
 
 - [X] Sending wifi frames
 - [X] Receiving wifi frames
+- [X] Send an ACK packet as reply to packets that are sent to the ESP32
+- [X] intermediate goal: connect to an open access point & send UDP packets
 - [ ] Switching channels
 - [ ] Changing rate
-- [ ] ACK-ing frames (likely done in hardware)
 - [ ] Adjusting TX power
-- [ ] Hardware packet filtering based on MAC address (at the moment, we receive all packets, but this is a bit inefficient)
+- [X] Hardware packet filtering based on MAC address (we previously used promiscuous mode to receive all packets, but this is a bit inefficient)
 - [ ] Implement wifi hardware initialization ourselves (this is now done using the functions in the proprietary blobs)
 - [ ] Connect our sending, receiving and other primitives to an open source 802.11 MAC implementation
 
@@ -34,9 +35,12 @@ My original goal was to have 802.11 standards compliant mesh networking (IEEE 80
 
 ### On what microcontrollers does this run?
 
-At the moment, this only runs on the plain ESP32 (so not the ESP32-S2, ESP32-S3 or other variants). This is because 
-the location and functionality of the Wi-Fi hardware peripherals is hardcoded. Porting this to other variants of the
-ESP32 might or might not be trivial, depending on how similar the internal hardware is.
+At the moment, this only runs on the plain ESP32 (so not the ESP32-S2, ESP32-S3 or other variants).
+This is because the location and functionality of the Wi-Fi hardware peripherals is hardcoded.
+Porting this to other variants of the ESP32 might or might not be trivial, depending on how similar the internal hardware is.
+
+This project was only tested against ESP-IDF v5.0.1.
+After we implement the hardware initialisation ourselves, we won't have to use the proprietary esp32-wifi-lib anymore, and we'll be able to run on other ESP-IDF versions.
 
 ### Can I contribute?
 
@@ -46,14 +50,14 @@ Yes! Please contact j@zeus.ugent.be to coordinate, so you don't waste your time 
 
 Yes:
 
-- **TODO link to blog post**
-- **TODO link to forked QEMU repository**
-- **TODO link to ESP JTAG repo**
-- **TODO link to espressifs blobs**
+- First blog post talking about this: https://zeus.ugent.be/blog/23-24/open-source-esp32-wifi-mac/
+- ESP32 QEMU fork modified for reverse engineering: https://github.com/esp32-open-mac/qemu
+- Setting up JTAG debugging on the ESP32: https://github.com/amirgon/ESP32-JTAG
+- Espressifs wifi blobs: https://github.com/espressif/esp32-wifi-lib
 
 ### What will this project use as MAC layer?
 
-How we'll implement the MAC layer (this does among others the association with access points) is still an open question. The only open source 802.11 MAC implementation I know is the one in the Linux kernel, and I don't know how hard it will be to rip it out and combine it with FreeRTOS instead.
+How we'll implement the MAC layer (this does among others the association with access points) is still an open question. The only open source 802.11 MAC implementation I know is the one in the Linux kernel (mac80211), and I don't know how hard it will be to rip it out and combine it with FreeRTOS instead.
 
 ### Some free ideas
 

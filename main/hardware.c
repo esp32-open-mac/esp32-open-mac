@@ -19,6 +19,7 @@
 #define RX_BUFFER_AMOUNT 10
 
 static const char* TAG = "hardware.c";
+uint8_t module_mac_addr[6] = {0x00, 0x23, 0x45, 0x67, 0x89, 0xab};
 
 inline void write_register(uint32_t address, uint32_t value) {
 	*((volatile uint32_t*) address) = value;
@@ -42,6 +43,9 @@ inline uint32_t read_register(uint32_t address) {
 #define WIFI_NEXT_RX_DSCR 0x3ff7308c
 #define WIFI_LAST_RX_DSCR 0x3ff73090
 #define WIFI_BASE_RX_DSCR 0x3ff73088
+
+#define WIFI_MAC_ADDR_SLOT_0 0x3ff73040
+#define WIFI_MAC_ADDR_ACK_ENABLE_SLOT_0 0x3ff73064
 
 typedef struct __attribute__((packed)) dma_list_item {
 	uint16_t size : 12;
@@ -234,12 +238,17 @@ void update_rx_chain() {
 
 void handle_rx_messages(rx_callback rxcb) {
 	dma_list_item* current = rx_chain_begin;
-	// TODO disable interrupt
+	
+	// This is a workaround for when we receive a lot of packets; otherwise we get stuck in this function,
+	// handling packets for all eternity
+	// This is much less of a problem now that we implement hardware filtering
+	int received = 0;
 	while (current) {
 		dma_list_item* next = current->next;
 		if (current->has_data) {
 			//TODO enable interrupt
 
+			received++;
 			// Has data, but actual 802.11 MAC frame only starts at 28 bytes into the packet
 			// The data before contains packet metadata
 			wifi_promiscuous_pkt_t* packet = current->packet;
@@ -277,7 +286,11 @@ void handle_rx_messages(rx_callback rxcb) {
 			//TODO disable interrupt
 		}
 		current = next;
+		if (received > 10) {
+			goto out;
+		}
 	}
+	out:
 	// TODO enable interrupt
 }
 
@@ -292,10 +305,30 @@ bool wifi_hardware_tx_func(uint8_t* packet, uint32_t len) {
 	queue_entry.type = TX_ENTRY;
 	queue_entry.content.tx.len = len;
 	queue_entry.content.tx.packet = queue_copy;
-	xQueueSendToBack(hardware_event_queue, &queue_entry, 0);
+	xQueueSendToFront(hardware_event_queue, &queue_entry, 0);
 	ESP_LOGI(TAG, "TX entry queued");
 	return true;
 }
+
+void set_enable_mac_addr_filter(uint8_t slot, bool enable) {
+	// This will allow packets that match the filter to be queued in our reception queue
+	// will also ack them once they arrive
+	assert(slot <= 1);
+	uint32_t addr = WIFI_MAC_ADDR_ACK_ENABLE_SLOT_0 + 8*slot;
+	if (enable) {
+		write_register(addr, read_register(addr) | 0x10000);
+	} else {
+		write_register(addr, read_register(addr) & ~(0x10000));
+	}
+}
+
+void set_mac_addr_filter(uint8_t slot, uint8_t* addr) {
+	assert(slot <= 1);
+	write_register(WIFI_MAC_ADDR_SLOT_0 + slot*8, addr[0] | addr[1] << 8 | addr[2] << 16 | addr[3] << 24);
+	write_register(WIFI_MAC_ADDR_SLOT_0 + slot*8 + 4, addr[4] | addr[5] << 8);
+	write_register(WIFI_MAC_ADDR_SLOT_0 + slot*8 + 8*4, ~0); // ?
+}
+
 
 void wifi_hardware_task(hardware_mac_args* pvParameter) {
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -325,7 +358,7 @@ void wifi_hardware_task(hardware_mac_args* pvParameter) {
 	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 	ESP_LOGW(TAG, "done esp_wifi_init");
 
-	ESP_LOGW(TAG, "Starting open_mac_task, running on %d", xPortGetCoreID());
+	ESP_LOGW(TAG, "Starting wifi_hardware task, running on %d", xPortGetCoreID());
 	ESP_LOGW(TAG, "calling esp_wifi_set_mode");
 	ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
 	ESP_LOGW(TAG, "done esp_wifi_set_mode");
@@ -334,10 +367,18 @@ void wifi_hardware_task(hardware_mac_args* pvParameter) {
 	ESP_ERROR_CHECK(esp_wifi_start());
 	ESP_LOGW(TAG, "done esp_wifi_start");
 
-	ESP_LOGW(TAG, "calling esp_wifi_set_promiscuous");
-	esp_wifi_set_promiscuous(true);
-	ESP_LOGW(TAG, "done esp_wifi_set_promiscuous");
+	static uint8_t initframe[] = {
+		0x08, 0x01, 0x00, 0x00, // data frame
+		0x4e, 0xed, 0xfb, 0x35, 0x22, 0xa8, // receiver addr
+		0x00, 0x23, 0x45, 0x67, 0x89, 0xab, // transmitter
+		0x84, 0x2b, 0x2b, 0x4f, 0x89, 0x4f, // destination
+		0x00, 0x00, // sequence control
+	};
 
+	// Send a packet, to make sure the proprietary stack has fully initialized all hardware
+	ESP_ERROR_CHECK_WITHOUT_ABORT(esp_wifi_80211_tx(WIFI_IF_STA, initframe, 24, true));
+
+	// From here, we start taking over the hardware; no more proprietary code is executed from now on
 	setup_interrupt();
 
 	// ppTask is a FreeRTOS task included in the esp32-wifi-lib blob
@@ -346,14 +387,18 @@ void wifi_hardware_task(hardware_mac_args* pvParameter) {
 	ESP_LOGW(TAG, "Killing proprietary wifi task (ppTask)");
 	pp_post(0xf, 0);
 
-	// TODO: instead of promisc mode, set RX policy with (see wifi_set_rx_policy)
-	// This will filter the 802.11 frames in hardware, based on their MAC address
-
 	setup_rx_chain();
 	setup_tx_buffers();
 
 	pvParameter->_tx_func_callback(&wifi_hardware_tx_func);
 	ESP_LOGW(TAG, "Starting to receive messages");
+
+	set_mac_addr_filter(0, module_mac_addr);
+	set_enable_mac_addr_filter(0, true);
+	// acking will only happen if the hardware puts the packet in an RX buffer
+
+	uint32_t first_part = read_register(WIFI_MAC_ADDR_SLOT_0 + 4);
+	ESP_LOGW(TAG, "addr_p = %lx %lx", first_part & 0xff, (first_part >> 8) & 0xff);
 	
 	while (true) {
 		hardware_queue_entry_t queue_entry;

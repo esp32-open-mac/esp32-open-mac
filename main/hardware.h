@@ -13,3 +13,4 @@ typedef struct hardware_mac_args {
 } hardware_mac_args;
 
 void wifi_hardware_task(hardware_mac_args* pvParameter);
+extern uint8_t module_mac_addr[6];

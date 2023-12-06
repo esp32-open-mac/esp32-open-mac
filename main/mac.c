@@ -6,21 +6,41 @@
 #include "hardware.h"
 #include "80211.h"
 #include "mac.h"
+#include "proprietary.h"
 
 #include <string.h>
 
 static char* TAG = "mac.c";
 static tx_func* tx = NULL;
-static uint8_t recv_mac_addr[6] = {0};
 static QueueHandle_t reception_queue = NULL;
 
 static uint8_t to_ap_auth_frame[] = {
     0xb0, 0x00, 0x00, 0x00,
     0x4e, 0xed, 0xfb, 0x35, 0x22, 0xa8, // receiver addr
-    0x00, 0x23, 0x45, 0x67, 0x89, 0xab, // transmitter adrr
+    0x00, 0x23, 0x45, 0x67, 0x89, 0xab, // transmitter addr
     0x4e, 0xed, 0xfb, 0x35, 0x22, 0xa8, // bssid
     0x00, 0x00, // sequence control
     0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
+    0, 0, 0, 0 /*FCS*/};
+
+static uint8_t to_ap_assoc_frame[] = {
+    0x00, 0x00, 0x00, 0x00,
+    0x4e, 0xed, 0xfb, 0x35, 0x22, 0xa8, // receiver addr
+    0x00, 0x23, 0x45, 0x67, 0x89, 0xab, // transmitter addr
+    0x4e, 0xed, 0xfb, 0x35, 0x22, 0xa8, // bssid
+    0x00, 0x00, // sequence control
+    0x11, 0x00, 0x0a, 0x00, // Fixed parameters
+    0x00, 0x08, 0x6d, 0x65, 0x73, 0x68, 0x74, 0x65, 0x73, 0x74, // SSID
+    0x01, 0x08, 0x0c, 0x12, 0x18, 0x24, 0x30, 0x48, 0x60, 0x6c,  // Supported rates
+    0, 0, 0, 0 /*FCS*/};
+
+static uint8_t to_ap_data_frame[] = {
+    0x08, 0x01, 0x00, 0x00,
+    0x4e, 0xed, 0xfb, 0x35, 0x22, 0xa8, // receiver addr
+    0x00, 0x23, 0x45, 0x67, 0x89, 0xab, // transmitter
+    0x84, 0x2b, 0x2b, 0x4f, 0x89, 0x4f, // destination
+    0x00, 0x00, // sequence control
+    0xaa, 0xaa, 0x03, 0x00, 0x00, 0x00, 0x08, 0x00, 0x45, 0x00, 0x00, 0x29, 0x00, 0x01, 0x00, 0x00, 0x40, 0x11, 0x34, 0xba, 0x0a, 0x00, 0x32, 0x02, 0x0a, 0x00, 0x00, 0x08, 0xea, 0x61, 0x0d, 0x05, 0x00, 0x15, 0x46, 0x64, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0a,
     0, 0, 0, 0 /*FCS*/};
 
 // Gets called with a packet that was received. This function does not need to free the memory of the packet,
@@ -35,7 +55,7 @@ void open_mac_rx_callback(wifi_promiscuous_pkt_t* packet) {
     if (p->frame_control.type == IEEE80211_TYPE_MGT && p->frame_control.sub_type == IEEE80211_TYPE_MGT_SUBTYPE_BEACON) return;
 
     // check that receiver mac address matches our mac address or is broadcast
-    if ((memcmp(recv_mac_addr, p->receiver_address, 6))
+    if ((memcmp(module_mac_addr, p->receiver_address, 6))
      && (memcmp(BROADCAST_MAC, p->receiver_address, 6))) {
         // We're not interested in this packet, return early to avoid having to copy it further to the networking stack
         ESP_LOGD(TAG, "Discarding packet from "MACSTR" to "MACSTR, MAC2STR(p->transmitter_address), MAC2STR(p->receiver_address));
@@ -64,7 +84,7 @@ void open_mac_tx_func_callback(tx_func* t) {
 }
 
 void mac_task(void* pvParameters) {
-    ESP_LOGI(TAG, "Starting mac_task");
+    ESP_LOGI(TAG, "Starting mac_task, running on %d", xPortGetCoreID());
 
     reception_queue = xQueueCreate(10, sizeof(wifi_promiscuous_pkt_t*));
     assert(reception_queue);
@@ -72,15 +92,12 @@ void mac_task(void* pvParameters) {
     openmac_sta_state_t sta_state = IDLE;
     uint64_t last_transmission_us = esp_timer_get_time();
 
-    uint8_t my_mac[6] = {0x00, 0x23, 0x45, 0x67, 0x89, 0xab};
-    memcpy(recv_mac_addr, my_mac, 6);
-
     while (true) {
         wifi_promiscuous_pkt_t* packet;
         if(xQueueReceive(reception_queue, &packet, 10)) {          
             mac80211_frame* p = (mac80211_frame*) packet->payload;
 
-            if (p->frame_control.type != IEEE80211_TYPE_MGT && p->frame_control.sub_type != IEEE80211_TYPE_MGT_SUBTYPE_BEACON) {
+            if (!(p->frame_control.type == IEEE80211_TYPE_MGT && p->frame_control.sub_type == IEEE80211_TYPE_MGT_SUBTYPE_BEACON)) {
                 // Print all non-beacon packets
                 ESP_LOG_BUFFER_HEXDUMP("packet-content", packet->payload, packet->rx_ctrl.sig_len - 4, ESP_LOG_INFO);  
             }
@@ -100,7 +117,7 @@ void mac_task(void* pvParameters) {
                 if (p->frame_control.type == IEEE80211_TYPE_MGT && p->frame_control.sub_type == IEEE80211_TYPE_MGT_SUBTYPE_ASSOCIATION_RESP) {
                     // TODO check that association succeeded
                     // For now, assume it's fine
-                    ESP_LOGI(TAG, "Association response received from="MACSTR" to= "MACSTR, MAC2STR(p->transmitter_address), MAC2STR(p->receiver_address));
+                    ESP_LOGW(TAG, "Association response received from="MACSTR" to= "MACSTR, MAC2STR(p->transmitter_address), MAC2STR(p->receiver_address));
                     sta_state = ASSOCIATED;
                     last_transmission_us = 0;
                 }
@@ -112,10 +129,15 @@ void mac_task(void* pvParameters) {
             }
             free(packet);
         }
-        // don't transmit if we don't know how to
-        if (!tx) continue;
+        
         // don't transmit too fast
         if (esp_timer_get_time() - last_transmission_us < 1000*1000) continue;
+
+        // don't transmit if we don't know how to
+        if (!tx) {
+            ESP_LOGW(TAG, "no transmit function yet");
+            continue;
+        };
 
         switch (sta_state)
         {
@@ -124,10 +146,12 @@ void mac_task(void* pvParameters) {
             tx(to_ap_auth_frame, sizeof(to_ap_auth_frame));
             break;
         case AUTHENTICATED:
-            ESP_LOGI(TAG, "TODO: sending association request frame");
+            ESP_LOGI(TAG, "Sending association request frame!");
+            tx(to_ap_assoc_frame, sizeof(to_ap_assoc_frame));
             break;
         case ASSOCIATED:
-            ESP_LOGI(TAG, "TODO: sending data frame");
+            ESP_LOGI(TAG, "Sending data frame");
+            tx(to_ap_data_frame, sizeof(to_ap_data_frame));
             break;
         default:
             break;
