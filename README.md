@@ -44,7 +44,7 @@ After we implement the hardware initialisation ourselves, we won't have to use t
 
 ### Can I contribute?
 
-Yes! Please contact j@zeus.ugent.be to coordinate, so you don't waste your time trying to reverse engineer functionality someone else has already reverse engineered
+Yes! Please contact zeusblog@devreker.be to coordinate, so you don't waste your time trying to reverse engineer functionality someone else has already reverse engineered
 
 ### Are there other works related to this?
 
