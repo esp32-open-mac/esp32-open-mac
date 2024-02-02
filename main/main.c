@@ -19,6 +19,8 @@ hardware_mac_args open_hw_args = {
 };
 
 void app_main(void) {
+	esp_netif_init();
 	xTaskCreatePinnedToCore(&mac_task,           "open_mac",      4096, NULL,          /*prio*/ 3, NULL, /*core*/ 1);
 	xTaskCreatePinnedToCore(&wifi_hardware_task, "wifi_hardware", 4096, &open_hw_args, /*prio*/ 5, NULL, /*core*/ 0);
+	openmac_netif_start();
 }
