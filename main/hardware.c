@@ -54,13 +54,13 @@ inline uint32_t read_register(uint32_t address) {
 #define MAC_TX_DURATION_BASE _MMIO_ADDR(0x3ff74268)
 #define MAC_TX_DURATION_OS (-0xf)
 
-#define WIFI_DMA_INT_STATUS 0x3ff73c48
-#define WIFI_DMA_INT_CLR 0x3ff73c4c
+#define WIFI_DMA_INT_STATUS _MMIO_DWORD(0x3ff73c48)
+#define WIFI_DMA_INT_CLR _MMIO_DWORD(0x3ff73c4c)
 
-#define WIFI_MAC_BITMASK_084 0x3ff73084
-#define WIFI_NEXT_RX_DSCR 0x3ff7308c
-#define WIFI_LAST_RX_DSCR 0x3ff73090
-#define WIFI_BASE_RX_DSCR 0x3ff73088
+#define WIFI_MAC_BITMASK_084 _MMIO_DWORD(0x3ff73084)
+#define WIFI_NEXT_RX_DSCR _MMIO_DWORD(0x3ff7308c)
+#define WIFI_LAST_RX_DSCR _MMIO_DWORD(0x3ff73090)
+#define WIFI_BASE_RX_DSCR _MMIO_DWORD(0x3ff73088)
 
 #define WIFI_TXQ_GET_STATE_COMPLETE _MMIO_DWORD(0x3ff73cc8)
 #define WIFI_TXQ_CLR_STATE_COMPLETE _MMIO_DWORD(0x3ff73cc4)
@@ -215,11 +215,11 @@ static void processTxComplete() {
 
 void IRAM_ATTR wifi_interrupt_handler(void* args) {
 	interrupt_count++;
-	uint32_t cause = read_register(WIFI_DMA_INT_STATUS);
+	uint32_t cause = WIFI_DMA_INT_STATUS;
 	if (cause == 0) {
 		return;
 	}
-	write_register(WIFI_DMA_INT_CLR, cause);
+	WIFI_DMA_INT_CLR = cause;
 
 	if (cause & 0x800) {
 		// TODO handle this with open-source code
@@ -252,17 +252,17 @@ void setup_interrupt() {
 void print_rx_chain(dma_list_item* item) {
 	// Debug print to display RX linked list
 	int index = 0;
-	ESP_LOGD("rx-chain", "base=%p next=%p last=%p", (dma_list_item*) read_register(WIFI_BASE_RX_DSCR), (dma_list_item*) read_register(WIFI_NEXT_RX_DSCR), (dma_list_item*) read_register(WIFI_LAST_RX_DSCR));
+	ESP_LOGD("rx-chain", "base=%p next=%p last=%p", (dma_list_item*) WIFI_BASE_RX_DSCR, (dma_list_item*) WIFI_NEXT_RX_DSCR, (dma_list_item*) WIFI_LAST_RX_DSCR);
 	while (item) {
 		ESP_LOGD("rx-chain", "idx=%d cur=%p owner=%d has_data=%d length=%d size=%d packet=%p next=%p", index, item, item->owner, item->has_data, item->length, item->size, item->packet, item->next);
 		item = item->next;
 		index++;
 	}
-	ESP_LOGD("rx-chain", "base=%p next=%p last=%p", (dma_list_item*) read_register(WIFI_BASE_RX_DSCR), (dma_list_item*) read_register(WIFI_NEXT_RX_DSCR), (dma_list_item*) read_register(WIFI_LAST_RX_DSCR));
+	ESP_LOGD("rx-chain", "base=%p next=%p last=%p", (dma_list_item*) WIFI_BASE_RX_DSCR, (dma_list_item*) WIFI_NEXT_RX_DSCR, (dma_list_item*) WIFI_LAST_RX_DSCR);
 }
 
 void set_rx_base_address(dma_list_item* item) {
-	write_register(WIFI_BASE_RX_DSCR, (uint32_t) item);
+	WIFI_BASE_RX_DSCR = (uint32_t) item;
 }
 
 void setup_rx_chain() {
@@ -288,9 +288,9 @@ void setup_rx_chain() {
 }
 
 void update_rx_chain() {
-	write_register(WIFI_MAC_BITMASK_084, read_register(WIFI_MAC_BITMASK_084) | 0x1);
+	WIFI_MAC_BITMASK_084 |= 0x1;
 	// Wait for confirmation from hardware
-	while (read_register(WIFI_MAC_BITMASK_084) & 0x1);
+	while (WIFI_MAC_BITMASK_084 & 0x1);
 }
 
 void handle_rx_messages(rx_callback rxcb) {
@@ -324,8 +324,8 @@ void handle_rx_messages(rx_callback rxcb) {
 			if (rx_chain_begin) {
 				rx_chain_last->next = current;
 				update_rx_chain();
-				if (read_register(WIFI_NEXT_RX_DSCR) == 0x3ff00000) {
-					dma_list_item* last_dscr = (dma_list_item*) read_register(WIFI_LAST_RX_DSCR);
+				if (WIFI_NEXT_RX_DSCR == 0x3ff00000) {
+					dma_list_item* last_dscr = (dma_list_item*) WIFI_LAST_RX_DSCR;
 					if (current == last_dscr) {
 						rx_chain_last = current;
 					} else {
