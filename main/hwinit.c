@@ -5,11 +5,9 @@
 static const char* TAG = "hwinit";
 
 // Closed source symbols:
-void ieee80211_set_hmac_stop(int a);
 void wifi_hw_start(int a);
 esp_err_t wifi_mode_set(int a);
 esp_err_t _do_wifi_start(int a);
-void ieee80211_update_phy_country();
 // End of closed source symbols
 
 // Open source symbols:
@@ -18,11 +16,9 @@ esp_err_t adc2_wifi_acquire();
 
 void wifi_start_process_openmac() {
 	ESP_ERROR_CHECK(adc2_wifi_acquire());
-    ieee80211_set_hmac_stop(0);
     wifi_hw_start(0);
     ESP_ERROR_CHECK(wifi_mode_set(WIFI_MODE_STA));
     ESP_ERROR_CHECK(_do_wifi_start(WIFI_MODE_STA));
-    ieee80211_update_phy_country();
 }
 
 void hwinit() {
