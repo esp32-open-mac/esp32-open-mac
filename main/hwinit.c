@@ -7,18 +7,26 @@ static const char* TAG = "hwinit";
 // Closed source symbols:
 void wifi_hw_start(int a);
 esp_err_t wifi_mode_set(int a);
-esp_err_t _do_wifi_start(int a);
 // End of closed source symbols
 
 // Open source symbols:
 esp_err_t adc2_wifi_acquire();
 // End of open source symbols
 
+void wifi_station_start_openmac() {
+    // this does hal_enable_sta_tsf and ic_set_vif; which we already handle in open code
+} 
+
+esp_err_t _do_wifi_start_openmac(wifi_mode_t mode) {
+    wifi_station_start_openmac();
+    return ESP_OK;
+}
+
 void wifi_start_process_openmac() {
 	ESP_ERROR_CHECK(adc2_wifi_acquire());
     wifi_hw_start(0);
-    ESP_ERROR_CHECK(wifi_mode_set(WIFI_MODE_STA));
-    ESP_ERROR_CHECK(_do_wifi_start(WIFI_MODE_STA));
+    // not needed: ESP_ERROR_CHECK(wifi_mode_set(WIFI_MODE_STA));
+    ESP_ERROR_CHECK(_do_wifi_start_openmac(WIFI_MODE_STA));
 }
 
 void hwinit() {
