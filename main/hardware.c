@@ -16,6 +16,8 @@
 #include "proprietary.h" // contains all symbols from the binary blobs we still need
 #include "hardware.h"
 
+#include "esp_phy_init.h"
+
 #define RX_BUFFER_AMOUNT 10
 
 static const char* TAG = "hardware.c";
@@ -387,6 +389,7 @@ static void set_mac_addr_filter(uint8_t slot, uint8_t* addr) {
 	write_register(WIFI_MAC_ADDR_SLOT_0 + slot*8 + 8*4, ~0); // ?
 }
 
+void wifi_start_process();
 
 void wifi_hardware_task(hardware_mac_args* pvParameter) {
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -414,6 +417,7 @@ void wifi_hardware_task(hardware_mac_args* pvParameter) {
 
 	ESP_LOGW(TAG, "calling esp_wifi_init");
 	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+	// esp_phy_common_clock_enable();
 	ESP_LOGW(TAG, "done esp_wifi_init");
 
 	ESP_LOGW(TAG, "Starting wifi_hardware task, running on %d", xPortGetCoreID());
@@ -422,7 +426,7 @@ void wifi_hardware_task(hardware_mac_args* pvParameter) {
 	ESP_LOGW(TAG, "done esp_wifi_set_mode");
 
 	ESP_LOGW(TAG, "calling esp_wifi_start");
-	ESP_ERROR_CHECK(esp_wifi_start());
+	wifi_start_process();
 	ESP_LOGW(TAG, "done esp_wifi_start");
 
 	// From here, we start taking over the hardware; no more proprietary code is executed from now on
