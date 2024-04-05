@@ -6,7 +6,15 @@ static const char* TAG = "hwinit";
 
 // Closed source symbols:
 void wifi_hw_start(int a);
-esp_err_t wifi_mode_set(int a);
+void wifi_module_enable();
+void esp_phy_enable();
+void wifi_reset_mac();
+void ic_mac_init();
+void chm_init(void* ptr);
+void ic_enable();
+void chip_enable();
+void pm_noise_check_enable();
+extern void* g_ic;
 // End of closed source symbols
 
 // Open source symbols:
@@ -22,9 +30,28 @@ esp_err_t _do_wifi_start_openmac(wifi_mode_t mode) {
     return ESP_OK;
 }
 
+
+void wifi_hw_start_openmac(wifi_mode_t mode) {
+    // wifi_apb80m_request_wrapper is empty on ESP32
+ 
+    // wifi_clock_enable_wrapper =
+    wifi_module_enable();
+    
+    esp_phy_enable();
+
+    // coex_enable_wrapper is empty on ESP32
+    
+    wifi_reset_mac();
+    ic_mac_init();
+    chm_init(&g_ic);
+    ic_enable();
+    chip_enable();
+    pm_noise_check_enable();
+}
+
 void wifi_start_process_openmac() {
 	ESP_ERROR_CHECK(adc2_wifi_acquire());
-    wifi_hw_start(0);
+    wifi_hw_start_openmac(0);
     // not needed: ESP_ERROR_CHECK(wifi_mode_set(WIFI_MODE_STA));
     ESP_ERROR_CHECK(_do_wifi_start_openmac(WIFI_MODE_STA));
 }
