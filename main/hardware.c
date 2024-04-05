@@ -425,19 +425,6 @@ void wifi_hardware_task(hardware_mac_args* pvParameter) {
 	ESP_ERROR_CHECK(esp_wifi_start());
 	ESP_LOGW(TAG, "done esp_wifi_start");
 
-	static uint8_t initframe[] = {
-		0x08, 0x01, 0x00, 0x00, // data frame
-		0x4e, 0xed, 0xfb, 0x35, 0x22, 0xa8, // receiver addr
-		0x00, 0x23, 0x45, 0x67, 0x89, 0xab, // transmitter
-		0x84, 0x2b, 0x2b, 0x4f, 0x89, 0x4f, // destination
-		0x00, 0x00, // sequence control
-		0xff, 0x00, 0x00, 0x00, // IEEE 802.2
-		'i', 'n', 'i', 't', 'f', 'r', 'a', 'm', 'e'
-	};
-
-	// Send a packet, to make sure the proprietary stack has fully initialized all hardware
-	ESP_ERROR_CHECK_WITHOUT_ABORT(esp_wifi_80211_tx(WIFI_IF_STA, initframe, sizeof(initframe), true));
-
 	// From here, we start taking over the hardware; no more proprietary code is executed from now on
 	setup_interrupt();
 
