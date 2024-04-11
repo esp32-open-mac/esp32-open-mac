@@ -2,10 +2,12 @@
 #include "esp_log.h"
 #include "esp_phy_init.h"
 #include "hardware.h"
+#include "chm.h"
 
 static const char* TAG = "hwinit";
 
 #define IC_MAC_INIT_REGISTER _MMIO_DWORD(0x3ff73cb8)
+
 
 // Closed source symbols:
 void wifi_hw_start(int a);
@@ -17,8 +19,19 @@ void chip_enable();
 void pm_noise_check_enable();
 int64_t esp_timer_get_time();
 void coex_bt_high_prio();
+void* phy_get_romfuncs();
+void chm_set_home_channel(channel_specification *);
+void chm_set_current_channel(channel_specification *);
+void ets_timer_setfn(volatile void *, void *, void *);
+void ieee80211_timer_process(uint32_t, uint32_t, void *);
+void mutex_lock_wraper(void *);
+void mutex_unlock_wraper(void *);
 extern void* g_ic;
+extern volatile chm* g_chm;
 extern uint32_t g_wifi_mac_time_delta;
+extern void* g_wifi_nvs;
+extern void* g_wifi_global_lock;
+
 // End of closed source symbols
 
 // Open source symbols:
@@ -31,7 +44,12 @@ void esp_phy_load_cal_and_init();
 void wifi_station_start_openmac() {
     // this does hal_enable_sta_tsf and ic_set_vif; which we already handle in open code
 } 
-
+void acquire_lock() {
+    mutex_lock_wraper(g_wifi_global_lock);
+}
+void release_lock() {
+    mutex_unlock_wraper(g_wifi_global_lock);
+}
 esp_err_t _do_wifi_start_openmac(wifi_mode_t mode) {
     wifi_station_start_openmac();
     return ESP_OK;
@@ -71,6 +89,42 @@ void esp_phy_enable_openmac() {
 void ic_mac_init_openmac() {
     // taken from libpp/hal_mac.o hal_mac_init
     IC_MAC_INIT_REGISTER &= 0xffffe800;
+}
+uint16_t num2mhz(uint8_t num) {
+    if (num == 14) {
+        return 2484;
+    } else {
+        return 2412 + (num - 1) * 5;
+    }
+}
+void timer_process(void* unknown) {
+    ieee80211_timer_process(0x7, 0x8, unknown);
+}
+void chm_init_openmac(void* ic) {
+    // The only refrence to this is upon init.
+    g_chm->field76_0x4f = 0xe;
+
+    for (int channel = 0; channel < 14; channel++) {
+        volatile channel_information* channel_info = &g_chm->channel_information[channel];
+        channel_info->_flags = 0x83;
+        channel_info->channel_number = channel;
+        channel_info->freq_mhz = num2mhz(channel + 1);
+    }
+    channel_specification channel_spec;
+    if (*(char *) g_wifi_nvs == 1) {
+        channel_spec.channel = 1;
+    } else {
+        channel_spec.channel = *(char *)(g_wifi_nvs + 0x3f3);
+        channel_spec.channel_bandwidth = *(channel_width *)(g_wifi_nvs + 0x3fc);
+    }
+    g_chm->ic = ic;
+    g_chm->field1_0x4 = 0xff;
+
+    // There was no need to rebuild the entire chm_set_home_channel function, so I just inlined this.
+    g_chm->home_channel_spec = channel_spec;
+    chm_set_current_channel(&channel_spec);
+    ets_timer_setfn(&g_chm->field33_0x24, timer_process, NULL);
+    ets_timer_setfn(&g_chm->field53_0x38, timer_process, (void*) 0x1);
 }
 
 void wifi_hw_start_openmac(wifi_mode_t mode) {
