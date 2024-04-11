@@ -29,9 +29,6 @@ inline uint32_t read_register(uint32_t address) {
 	return *((volatile uint32_t*) address);
 }
 
-#define _MMIO_DWORD(mem_addr) (*(volatile uint32_t *)(mem_addr))
-#define _MMIO_ADDR(mem_addr) ((volatile uint32_t*)(mem_addr))
-
 // there are 5 TX slots
 // format: _BASE addresses are the base addresses
 //         _OS amounts is the amount of 4-byte words in the offset between slots

@@ -25,32 +25,46 @@ typedef struct openmac_netif_driver {
 static bool receive_task_is_running = true;
 static esp_netif_t *netif_openmac = NULL;
 
-static uint8_t to_ap_auth_frame[] = {
-    0xb0, 0x00, 0x00, 0x00,
-    0x4e, 0xed, 0xfb, 0x35, 0x22, 0xa8, // receiver addr
-    0x00, 0x23, 0x45, 0x67, 0x89, 0xab, // transmitter addr
-    0x4e, 0xed, 0xfb, 0x35, 0x22, 0xa8, // bssid
+static const char* ssid = "meshtest";
+static const uint8_t ap_address[6] = {
+    //0x28, 0xcd, 0xc1, 0x0d, 0x7f, 0x75
+    0x4E, 0xED, 0xFB, 0x35, 0x22, 0xA8
+};
+
+uint8_t to_ap_auth_frame[] = {
+    0xb0, 0x00, 
+    0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // receiver addr
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // transmitter addr
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // bssid
     0x00, 0x00, // sequence control
     0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
     0, 0, 0, 0 /*FCS*/};
 
-static uint8_t to_ap_assoc_frame[] = {
-    0x00, 0x00, 0x00, 0x00,
-    0x4e, 0xed, 0xfb, 0x35, 0x22, 0xa8, // receiver addr
-    0x00, 0x23, 0x45, 0x67, 0x89, 0xab, // transmitter addr
-    0x4e, 0xed, 0xfb, 0x35, 0x22, 0xa8, // bssid
+uint8_t to_ap_assoc_frame_template[] = {
+    0x00, 0x00, 
+    0x00, 0x00,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // receiver addr
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // transmitter addr
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // bssid
     0x00, 0x00, // sequence control
     0x11, 0x00, 0x0a, 0x00, // Fixed parameters
-    0x00, 0x08, 0x6d, 0x65, 0x73, 0x68, 0x74, 0x65, 0x73, 0x74, // SSID
-    0x01, 0x08, 0x0c, 0x12, 0x18, 0x24, 0x30, 0x48, 0x60, 0x6c,  // Supported rates
-    0, 0, 0, 0 /*FCS*/};
+    // SSID
+    // supported rates
+    // 4 bytes FCS
+    };
 
-static const uint8_t data_frame_template[] = {
+uint8_t supported_rates[] = {0x01, 0x08, 0x0c, 0x12, 0x18, 0x24, 0x30, 0x48, 0x60, 0x6c};  // Supported rates}
+
+uint8_t to_ap_assoc_frame[sizeof(to_ap_assoc_frame_template) + 34 /*2 bytes + 32 byte SSID*/ + sizeof(supported_rates) + 4] = {0};
+size_t to_ap_assoc_frame_size = 0;
+
+uint8_t data_frame_template[] = {
     0x08, 0x01, // frame control
     0x00, 0x00, // duration/ID
-    0x4e, 0xed, 0xfb, 0x35, 0x22, 0xa8, // receiver addr
-    0x00, 0x23, 0x45, 0x67, 0x89, 0xab, // transmitter
-    0x84, 0x2b, 0x2b, 0x4f, 0x89, 0x4f, // destination
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // receiver addr
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // transmitter addr
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // bssid
     0x00, 0x00, // sequence control
     0xaa, 0xaa, // SNAP
     0x03, 0x00, 0x00, 0x00, // other LLC headers
@@ -98,8 +112,44 @@ void open_mac_tx_func_callback(tx_func* t) {
     tx = t;
 }
 
+void set_addresses(uint8_t* frame, const uint8_t* ra, const uint8_t* ta, const uint8_t* bssid) {
+    // set receiver address
+    memcpy(&frame[4], ra, 6);
+    // set transmitter address
+    memcpy(&frame[10], ta, 6);
+    // set bssid
+    memcpy(&frame[16], bssid, 6);
+}
+
+void build_frames() {
+    set_addresses(to_ap_auth_frame, ap_address, module_mac_addr, ap_address);
+    memcpy(to_ap_assoc_frame, to_ap_assoc_frame_template, sizeof(to_ap_assoc_frame_template));
+    // set SSID
+    size_t idx = sizeof(to_ap_assoc_frame_template);
+
+    to_ap_assoc_frame[idx++] = 0x00; // SSID
+    size_t ssid_len = strlen(ssid);
+    if (ssid_len > 32) {
+        ESP_LOGE(TAG, "Length of SSID %d>32", (int)ssid_len);
+        ssid_len = 32;
+    }
+    to_ap_assoc_frame[idx++] = ssid_len & 0xff;
+    memcpy(&to_ap_assoc_frame[idx], ssid, ssid_len);
+    idx += ssid_len;
+    memcpy(&to_ap_assoc_frame[idx], supported_rates, sizeof(supported_rates));
+    idx += sizeof(supported_rates);
+    idx += 4; // FCS, value does not matter
+    to_ap_assoc_frame_size = idx;
+
+    set_addresses(to_ap_assoc_frame, ap_address, module_mac_addr, ap_address);
+    set_addresses(data_frame_template, ap_address, module_mac_addr, ap_address);
+}
+
 void mac_task(void* pvParameters) {
     ESP_LOGI(TAG, "Starting mac_task, running on %d", xPortGetCoreID());
+
+    build_frames();
+    ESP_LOGI(TAG, "Built frames, with SSID %s and AP address: %#02x:%#02x:%#02x:%#02x:%#02x:%#02x", ssid, ap_address[0], ap_address[1], ap_address[2], ap_address[3], ap_address[4], ap_address[5]);
 
     reception_queue = xQueueCreate(10, sizeof(wifi_promiscuous_pkt_t*));
     assert(reception_queue);
@@ -188,8 +238,8 @@ void mac_task(void* pvParameters) {
             free(packet);
         }
         
-        // // don't transmit too fast
-        // if (esp_timer_get_time() - last_transmission_us < 1000*1000) continue;
+        // don't transmit too fast
+        if (esp_timer_get_time() - last_transmission_us < 100*1000) continue;
 
         // don't transmit if we don't know how to
         if (!tx) {
@@ -205,7 +255,7 @@ void mac_task(void* pvParameters) {
             break;
         case AUTHENTICATED:
             ESP_LOGI(TAG, "Sending association request frame!");
-            tx(to_ap_assoc_frame, sizeof(to_ap_assoc_frame));
+            tx(to_ap_assoc_frame, to_ap_assoc_frame_size);
             break;
         case ASSOCIATED:
             // ESP_LOGI(TAG, "No need to send anything anymore");
