@@ -132,6 +132,8 @@ tx_hardware_slot_t tx_slots[TX_SLOT_CNT] = {0};
 
 uint32_t seqnum = 0;
 
+uint32_t esp_dport_access_reg_read(void* address);
+
 void log_dma_item(dma_list_item* item) {
 	ESP_LOGD("dma_item", "cur=%p owner=%d has_data=%d length=%d size=%d packet=%p next=%p", item, item->owner, item->has_data, item->length, item->size, item->packet, item->next);
 }
@@ -213,6 +215,28 @@ static void processTxComplete() {
 	}
 }
 
+char hal_mac_rx_get_end_state_openmac() {
+	return (char)_MMIO_DWORD(0x3ff730a4);
+}
+uint32_t bb_wdt_get_status_openmac() {
+	return esp_dport_access_reg_read((void *)0x3ff5d008);
+}
+void bb_wdt_timeout_clear_openmac() {
+	_MMIO_DWORD(0x3ff5d040) = esp_dport_access_reg_read((void * )0x3ff5d040) | 0x20000000;
+}
+void hal_mac_interrupt_clr_watchdog_openmac() {
+	_MMIO_DWORD(0x3ff73c4c) |= 0x880;
+}
+void wdev_process_panic_watchdog_openmac() {
+	char rx_end_state = hal_mac_rx_get_end_state_openmac();
+	char wdt_status = bb_wdt_get_status_openmac();
+	if (((wdt_status & 0x20000000) == 0x0) && ((wdt_status & 0xf0) == 0x20) && (rx_end_state == 0x64)) {
+		_MMIO_DWORD(0x3ff00024) &= ~0x1;
+	}
+	bb_wdt_timeout_clear_openmac();
+	hal_mac_interrupt_clr_watchdog_openmac();
+}
+
 void IRAM_ATTR wifi_interrupt_handler(void* args) {
 	interrupt_count++;
 	uint32_t cause = WIFI_DMA_INT_STATUS;
@@ -222,8 +246,7 @@ void IRAM_ATTR wifi_interrupt_handler(void* args) {
 	WIFI_DMA_INT_CLR = cause;
 
 	if (cause & 0x800) {
-		// TODO handle this with open-source code
-		// wdev_process_panic_watchdog() is the closed-source way to recover from this
+		wdev_process_panic_watchdog_openmac();
 	}
 	volatile bool tmp = false;
 	if (xSemaphoreTakeFromISR(rx_queue_resources, &tmp)) {
