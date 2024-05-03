@@ -2,7 +2,6 @@
 
 #include "esp_system.h"
 #include "esp_event.h"
-#include "esp_wifi.h"
 #include "esp_log.h"
 #include "esp_timer.h"
 
@@ -15,6 +14,7 @@
 
 #include "proprietary.h" // contains all symbols from the binary blobs we still need
 #include "hardware.h"
+#include "hwinit.h"
 
 #define RX_BUFFER_AMOUNT 10
 
@@ -28,9 +28,6 @@ inline void write_register(uint32_t address, uint32_t value) {
 inline uint32_t read_register(uint32_t address) {
 	return *((volatile uint32_t*) address);
 }
-
-#define _MMIO_DWORD(mem_addr) (*(volatile uint32_t *)(mem_addr))
-#define _MMIO_ADDR(mem_addr) ((volatile uint32_t*)(mem_addr))
 
 // there are 5 TX slots
 // format: _BASE addresses are the base addresses
@@ -389,14 +386,6 @@ static void set_mac_addr_filter(uint8_t slot, uint8_t* addr) {
 
 
 void wifi_hardware_task(hardware_mac_args* pvParameter) {
-	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-	cfg.static_rx_buf_num = 2; // we won't use these buffers, so reduce the amount from default 10, so we don't waste as much memory
-	// Disable AMPDU and AMSDU for now, we don't support this (yet)
-	cfg.ampdu_rx_enable = false;
-	cfg.ampdu_tx_enable = false;
-	cfg.amsdu_tx_enable = false;
-	cfg.nvs_enable = false;
-
 	// Print MAC addresses
 	for (int i = 0; i < 2; i++) {
 		uint8_t mac[6] = {0};
@@ -412,31 +401,7 @@ void wifi_hardware_task(hardware_mac_args* pvParameter) {
 	tx_queue_resources = xSemaphoreCreateCounting(10, 10);
 	assert(tx_queue_resources);
 
-	ESP_LOGW(TAG, "calling esp_wifi_init");
-	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-	ESP_LOGW(TAG, "done esp_wifi_init");
-
-	ESP_LOGW(TAG, "Starting wifi_hardware task, running on %d", xPortGetCoreID());
-	ESP_LOGW(TAG, "calling esp_wifi_set_mode");
-	ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-	ESP_LOGW(TAG, "done esp_wifi_set_mode");
-
-	ESP_LOGW(TAG, "calling esp_wifi_start");
-	ESP_ERROR_CHECK(esp_wifi_start());
-	ESP_LOGW(TAG, "done esp_wifi_start");
-
-	static uint8_t initframe[] = {
-		0x08, 0x01, 0x00, 0x00, // data frame
-		0x4e, 0xed, 0xfb, 0x35, 0x22, 0xa8, // receiver addr
-		0x00, 0x23, 0x45, 0x67, 0x89, 0xab, // transmitter
-		0x84, 0x2b, 0x2b, 0x4f, 0x89, 0x4f, // destination
-		0x00, 0x00, // sequence control
-		0xff, 0x00, 0x00, 0x00, // IEEE 802.2
-		'i', 'n', 'i', 't', 'f', 'r', 'a', 'm', 'e'
-	};
-
-	// Send a packet, to make sure the proprietary stack has fully initialized all hardware
-	ESP_ERROR_CHECK_WITHOUT_ABORT(esp_wifi_80211_tx(WIFI_IF_STA, initframe, sizeof(initframe), true));
+	hwinit();
 
 	// From here, we start taking over the hardware; no more proprietary code is executed from now on
 	setup_interrupt();
