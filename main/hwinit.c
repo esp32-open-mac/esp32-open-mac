@@ -41,6 +41,7 @@ void esp_phy_common_clock_enable();
 void esp_phy_load_cal_and_init();
 // End of open source symbols
 
+// [[openmac-coverage:implemented]]
 void wifi_station_start_openmac() {
     // this does hal_enable_sta_tsf and ic_set_vif; which we already handle in open code
 } 
@@ -50,6 +51,8 @@ void acquire_lock() {
 void release_lock() {
     mutex_unlock_wraper(g_wifi_global_lock);
 }
+
+// [[openmac-coverage:implemented]]
 esp_err_t _do_wifi_start_openmac(wifi_mode_t mode) {
     wifi_station_start_openmac();
     return ESP_OK;
@@ -86,6 +89,7 @@ void esp_phy_enable_openmac() {
     coex_bt_high_prio();
 }
 
+// [[openmac-coverage:implemented]]
 void ic_mac_init_openmac() {
     // taken from libpp/hal_mac.o hal_mac_init
     IC_MAC_INIT_REGISTER &= 0xffffe800;
