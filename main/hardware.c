@@ -181,9 +181,17 @@ bool transmit_packet(uint8_t* tx_buffer, uint32_t buffer_len) {
 	WIFI_TX_CONFIG_BASE[WIFI_TX_CONFIG_OS*slot] = WIFI_TX_CONFIG_BASE[WIFI_TX_CONFIG_OS * slot] | 0xa;
 
 	MAC_TX_PLCP0_BASE[MAC_TX_PLCP0_OS*slot] = (((uint32_t)(tx_item)) & 0xfffff) | (0x00600000);
-	MAC_TX_PLCP1_BASE[MAC_TX_PLCP1_OS*slot] = 0x10000000 | buffer_len;
+	uint32_t rate = WIFI_PHY_RATE_54M; // see wifi_phy_rate_t
+	uint32_t is_n_enabled = (rate >= 16);
+
+	MAC_TX_PLCP1_BASE[MAC_TX_PLCP1_OS*slot] = 0x10000000 | (buffer_len & 0xfff) | ((rate & 0x1f) << 12) | ((is_n_enabled & 0b1) << 25);
 	MAC_TX_PLCP2_BASE[MAC_TX_PLCP2_OS*slot] = 0x00000020;
 	MAC_TX_DURATION_BASE[MAC_TX_DURATION_OS*slot] = 0;
+
+	if (is_n_enabled) {
+		ESP_LOGE(TAG, "we don't support 802.11n yet; see mac_tx_set_htsig in binary blob"); //  TODO
+		abort();
+	}
 
 	WIFI_TX_CONFIG_BASE[WIFI_TX_CONFIG_OS*slot] |= 0x02000000;
 	WIFI_TX_CONFIG_BASE[WIFI_TX_CONFIG_OS*slot] |= 0x00003000;
