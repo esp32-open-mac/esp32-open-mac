@@ -1,0 +1,62 @@
+_svd: "../svd/svd/esp32-parsed.svd"
+
+# This is a patch against the SVD provided by Espressif
+# Patchfile for use with https://github.com/rust-embedded/svdtools
+# Expects the svd repo to be cloned in the directory next to this repo
+
+_add:
+    WIFI_MAC:
+        description: MAC controller for Wi-Fi peripheral
+        groupName: WIFI_MAC
+        baseAddress: 0x3ff73000
+        addressBlock:
+            offset: 0x0
+            size: 0x2000
+            usage: "registers"
+        registers:
+            PLCP0:
+                description: PLCP0
+                addressOffset: 0x0d20
+                access: read-write
+                # resetValue: 0x00000000
+                fields:
+                    DMA_ADDR:
+                        description: Bottom bits of address of dma_item
+                        bitOffset: 0
+                        bitWidth: 20
+            PLCP1:
+                description: PLCP1
+                addressOffset: 0x1258
+                access: read-write
+                # resetValue: 0x00000000
+                fields:
+                    LEN:
+                        description: Length of packet (in bytes)
+                        bitOffset: 0
+                        bitWidth: 12
+                    RATE:
+                        description: Packet rate (see wifi_phy_rate_t)
+                        bitOffset: 12
+                        bitWidth: 5
+                    IS_80211_N:
+                        description: Bit indicating if this is 802.11n
+                        bitOffset: 25
+                        bitWidth: 1
+            PLCP2:
+                description: PLCP2
+                addressOffset: 0x125c
+                access: read-write
+                # resetValue: 0x00000000
+            DURATION:
+                description: duration?
+                addressOffset: 0x1268
+                access: read-write
+            # TODO duplicate the above registers x5, for all 5 transmit slots
+            WIFI_INT_STATUS:
+                description: Interrupt status of WIFI peripheral
+                addressOffset: 0x1c48
+                access: read
+            WIFI_INT_CLEAR:
+                description: Interrupt status clear of WIFI peripheral
+                addressOffset: 0x1c4c
+                access: write
