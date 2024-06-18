@@ -129,6 +129,23 @@ tx_hardware_slot_t tx_slots[TX_SLOT_CNT] = {0};
 
 uint32_t seqnum = 0;
 
+extern uint32_t esp_dport_access_reg_read(uint32_t);
+
+// [[openmac-coverage:implemented]]
+void enabled_wifi_agc_openmac() {
+	write_register(0x3ff5c080, esp_dport_access_reg_read(0x3ff5c080) & ~(0x1));
+	write_register(0x3ff5c030, (esp_dport_access_reg_read(0x3ff5c030) & 0xffffffcf) | 0x10);
+	write_register(0x3ff5c01c, (esp_dport_access_reg_read(0x3ff5c01c) & 0xff00ffff) | 0xc0000);
+	write_register(0x3ff5c038, esp_dport_access_reg_read(0x3ff5c038) & 0x4000000);
+}
+// [[openmac-coverage:implemented]]
+void disable_wifi_agc_openmac() {
+	write_register(0x3ff5c01c, (esp_dport_access_reg_read(0x3ff5c01c) & 0xff00ffff) | 0x7f0000);
+	write_register(0x3ff5c038, esp_dport_access_reg_read(0x3ff5c038) & 0x4000000);
+	write_register(0x3ff5c030, esp_dport_access_reg_read(0x3ff5c030) & 0xffffffcf);
+	write_register(0x3ff5c080, esp_dport_access_reg_read(0x3ff5c080) & 0x1);
+}
+
 void log_dma_item(dma_list_item* item) {
 	ESP_LOGD("dma_item", "cur=%p owner=%d has_data=%d length=%d size=%d packet=%p next=%p", item, item->owner, item->has_data, item->length, item->size, item->packet, item->next);
 }
