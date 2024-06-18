@@ -41,10 +41,6 @@ void esp_phy_common_clock_enable();
 void esp_phy_load_cal_and_init();
 // End of open source symbols
 
-// [[openmac-coverage:implemented]]
-void wifi_station_start_openmac() {
-    // this does hal_enable_sta_tsf and ic_set_vif; which we already handle in open code
-} 
 void acquire_lock() {
     mutex_lock_wraper(g_wifi_global_lock);
 }
@@ -52,11 +48,6 @@ void release_lock() {
     mutex_unlock_wraper(g_wifi_global_lock);
 }
 
-// [[openmac-coverage:implemented]]
-esp_err_t _do_wifi_start_openmac(wifi_mode_t mode) {
-    wifi_station_start_openmac();
-    return ESP_OK;
-}
 void esp_wifi_internal_update_mac_time_openmac(uint32_t diff) {
     g_wifi_mac_time_delta += diff;
 }
@@ -105,7 +96,7 @@ void timer_process(void* unknown) {
     ieee80211_timer_process(0x7, 0x8, unknown);
 }
 void chm_init_openmac(void* ic) {
-    // The only refrence to this is upon init.
+    // The only reference to this is upon init.
     g_chm->field76_0x4f = 0xe;
 
     for (int channel = 0; channel < 14; channel++) {
@@ -149,6 +140,16 @@ void wifi_hw_start_openmac(wifi_mode_t mode) {
     pm_noise_check_enable();
 }
 
+// [[openmac-coverage:implemented]]
+void wifi_station_start_openmac() {
+    // this does hal_enable_sta_tsf and ic_set_vif; which we already handle in open code
+} 
+
+// [[openmac-coverage:implemented]]
+esp_err_t _do_wifi_start_openmac(wifi_mode_t mode) {
+    wifi_station_start_openmac();
+    return ESP_OK;
+}
 void wifi_start_process_openmac() {
 	ESP_ERROR_CHECK(adc2_wifi_acquire());
     wifi_hw_start_openmac(0);
