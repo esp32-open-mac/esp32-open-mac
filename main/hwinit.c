@@ -2,7 +2,7 @@
 #include "esp_log.h"
 #include "esp_phy_init.h"
 #include "hardware.h"
-#include "chm.h"
+#include "ghidra-exports.h"
 
 static const char* TAG = "hwinit";
 

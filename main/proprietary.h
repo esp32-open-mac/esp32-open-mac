@@ -1,8 +1,9 @@
 #pragma once
 #include <stdint.h>
+#include "ghidra-exports.h"
 
 // All extern function shown here are symbols in the binary blobs
-extern bool pp_post(uint32_t requestnum, uint32_t argument);
+extern bool pp_post(pp_signal requestnum, void* argument);
 
 // Interrupt-related functions
 extern void xt_unhandled_interrupt(void * arg);

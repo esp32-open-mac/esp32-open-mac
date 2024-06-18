@@ -18,11 +18,6 @@ typedef unsigned long long    undefined7;
 typedef unsigned long long    undefined8;
 typedef unsigned short    ushort;
 typedef unsigned short    word;
-typedef struct chm chm, *Pchm;
-
-typedef struct channel_specification channel_specification, *PChannelSpecification;
-
-typedef struct channel_information channel_information, *PChannelInformation;
 
 typedef enum channel_width {
     HT20=0,
@@ -30,7 +25,7 @@ typedef enum channel_width {
     HT40U=2
 } channel_width;
 
-struct channel_information {
+typedef struct channel_information {
     char channel_number;
     undefined field1_0x1;
     ushort freq_mhz;
@@ -39,14 +34,14 @@ struct channel_information {
     undefined field5_0x6;
     undefined field6_0x7;
     uint _flags;
-};
+} channel_information;
 
-struct channel_specification {
+typedef struct channel_specification {
     byte channel;
-    enum channel_width channel_bandwidth;
-};
+    channel_width channel_bandwidth;
+} channel_specification;
 
-struct chm {
+typedef struct chm {
     undefined *ic;
     undefined field1_0x4;
     undefined field2_0x5;
@@ -130,5 +125,29 @@ struct chm {
     undefined field80_0xfc;
     undefined field81_0xfd;
     undefined field82_0xfe;
-};
+} chm;
+
+typedef enum pp_signal {
+    PP_PROCESS_TX_QUEUE=3,
+    PP_TRANSMIT=5,
+    PP_IOCTL=6,
+    PP_IEEE80211_TIMER=7,
+    PP_TIMER=8,
+    PP_PROCESS_RX_PKT_HDR=13,
+    PP_WIFI_ASSERT=14,
+    PP_TASK_KILL=15,
+    PP_PROCESS_TX_DONE=16,
+    PP_RX_PKT=17,
+    PP_RESORT_TX_AMPDU=18,
+    PP_LMAC_PROCESS_TX_TIMEOUT=22,
+    PP_LMAC_PROCESS_TX_COMPLETE=23,
+    PP_LMAC_PROCESS_COLLISIONS_TASK=24,
+    PP_WDEV_PROCESS_RX_SUCCESS_DATA_ALL=25,
+    PP_WDEV_PROCESS_MISC_PKT=26
+} pp_signal;
+
+typedef struct pp_signal_struct {
+    enum pp_signal signal;
+    void *data;
+} pp_signal_struct;
 

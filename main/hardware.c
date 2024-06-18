@@ -435,7 +435,7 @@ void wifi_hardware_task(hardware_mac_args* pvParameter) {
 	// It reads from a queue that the proprietary WMAC interrupt handler writes to
 	// We kill it to make sure that no proprietary code is running anymore
 	ESP_LOGW(TAG, "Killing proprietary wifi task (ppTask)");
-	pp_post(0xf, 0);
+	pp_post(PP_TASK_KILL, 0);
 
 	setup_rx_chain();
 
