@@ -10,6 +10,8 @@
 #include "hardware.h"
 #include "mac.h"
 
+#include "80211_mac_rust.h"
+
 #ifndef CONFIG_IDF_TARGET_ESP32
 #error "This uses low-level hardware peripherals and hardcoded addresses, it is only tested on the plain ESP32 for now"
 #endif
@@ -24,6 +26,7 @@ hardware_mac_args open_hw_args = {
 };
 
 void app_main(void) {
+    ESP_LOGE("main", "%s\n", hello());
 	const char* actual_version_string = get_phy_version_str();
 	const char* expected_version_string = "4670,719f9f6,Feb 18 2021,17:07:07";
 	if (strcmp(expected_version_string, actual_version_string) != 0) {
