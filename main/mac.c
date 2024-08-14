@@ -228,8 +228,11 @@ void mac_task(void* pvParameters) {
                     // TODO: is it useful to populate eb?
                     ESP_LOGI("netif-rx", "Received packet dest= "MACSTR" from= "MACSTR".", MAC2STR(netif_frame), MAC2STR(&netif_frame[6]));
 
-
+                    ESP_LOGE(TAG, "RX begin");
+                    uint64_t begin = esp_timer_get_time();
                     esp_netif_receive(netif_openmac, netif_frame, netif_frame_size, NULL);
+                    uint64_t end = esp_timer_get_time();
+                    ESP_LOGE(TAG, "RX time: %d", (int) (end - begin));
                 }
                 break;
             default:
@@ -247,22 +250,24 @@ void mac_task(void* pvParameters) {
             continue;
         };
 
-        switch (sta_state)
-        {
-        case IDLE:
-            ESP_LOGI(TAG, "Sending authentication frame!");
-            tx(to_ap_auth_frame, sizeof(to_ap_auth_frame));
-            break;
-        case AUTHENTICATED:
-            ESP_LOGI(TAG, "Sending association request frame!");
-            tx(to_ap_assoc_frame, to_ap_assoc_frame_size);
-            break;
-        case ASSOCIATED:
-            // ESP_LOGI(TAG, "No need to send anything anymore");
-            break;
-        default:
-            break;
-        }
+        ESP_LOGI(TAG, "doing nothing from original mac task");
+
+        // switch (sta_state)
+        // {
+        // case IDLE:
+        //     ESP_LOGI(TAG, "Sending authentication frame!");
+        //     // tx(to_ap_auth_frame, sizeof(to_ap_auth_frame));
+        //     break;
+        // case AUTHENTICATED:
+        //     ESP_LOGI(TAG, "Sending association request frame!");
+        //     // tx(to_ap_assoc_frame, to_ap_assoc_frame_size);
+        //     break;
+        // case ASSOCIATED:
+        //     // ESP_LOGI(TAG, "No need to send anything anymore");
+        //     break;
+        // default:
+        //     break;
+        // }
         last_transmission_us = esp_timer_get_time();
     }
 }
@@ -297,7 +302,7 @@ static esp_err_t openmac_netif_transmit(void *h, void *buffer, size_t len)
     // ESP_LOGI("netif-tx", "transformed packet");
     // ESP_LOG_BUFFER_HEXDUMP("netif-tx", wifi_data_frame, wifi_packet_size, ESP_LOG_INFO);
 
-    tx(wifi_data_frame, wifi_packet_size);
+    // tx(wifi_data_frame, wifi_packet_size);
     free(wifi_data_frame);
 
     return ESP_OK;

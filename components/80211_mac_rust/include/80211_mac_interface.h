@@ -10,7 +10,8 @@ typedef enum {
 
 typedef struct {
     uint8_t* payload;
-    size_t payload_length;
+    size_t payload_length; // modifiable, contains the amount of valid data in payload
+    size_t payload_size; // not modifiable, contains at all times the actual length of payload buffer
     uint32_t rate;
 } rs_smart_frame_t; // has a frame, and the metadata (rate, length, ...)
 
@@ -25,3 +26,14 @@ void rs_tx_smart_frame(rs_smart_frame_t* frame);
 
 /*Called from the Rust MAC stack, to pass a data frame to the MAC stack. Expects the frame to be in Ethernet format*/
 void rs_rx_mac_frame(uint8_t* frame, size_t len);
+
+/*
+  Called from the hardware stack to recycle a smart frame after it was sent
+*/
+void c_recycle_tx_smart_frame(rs_smart_frame_t* frame);
+
+/*Called from the the IP stack, to hand an RX frame back*/
+void c_recycle_rx_frame(uint8_t* frame);
+
+void rust_mac_task();
+void c_mac_task();

@@ -26,8 +26,13 @@ fn run_bindgen(target: &str, out_dir: &Path) {
             builder = builder.clang_arg("--target=xtensa-esp32-none-elf");
             builder = builder.use_core();
         }
+        "x86_64-unknown-linux-gnu" => {
+            // TODO check if this is what we actually want
+            builder = builder.use_core();
+            builder = builder.clang_arg("--target=x86_64-unknown-linux-gnu");
+        }
         _ => {
-            panic!("Unexpect target archtitecture: {}", &target);
+            panic!("Unexpect target arch: {}", &target);
         }
     }
 

@@ -10,7 +10,7 @@
 #include "hardware.h"
 #include "mac.h"
 
-#include "80211_mac_rust.h"
+#include "80211_mac_interface.h"
 
 static const char* TAG = "main";
 
@@ -28,7 +28,6 @@ hardware_mac_args open_hw_args = {
 };
 
 void app_main(void) {
-    ESP_LOGE(TAG, "%s\n", hello());
 	const char* actual_version_string = get_phy_version_str();
 	const char* expected_version_string = "4670,719f9f6,Feb 18 2021,17:07:07";
 	if (strcmp(expected_version_string, actual_version_string) != 0) {
@@ -40,5 +39,7 @@ void app_main(void) {
 	// Low priority numbers denote low priority tasks.
 	xTaskCreatePinnedToCore(&mac_task,           "open_mac",      4096, NULL,          /*prio*/ 23, NULL, /*core*/ 1);
 	xTaskCreatePinnedToCore(&wifi_hardware_task, "wifi_hardware", 4096, &open_hw_args, /*prio*/ 23, NULL, /*core*/ 0);
+	
+	xTaskCreatePinnedToCore(&c_mac_task, "rs_wifi", 4096, NULL, 23, NULL, 1);
 	openmac_netif_start();
 }

@@ -16,6 +16,8 @@
 #include "hardware.h"
 #include "hwinit.h"
 
+#include "80211_mac_interface.h"
+
 #define RX_BUFFER_AMOUNT 10
 
 static const char* TAG = "hardware.c";
@@ -119,13 +121,13 @@ volatile int interrupt_count = 0;
 typedef struct {
 	// dma_list_item must be 4-byte aligned (it's passed to hardware that only takes those addresses)
 	struct {} __attribute__ ((aligned (4)));
-	dma_list_item dma; 
+	dma_list_item dma;
 	
-	tx_queue_entry_t packet;
+	rs_smart_frame_t* frame;
 	bool in_use;
 } tx_hardware_slot_t;
 
-tx_hardware_slot_t tx_slots[TX_SLOT_CNT] = {0};
+tx_hardware_slot_t tx_slots[TX_SLOT_CNT] = {};
 
 uint32_t seqnum = 0;
 
@@ -133,11 +135,8 @@ void log_dma_item(dma_list_item* item) {
 	ESP_LOGD("dma_item", "cur=%p owner=%d has_data=%d length=%d size=%d packet=%p next=%p", item, item->owner, item->has_data, item->length, item->size, item->packet, item->next);
 }
 
-// dma_list_item tx_item_u;
-// dma_list_item* tx_item = &tx_item_u;
 
-
-bool transmit_packet(uint8_t* tx_buffer, uint32_t buffer_len) {
+bool transmit_80211_frame(rs_smart_frame_t* frame) {
 	uint32_t slot = 0;
 
 	// Find the first free TX slot
@@ -156,35 +155,37 @@ bool transmit_packet(uint8_t* tx_buffer, uint32_t buffer_len) {
 	// dma_list_item must be 4-byte aligned (it's passed to hardware that only takes those addresses)
 	assert(((uint32_t)(tx_item) & 0b11) == 0);
 
+	// TODO maybe take a mutex over the TX slots here?
 	tx_slots[slot].in_use = true;
-	tx_slots[slot].packet.packet = tx_buffer;
-	tx_slots[slot].packet.len = buffer_len;
+	tx_slots[slot].frame = frame;
 
-	uint32_t size_len = buffer_len + 32;
+	uint32_t size_len = frame->payload_length + 32;
 
 	// Set & update sequence number
-	tx_slots[slot].packet.packet[22] = (seqnum & 0x0f) << 4;
-	tx_slots[slot].packet.packet[23] = (seqnum & 0xff0) >> 4;
+	// TODO remove this code
+	frame->payload[22] = (seqnum & 0x0f) << 4;
+	frame->payload[23] = (seqnum & 0xff0) >> 4;
 	seqnum++;
 	if (seqnum > 0xfff) seqnum = 0;
 
-	ESP_LOGI(TAG, "len=%d",(int) buffer_len);
-	ESP_LOG_BUFFER_HEXDUMP("to-transmit", tx_slots[slot].packet.packet, buffer_len, ESP_LOG_INFO);
+	ESP_LOGI(TAG, "len=%d",(int) frame->payload_length);
+	ESP_LOG_BUFFER_HEXDUMP("to-transmit", frame->payload, frame->payload_length, ESP_LOG_INFO);
 
 	tx_item->owner = 1;
 	tx_item->has_data = 1;
-	tx_item->length = buffer_len;
+	tx_item->length = frame->payload_length;
 	tx_item->size = size_len;
-	tx_item->packet = tx_buffer;
+	tx_item->packet = frame->payload;
 	tx_item->next = NULL;
 
 	WIFI_TX_CONFIG_BASE[WIFI_TX_CONFIG_OS*slot] = WIFI_TX_CONFIG_BASE[WIFI_TX_CONFIG_OS * slot] | 0xa;
 
 	MAC_TX_PLCP0_BASE[MAC_TX_PLCP0_OS*slot] = (((uint32_t)(tx_item)) & 0xfffff) | (0x00600000);
-	uint32_t rate = WIFI_PHY_RATE_54M; // see wifi_phy_rate_t
+	// uint32_t rate = WIFI_PHY_RATE_54M; // see wifi_phy_rate_t TODO
+	uint32_t rate = frame->rate;
 	uint32_t is_n_enabled = (rate >= 16);
 
-	MAC_TX_PLCP1_BASE[MAC_TX_PLCP1_OS*slot] = 0x10000000 | (buffer_len & 0xfff) | ((rate & 0x1f) << 12) | ((is_n_enabled & 0b1) << 25);
+	MAC_TX_PLCP1_BASE[MAC_TX_PLCP1_OS*slot] = 0x10000000 | (frame->payload_length & 0xfff) | ((rate & 0x1f) << 12) | ((is_n_enabled & 0b1) << 25);
 	MAC_TX_PLCP2_BASE[MAC_TX_PLCP2_OS*slot] = 0x00000020;
 	MAC_TX_DURATION_BASE[MAC_TX_DURATION_OS*slot] = 0;
 
@@ -201,6 +202,10 @@ bool transmit_packet(uint8_t* tx_buffer, uint32_t buffer_len) {
 	return true;
 }
 
+// TODO if we try to TX packets before taking over, we don't get the interrupt and
+//      forever consider that slot as occupied; so we need to:
+// - make sure we only start transmitting after everything is initialized
+// - find a way to recover from not getting an interrupt
 static void processTxComplete() {
 	uint32_t txq_state_complete = WIFI_TXQ_GET_STATE_COMPLETE;
 	ESP_LOGW(TAG, "tx complete = %lx", txq_state_complete);
@@ -212,9 +217,10 @@ static void processTxComplete() {
 	uint32_t clear_mask = 1 << slot;
 	WIFI_TXQ_CLR_STATE_COMPLETE |= clear_mask;
 	if (slot < TX_SLOT_CNT) {
+		// TODO maybe take a mutex over the TX slots here?
+		c_recycle_tx_smart_frame(tx_slots[slot].frame);
 		tx_slots[slot].in_use = false;
-		free(tx_slots[slot].packet.packet);
-		tx_slots[slot].packet.packet = NULL;
+		tx_slots[slot].frame = NULL;
 	}
 }
 
@@ -230,12 +236,15 @@ void IRAM_ATTR wifi_interrupt_handler(void* args) {
 		// TODO handle this with open-source code
 		// wdev_process_panic_watchdog() is the closed-source way to recover from this
 	}
-	volatile bool tmp = false;
-	if (xSemaphoreTakeFromISR(rx_queue_resources, &tmp)) {
+	if (xSemaphoreTakeFromISR(rx_queue_resources, NULL)) {
 		hardware_queue_entry_t queue_entry;
 		queue_entry.type = RX_ENTRY;
 		queue_entry.content.rx.interrupt_received = cause;
-		xQueueSendFromISR(hardware_event_queue, &queue_entry, NULL);
+		bool higher_prio_task_woken = false;
+		xQueueSendFromISR(hardware_event_queue, &queue_entry, &higher_prio_task_woken);
+		if (higher_prio_task_woken) {
+			portYIELD_FROM_ISR();
+		}
 	}
 }
 
@@ -465,7 +474,6 @@ void wifi_hardware_task(hardware_mac_args* pvParameter) {
 			} else if (queue_entry.type == TX_ENTRY) {
 				ESP_LOGI(TAG, "TX from queue");
 				// TODO: implement retry
-				transmit_packet(queue_entry.content.tx.packet, queue_entry.content.tx.len);
 				xSemaphoreGive(tx_queue_resources);
 			} else {
 				ESP_LOGI(TAG, "unknown queue type");
