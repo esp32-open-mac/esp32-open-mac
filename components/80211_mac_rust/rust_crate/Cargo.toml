@@ -7,10 +7,10 @@ edition = "2021"
 crate-type = ["staticlib"]
 
 [dependencies]
-ieee80211 = { git = "https://github.com/Frostie314159/ieee80211-rs", rev = "12c49e46d74975cd9a71d95826d20047ae9628f0" }
+ieee80211 = "0.4.0"
 
 [features]
-default = [ ]
+default = []
 
 [build-dependencies]
 bindgen = "0.69.4"

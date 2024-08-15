@@ -247,8 +247,9 @@ dependencies = [
 
 [[package]]
 name = "ieee80211"
-version = "0.3.2"
-source = "git+https://github.com/Frostie314159/ieee80211-rs?rev=12c49e46d74975cd9a71d95826d20047ae9628f0#12c49e46d74975cd9a71d95826d20047ae9628f0"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d22cc6f84b6150f18096770f82099f5090ec4fa4312629dde6f4be9df41fd6f6"
 dependencies = [
  "bitfield-struct",
  "const_soft_float",
