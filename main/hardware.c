@@ -440,6 +440,9 @@ void wifi_hardware_task(hardware_mac_args* pvParameter) {
 
 	uint32_t first_part = read_register(WIFI_MAC_ADDR_SLOT_0 + 4);
 	ESP_LOGW(TAG, "addr_p = %lx %lx", first_part & 0xff, (first_part >> 8) & 0xff);
+
+	// We're ready now, start the MAC task
+	xTaskCreatePinnedToCore(&c_mac_task, "rs_wifi", 4096, NULL, 23, NULL, 1);
 	
 	while (true) {
 		hardware_queue_entry_t queue_entry;
