@@ -12,7 +12,7 @@ typedef struct hardware_mac_args {
     tx_func_callback* _tx_func_callback;
 } hardware_mac_args;
 
-void wifi_hardware_task(hardware_mac_args* pvParameter);
+void wifi_hardware_task(void* pvParameter);
 extern uint8_t module_mac_addr[6];
 
 #define _MMIO_DWORD(mem_addr) (*(volatile uint32_t *)(mem_addr))

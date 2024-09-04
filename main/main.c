@@ -20,11 +20,6 @@ static const char* TAG = "main";
 #error "This project currently still uses the proprietary wifi library for initialization, this was only tested with ESP-IDF v5.0.1"
 #endif
 
-hardware_mac_args open_hw_args = {
-	._rx_callback = open_mac_rx_callback,
-	._tx_func_callback = open_mac_tx_func_callback
-};
-
 void app_main(void) {
 	const char* actual_version_string = get_phy_version_str();
 	const char* expected_version_string = "4670,719f9f6,Feb 18 2021,17:07:07";
@@ -35,7 +30,6 @@ void app_main(void) {
 
 	esp_netif_init();
 	// Low priority numbers denote low priority tasks.
-	xTaskCreatePinnedToCore(&mac_task,           "open_mac",      4096, NULL,          /*prio*/ 23, NULL, /*core*/ 1);
-	xTaskCreatePinnedToCore(&wifi_hardware_task, "wifi_hardware", 4096, &open_hw_args, /*prio*/ 23, NULL, /*core*/ 0);
+	xTaskCreatePinnedToCore(&wifi_hardware_task, "wifi_hardware", 4096, NULL, /*prio*/ 23, NULL, /*core*/ 0);
 	openmac_netif_start();
 }

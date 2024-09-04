@@ -7,7 +7,8 @@ edition = "2021"
 crate-type = ["staticlib"]
 
 [dependencies]
-ieee80211 = "0.4.0"
+ieee80211 = "0.5.0"
+esp-println = { version = "0.9.1", features = ["esp32", "uart"], default-features = false }
 
 [features]
 default = []

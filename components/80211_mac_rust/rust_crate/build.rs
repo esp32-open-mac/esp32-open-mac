@@ -13,7 +13,7 @@ fn run_bindgen(target: &str, out_dir: &Path) {
     let out = out_dir.join("bindings.rs");
 
     let mut builder = bindgen::Builder::default();
-    builder = builder.header(header).allowlist_item(r#"(rs_.*)"#);
+    builder = builder.header(header).allowlist_item(r#"(rs_.*)"#).rustified_enum("rs_event_type_t").allowlist_item("dma_list_item");
     match target {
         "riscv32imc-esp-espidf" => {
             builder = builder.clang_arg("--target=riscv32");

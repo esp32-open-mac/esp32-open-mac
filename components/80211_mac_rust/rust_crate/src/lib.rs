@@ -2,16 +2,21 @@
 
 use core::ffi::c_void;
 use core::marker::PhantomData;
+use core::ptr::NonNull;
 
-use ieee80211::common::{CapabilitiesInformation, FCFFlags};
+use ieee80211::common::{CapabilitiesInformation, FCFFlags, IEEE80211AuthenticationAlgorithmNumber, IEEE80211StatusCode};
+use ieee80211::data_frame::DataFrame;
+use ieee80211::elements::element_chain::ElementChainEnd;
 use ieee80211::elements::{DSSSParameterSetElement, SSIDElement};
-use ieee80211::mgmt_frame::body::BeaconBody;
-use ieee80211::mgmt_frame::header::ManagementFrameHeader;
-use ieee80211::mgmt_frame::BeaconFrame;
+use ieee80211::mgmt_frame::body::{AuthenticationBody, BeaconBody};
+use ieee80211::mgmt_frame::{AuthenticationFrame, BeaconFrame, DeauthenticationFrame, ManagementFrameHeader};
 use ieee80211::scroll::ctx::{MeasureWith, TryIntoCtx};
 use ieee80211::scroll::Pwrite;
-use ieee80211::{element_chain, supported_rates};
-use sys::{rs_get_smart_frame, rs_tx_smart_frame};
+use ieee80211::{element_chain, match_frames, supported_rates};
+use sys::{rs_event_type_t, rs_get_smart_frame, rs_rx_frame_t, dma_list_item, rs_tx_smart_frame};
+
+use esp_println::println;
+use esp_println as _;
 
 #[cfg(not(test))]
 #[panic_handler]
@@ -26,17 +31,58 @@ pub mod sys {
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
 
-pub fn get_next_mac_event(timeout_ms: u32) -> Option<u32> {
-    let mut event_type: u32 = 0;
+pub struct RxFrameWrapper {
+    ptr: NonNull<dma_list_item>
+}
+
+impl RxFrameWrapper {
+    pub fn dma(&mut self) -> &mut dma_list_item {
+        unsafe { self.ptr.as_mut() }
+    }
+
+    pub fn payload(&mut self) -> &[u8] {
+        let dma = self.dma();
+        let packet= unsafe {dma.packet.as_mut().unwrap()};
+        
+        unsafe {
+            packet.payload.as_mut_slice(packet.rx_ctrl.sig_len() as usize)
+        }
+    }
+}
+
+pub enum MacEvent {
+    PhyRx(RxFrameWrapper),
+    MacTx(),
+    MacRecycleRx(),
+}
+
+
+
+impl Drop for RxFrameWrapper {
+    fn drop(&mut self) {
+        unsafe {
+            sys::rs_recycle_dma_item(self.dma());
+        }
+        
+    }
+}
+
+pub fn get_next_mac_event(timeout_ms: u32) -> Option<MacEvent> {
+    let mut event_type: rs_event_type_t = rs_event_type_t::EVENT_TYPE_MAC_FREE_RX_DATA;
     let mut data: usize = 0;
-    let mut data_ptr = &mut data as *mut usize as *mut c_void; // cast &mut x to usize ptr (which it is) then cast that to a void *
+    let mut data_ptr = &mut data as *mut usize as *mut c_void; // cast &mut data to usize ptr (which it is) then cast that to a void *
     let res = unsafe {
         sys::rs_get_next_mac_event_raw(timeout_ms, &mut event_type, &mut data_ptr as *mut *mut c_void)
     };
-    if res {
-        Some(event_type)
-    } else {
-        None
+    if !res {
+        return None
+    }
+    match event_type {
+        rs_event_type_t::EVENT_TYPE_PHY_RX_DATA => {
+            let wrapper: RxFrameWrapper = RxFrameWrapper {ptr: NonNull::new(data_ptr as *mut dma_list_item).unwrap()};
+            return Some(MacEvent::PhyRx(wrapper))
+        }
+        _ => return None
     }
 }
 
@@ -70,9 +116,31 @@ pub fn transmit_frame<Frame: MeasureWith<bool> + TryIntoCtx<bool, Error = ieee80
 #[no_mangle]
 pub extern "C" fn rust_mac_task() -> *const c_void {
     loop {
-        get_next_mac_event(100);
+        let a = get_next_mac_event(10000);
+        match a {
+            Some(event) => {
+                match event {
+                    MacEvent::PhyRx(mut wrapper) => {
+                        println!("RX frame");
+                        let payload = wrapper.payload();
+                        match_frames! {
+                            payload,
+                            beacon_frame = BeaconFrame => {
+                                println!("SSID: {}", beacon_frame.body.ssid().unwrap());
+                            }
+                            _ = DeauthenticationFrame => {}
+                            _ = DataFrame => {}
+                        }.unwrap();
+                    }
+                _ => {println!("other event")}
+                }
+            }
+            None => {}
+        }
         let mac_address = [0x00, 0x23, 0x45, 0x67, 0x89, 0xab];
         let ssid = "hi";
+        println!("transmitting!!");
+
         let beacon = BeaconFrame {
             header: ManagementFrameHeader {
                 fcf_flags: FCFFlags::new(),

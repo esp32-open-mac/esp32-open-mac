@@ -73,6 +73,13 @@ void rs_tx_smart_frame(rs_smart_frame_t* frame) {
     transmit_80211_frame(frame);
 }
 
+void c_hand_rx_to_mac_stack(dma_list_item* item) {
+	rust_mac_event_queue_item_t to_queue;
+	to_queue.event_type = EVENT_TYPE_PHY_RX_DATA;
+	to_queue.ptr = item;
+	xQueueSendToBack(rust_mac_event_queue, &to_queue, 0);
+}
+
 /*
   Called from the hardware stack to recycle a smart frame after it was sent
 */
