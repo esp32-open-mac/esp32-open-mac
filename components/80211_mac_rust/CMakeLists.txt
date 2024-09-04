@@ -1,5 +1,5 @@
 idf_component_register(
-    SRCS "80211_mac_interface.c" "80211_mac_rust.c"
+    SRCS "80211_mac_interface.c"
     INCLUDE_DIRS "include"
 )
 
