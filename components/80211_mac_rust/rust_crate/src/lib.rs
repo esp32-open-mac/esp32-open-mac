@@ -4,19 +4,23 @@ use core::ffi::c_void;
 use core::marker::PhantomData;
 use core::ptr::NonNull;
 
-use ieee80211::common::{CapabilitiesInformation, FCFFlags, IEEE80211AuthenticationAlgorithmNumber, IEEE80211StatusCode};
+use ieee80211::common::{
+    CapabilitiesInformation, FCFFlags, IEEE80211AuthenticationAlgorithmNumber, IEEE80211StatusCode,
+};
 use ieee80211::data_frame::DataFrame;
 use ieee80211::elements::element_chain::ElementChainEnd;
 use ieee80211::elements::{DSSSParameterSetElement, SSIDElement};
 use ieee80211::mgmt_frame::body::{AuthenticationBody, BeaconBody};
-use ieee80211::mgmt_frame::{AuthenticationFrame, BeaconFrame, DeauthenticationFrame, ManagementFrameHeader};
+use ieee80211::mgmt_frame::{
+    AuthenticationFrame, BeaconFrame, DeauthenticationFrame, ManagementFrameHeader,
+};
 use ieee80211::scroll::ctx::{MeasureWith, TryIntoCtx};
 use ieee80211::scroll::Pwrite;
 use ieee80211::{element_chain, match_frames, supported_rates};
-use sys::{rs_event_type_t, rs_get_smart_frame, rs_rx_frame_t, dma_list_item, rs_tx_smart_frame};
+use sys::{dma_list_item, rs_event_type_t, rs_get_smart_frame, rs_rx_frame_t, rs_tx_smart_frame};
 
-use esp_println::println;
 use esp_println as _;
+use esp_println::println;
 
 #[cfg(not(test))]
 #[panic_handler]
@@ -32,7 +36,7 @@ pub mod sys {
 }
 
 pub struct RxFrameWrapper {
-    ptr: NonNull<dma_list_item>
+    ptr: NonNull<dma_list_item>,
 }
 
 impl RxFrameWrapper {
@@ -42,10 +46,12 @@ impl RxFrameWrapper {
 
     pub fn payload(&mut self) -> &[u8] {
         let dma = self.dma();
-        let packet= unsafe {dma.packet.as_mut().unwrap()};
-        
+        let packet = unsafe { dma.packet.as_mut().unwrap() };
+
         unsafe {
-            packet.payload.as_mut_slice(packet.rx_ctrl.sig_len() as usize)
+            packet
+                .payload
+                .as_mut_slice(packet.rx_ctrl.sig_len() as usize)
         }
     }
 }
@@ -56,14 +62,11 @@ pub enum MacEvent {
     MacRecycleRx(),
 }
 
-
-
 impl Drop for RxFrameWrapper {
     fn drop(&mut self) {
         unsafe {
             sys::rs_recycle_dma_item(self.dma());
         }
-        
     }
 }
 
@@ -72,21 +75,32 @@ pub fn get_next_mac_event(timeout_ms: u32) -> Option<MacEvent> {
     let mut data: usize = 0;
     let mut data_ptr = &mut data as *mut usize as *mut c_void; // cast &mut data to usize ptr (which it is) then cast that to a void *
     let res = unsafe {
-        sys::rs_get_next_mac_event_raw(timeout_ms, &mut event_type, &mut data_ptr as *mut *mut c_void)
+        sys::rs_get_next_mac_event_raw(
+            timeout_ms,
+            &mut event_type,
+            &mut data_ptr as *mut *mut c_void,
+        )
     };
     if !res {
-        return None
+        return None;
     }
     match event_type {
         rs_event_type_t::EVENT_TYPE_PHY_RX_DATA => {
-            let wrapper: RxFrameWrapper = RxFrameWrapper {ptr: NonNull::new(data_ptr as *mut dma_list_item).unwrap()};
-            return Some(MacEvent::PhyRx(wrapper))
+            let wrapper: RxFrameWrapper = RxFrameWrapper {
+                ptr: NonNull::new(data_ptr as *mut dma_list_item).unwrap(),
+            };
+            return Some(MacEvent::PhyRx(wrapper));
         }
-        _ => return None
+        _ => return None,
     }
 }
 
-pub fn transmit_frame<Frame: MeasureWith<bool> + TryIntoCtx<bool, Error = ieee80211::scroll::Error>>(frame: Frame, rate: u32) -> Result<(), Frame> {
+pub fn transmit_frame<
+    Frame: MeasureWith<bool> + TryIntoCtx<bool, Error = ieee80211::scroll::Error>,
+>(
+    frame: Frame,
+    rate: u32,
+) -> Result<(), Frame> {
     let length = frame.measure_with(&true);
     let smart_frame = unsafe { rs_get_smart_frame(length) };
 
@@ -106,9 +120,7 @@ pub fn transmit_frame<Frame: MeasureWith<bool> + TryIntoCtx<bool, Error = ieee80
     };
     buf.pwrite(frame, 0).unwrap();
 
-    unsafe {
-        rs_tx_smart_frame(smart_frame)
-    };
+    unsafe { rs_tx_smart_frame(smart_frame) };
 
     Ok(())
 }
@@ -118,23 +130,24 @@ pub extern "C" fn rust_mac_task() -> *const c_void {
     loop {
         let a = get_next_mac_event(10000);
         match a {
-            Some(event) => {
-                match event {
-                    MacEvent::PhyRx(mut wrapper) => {
-                        println!("RX frame");
-                        let payload = wrapper.payload();
-                        match_frames! {
-                            payload,
-                            beacon_frame = BeaconFrame => {
-                                println!("SSID: {}", beacon_frame.body.ssid().unwrap());
-                            }
-                            _ = DeauthenticationFrame => {}
-                            _ = DataFrame => {}
-                        }.unwrap();
+            Some(event) => match event {
+                MacEvent::PhyRx(mut wrapper) => {
+                    println!("RX frame");
+                    let payload = wrapper.payload();
+                    match_frames! {
+                        payload,
+                        beacon_frame = BeaconFrame => {
+                            println!("SSID: {}", beacon_frame.body.ssid().unwrap());
+                        }
+                        _ = DeauthenticationFrame => {}
+                        _ = DataFrame => {}
                     }
-                _ => {println!("other event")}
+                    .unwrap();
                 }
-            }
+                _ => {
+                    println!("other event")
+                }
+            },
             None => {}
         }
         let mac_address = [0x00, 0x23, 0x45, 0x67, 0x89, 0xab];
