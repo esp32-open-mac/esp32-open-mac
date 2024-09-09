@@ -9,10 +9,13 @@ use ieee80211::common::{
 };
 use ieee80211::data_frame::DataFrame;
 use ieee80211::elements::element_chain::ElementChainEnd;
+use ieee80211::elements::rsn::RSNElement;
 use ieee80211::elements::{DSSSParameterSetElement, SSIDElement};
-use ieee80211::mgmt_frame::body::{AuthenticationBody, BeaconBody};
+use ieee80211::mac_parser::{MACAddress, BROADCAST};
+use ieee80211::mgmt_frame::body::{AssociationRequestBody, AuthenticationBody, BeaconBody};
 use ieee80211::mgmt_frame::{
-    AuthenticationFrame, BeaconFrame, DeauthenticationFrame, ManagementFrameHeader,
+    AssociationRequestFrame, AssociationResponseFrame, AuthenticationFrame, BeaconFrame,
+    DeauthenticationFrame, ManagementFrameHeader,
 };
 use ieee80211::scroll::ctx::{MeasureWith, TryIntoCtx};
 use ieee80211::scroll::Pwrite;
@@ -125,10 +128,190 @@ pub fn transmit_frame<
     Ok(())
 }
 
+// network we can connect to
+pub enum KnownNetwork<'a> {
+    OpenNetwork(&'a str), // TODO WPA/...
+}
+
+const NETWORK_TO_CONNECT: KnownNetwork = KnownNetwork::OpenNetwork("test");
+
+#[derive(Debug, PartialEq, Eq)]
+struct AuthenticateS {
+    last_sent: Option<u64>,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+struct AssociateS {
+    last_sent: Option<u64>,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum StaMachineState {
+    Scanning,
+    Authenticate(AuthenticateS),
+    Associate(AssociateS),
+    Associated,
+}
+
+// holds all state for the case where we are a station
+// TODO find better name for this and for the StaMachineState
+struct STAState {
+    own_mac: MACAddress,
+    bssid: MACAddress,
+    state: StaMachineState,
+}
+
+fn handle_beacon(state: &mut STAState, beacon_frame: BeaconFrame) {
+    let Some(ssid) = beacon_frame.ssid() else {
+        return; // no SSID in beacon frame
+    };
+
+    match NETWORK_TO_CONNECT {
+        KnownNetwork::OpenNetwork(ssid_to_connect) => {
+            // TODO: I don't think RSNElement is the only way a beacon makes it known that you need to authenticate
+            let None = beacon_frame.elements.get_first_element::<RSNElement>() else {
+                return; // there shouldn't be an RSN element for open network
+            };
+            if ssid_to_connect != ssid {
+                return;
+            }
+            // SSID matches and no security
+            // TODO save MAC address and set state
+            // TODO enable filters 
+            if state.state == StaMachineState::Scanning {
+                state.bssid = beacon_frame.header.bssid;
+                state.state = StaMachineState::Authenticate(AuthenticateS { last_sent: None });
+            }
+        }
+    }
+}
+
+fn handle_auth(state: &mut STAState, auth_frame: AuthenticationFrame) {
+    // I guess we should validate the MAC address; TODO
+
+    match NETWORK_TO_CONNECT {
+        KnownNetwork::OpenNetwork(_) => {
+            if (auth_frame.authentication_algorithm_number
+                == IEEE80211AuthenticationAlgorithmNumber::OpenSystem)
+                && auth_frame.status_code == IEEE80211StatusCode::Success
+            {
+                // station accepted our authentication
+                // transition to association
+                state.state = StaMachineState::Associate(AssociateS { last_sent: None });
+            }
+        }
+    }
+}
+
+fn handle_assoc_resp(state: &mut STAState, assoc_resp_frame: AssociationResponseFrame) {
+    if assoc_resp_frame.body.status_code == IEEE80211StatusCode::Success {
+        // yay, they accepted our association
+        state.state = StaMachineState::Associated;
+        // TODO let network adapter know the network is up
+    }
+}
+
+const AUTHENTICATE_INTERVAL_MS: u64 = 500;
+const ASSOCIATE_INTERVAL_MS: u64 = 500;
+
+fn get_time_us() -> u64 {
+    1 // TODO
+}
+
+fn send_authenticate(state: &mut STAState) {
+    let auth = AuthenticationFrame {
+        header: ManagementFrameHeader {
+            fcf_flags: FCFFlags::new(),
+            duration: 0, // TODO
+            receiver_address: state.bssid,
+            transmitter_address: state.own_mac,
+            bssid: state.bssid,
+            ..Default::default()
+        },
+        body: AuthenticationBody {
+            authentication_algorithm_number: IEEE80211AuthenticationAlgorithmNumber::OpenSystem,
+            authentication_transaction_sequence_number: 1,
+            status_code: IEEE80211StatusCode::Success,
+            elements: element_chain!(),
+            _phantom: PhantomData,
+        },
+    };
+    transmit_frame(auth, 12).unwrap();
+    // update last sent timer
+    if let StaMachineState::Authenticate(s) = &mut state.state {
+        s.last_sent = Some(get_time_us());
+    };
+}
+
+fn send_associate(state: &mut STAState) {
+    let assoc = AssociationRequestFrame {
+        header: ManagementFrameHeader {
+            fcf_flags: FCFFlags::new(),
+            duration: 0, // TODO
+            receiver_address: state.bssid,
+            transmitter_address: state.own_mac,
+            bssid: state.bssid,
+            ..Default::default()
+        },
+        body: AssociationRequestBody {
+            elements: element_chain!(),
+            capabilities_info: CapabilitiesInformation::new().with_is_ess(true),
+            listen_interval: 0,
+            _phantom: PhantomData,
+        },
+    };
+    transmit_frame(assoc, 12).unwrap();
+    // update last sent timer
+    if let StaMachineState::Associate(s) = &mut state.state {
+        s.last_sent = Some(get_time_us());
+    };
+}
+
+// handles whatever we need to do with the current state, then return the amount of ms to wait if no external events happen
+fn handle_state(state: &mut STAState) -> u32 {
+    // TODO
+    match &state.state {
+        StaMachineState::Scanning => 10000,
+        StaMachineState::Authenticate(s) => {
+            let time_to_wait: u64 = s
+                .last_sent
+                .map(|t| ((t + AUTHENTICATE_INTERVAL_MS) - get_time_us()))
+                .unwrap_or(0);
+            if time_to_wait <= 0 {
+                send_authenticate(state);
+                return AUTHENTICATE_INTERVAL_MS.try_into().unwrap();
+            } else {
+                return time_to_wait.try_into().unwrap_or(u32::MAX);
+            }
+        }
+        StaMachineState::Associate(s) => {
+            let time_to_wait: u64 = s
+                .last_sent
+                .map(|t| ((t + ASSOCIATE_INTERVAL_MS) - get_time_us()))
+                .unwrap_or(0);
+            if time_to_wait <= 0 {
+                send_associate(state);
+                return ASSOCIATE_INTERVAL_MS.try_into().unwrap();
+            } else {
+                return time_to_wait.try_into().unwrap_or(u32::MAX);
+            }
+        }
+        _default => 10000,
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn rust_mac_task() -> *const c_void {
+    let mut state: STAState = STAState {
+        bssid: BROADCAST,
+        state: StaMachineState::Scanning,
+        own_mac: MACAddress([0x00, 0x23, 0x45, 0x67, 0x89, 0xab]), // TODO don't hardcode this
+    };
+
     loop {
-        let a = get_next_mac_event(10000);
+        let wait_for = handle_state(&mut state);
+
+        let a = get_next_mac_event(wait_for);
         match a {
             Some(event) => match event {
                 MacEvent::PhyRx(mut wrapper) => {
@@ -137,12 +320,22 @@ pub extern "C" fn rust_mac_task() -> *const c_void {
                     match_frames! {
                         payload,
                         beacon_frame = BeaconFrame => {
-                            println!("SSID: {}", beacon_frame.body.ssid().unwrap());
+                            handle_beacon(&mut state, beacon_frame)
                         }
-                        _ = DeauthenticationFrame => {}
-                        _ = DataFrame => {}
+                        auth_frame = AuthenticationFrame => {
+                            handle_auth(&mut state, auth_frame)
+                        }
+                        assoc_resp_frame = AssociationResponseFrame => {
+                            handle_assoc_resp(&mut state, assoc_resp_frame)
+                        }
+                        _data_frame = DataFrame => {
+                            // TODO
+                        }
+                        _ = DeauthenticationFrame => {
+                            // TODO
+                        }
                     }
-                    .unwrap();
+                    .unwrap_or_default();
                 }
                 _ => {
                     println!("other event")
@@ -150,44 +343,5 @@ pub extern "C" fn rust_mac_task() -> *const c_void {
             },
             None => {}
         }
-        let mac_address = [0x00, 0x23, 0x45, 0x67, 0x89, 0xab];
-        let ssid = "hi";
-        println!("transmitting!!");
-
-        let beacon = BeaconFrame {
-            header: ManagementFrameHeader {
-                fcf_flags: FCFFlags::new(),
-                duration: 0,
-                receiver_address: [0xff; 6].into(),
-                transmitter_address: mac_address.into(),
-                bssid: mac_address.into(),
-                ..Default::default()
-            },
-            body: BeaconBody {
-                timestamp: 0,
-                // We transmit a beacon every 100 ms/TUs
-                beacon_interval: 100,
-                capabilities_info: CapabilitiesInformation::new().with_is_ess(true),
-                elements: element_chain! {
-                    SSIDElement::new(ssid).unwrap(),
-                    // These are known good values.
-                    supported_rates![
-                        1 B,
-                        2 B,
-                        5.5 B,
-                        11 B,
-                        6,
-                        9,
-                        12,
-                        18
-                    ],
-                    DSSSParameterSetElement {
-                        current_channel: 1,
-                    }
-                },
-                _phantom: PhantomData,
-            },
-        };
-        transmit_frame(beacon, 12).unwrap();
     }
 }
