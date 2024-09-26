@@ -1,10 +1,76 @@
-_svd: "../svd/svd/esp32-parsed.svd"
+_svd: "../svd/svd/esp32.svd"
 
 # This is a patch against the SVD provided by Espressif
 # Patchfile for use with https://github.com/rust-embedded/svdtools
 # Expects the svd repo to be cloned in the directory next to this repo
+# Then run `svd patch esp32-wifi.yaml` in this directory, the patched file will be in ../svd/svd/
 
 _add:
+    MAC_RX_FILTER_BANK:
+        description: MAC controller for Wi-Fi peripheral
+        groupName: WIFI_MAC
+        baseAddress: 0x3ff73000
+        addressBlocks:
+            -   offset: 0x0
+                size: 0x400
+                usage: "MAC RX filter bank slot 0"
+            -   offset: 0x8
+                size: 0x400
+                usage: "MAC RX filter bank slot 1"
+        registers:
+            BSSID_FILTER_ADDR_FIRST:
+                description:  first 4 bytes of BSSID MAC address filter
+                addressOffset: 0x0
+                access: read-write
+            BSSID_FILTER_ADDR_LAST:
+                description: last 2 bytes of BSSID MAC address filter
+                addressOffset: 0x4
+                fields:
+                    ADDR:
+                        bitOffset: 0
+                        bitWidth: 16
+            BSSID_FILTER_ADDR_MASK_FIRSt:
+                description: mask applied to BSSID MAC address filter
+                addressOffset: 0x20
+                access: read-write
+            BSSID_FILTER_ADDR_MASK_LAST:
+                description: mask applied to BSSID MAC address filter
+                addressOffset: 0x24
+                access: read-write
+                fields:
+                    MASK:
+                        bitOffset: 0
+                        bitWidth: 16
+                    ENABLE:
+                        bitOffset: 16
+                        bitWidth: 1
+            MAC_FILTER_ADDR_FIRST:
+                description:  first 4 bytes of MAC address filter
+                addressOffset: 0x40
+                access: read-write
+            MAC_FILTER_ADDR_LAST:
+                description: last 2 bytes of MAC address filter
+                addressOffset: 0x44
+                fields:
+                    ADDR:
+                        bitOffset: 0
+                        bitWidth: 16
+            MAC_FILTER_ADDR_MASK_FIRSt:
+                description: mask applied to MAC address filter
+                addressOffset: 0x60
+                access: read-write
+            MAC_FILTER_ADDR_MASK_LAST:
+                description: mask applied to MAC address filter
+                addressOffset: 0x64
+                access: read-write
+                fields:
+                    MASK:
+                        bitOffset: 0
+                        bitWidth: 16
+                    ENABLE:
+                        bitOffset: 16
+                        bitWidth: 1
+
     WIFI_MAC:
         description: MAC controller for Wi-Fi peripheral
         groupName: WIFI_MAC
