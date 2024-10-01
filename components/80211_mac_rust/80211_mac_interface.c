@@ -52,6 +52,12 @@ bool rs_get_next_mac_event_raw(uint32_t ms_to_wait, rs_event_type_t* event_type,
 	return false;
 }
 
+int64_t esp_timer_get_time();
+
+int64_t rs_get_time_us() {
+	return esp_timer_get_time();
+}
+
 /*Called from the Rust MAC stack, to obtain a smart frame from the hardware, which can then be filled in*/
 rs_smart_frame_t* rs_get_smart_frame(size_t size_required) {
 	for (int i = 0; i < NUM_TX_SMART_FRAME_BUFFERS; i++) {

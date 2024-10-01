@@ -20,7 +20,7 @@ use ieee80211::mgmt_frame::{
 use ieee80211::scroll::ctx::{MeasureWith, TryIntoCtx};
 use ieee80211::scroll::Pwrite;
 use ieee80211::{element_chain, match_frames, supported_rates};
-use sys::{dma_list_item, rs_event_type_t, rs_get_smart_frame, rs_rx_frame_t, rs_tx_smart_frame};
+use sys::{dma_list_item, rs_event_type_t, rs_get_smart_frame, rs_rx_frame_t, rs_tx_smart_frame, rs_get_time_us};
 
 use esp_println as _;
 use esp_println::println;
@@ -128,6 +128,10 @@ pub fn transmit_frame<
     Ok(())
 }
 
+pub fn get_time_us() -> i64 {
+    return unsafe {rs_get_time_us()};
+}
+
 // network we can connect to
 pub enum KnownNetwork<'a> {
     OpenNetwork(&'a str), // TODO WPA/...
@@ -137,12 +141,12 @@ const NETWORK_TO_CONNECT: KnownNetwork = KnownNetwork::OpenNetwork("test");
 
 #[derive(Debug, PartialEq, Eq)]
 struct AuthenticateS {
-    last_sent: Option<u64>,
+    last_sent: Option<i64>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
 struct AssociateS {
-    last_sent: Option<u64>,
+    last_sent: Option<i64>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -211,12 +215,9 @@ fn handle_assoc_resp(state: &mut STAState, assoc_resp_frame: AssociationResponse
     }
 }
 
-const AUTHENTICATE_INTERVAL_MS: u64 = 500;
-const ASSOCIATE_INTERVAL_MS: u64 = 500;
+const AUTHENTICATE_INTERVAL_US: i64 = 500*1000;
+const ASSOCIATE_INTERVAL_US: i64 = 500*1000;
 
-fn get_time_us() -> u64 {
-    1 // TODO
-}
 
 fn send_authenticate(state: &mut STAState) {
     let auth = AuthenticationFrame {
@@ -236,7 +237,7 @@ fn send_authenticate(state: &mut STAState) {
             _phantom: PhantomData,
         },
     };
-    transmit_frame(auth, 12).unwrap();
+    transmit_frame(auth, 0x18).unwrap();
     // update last sent timer
     if let StaMachineState::Authenticate(s) = &mut state.state {
         s.last_sent = Some(get_time_us());
@@ -273,27 +274,29 @@ fn handle_state(state: &mut STAState) -> u32 {
     match &state.state {
         StaMachineState::Scanning => 10000,
         StaMachineState::Authenticate(s) => {
-            let time_to_wait: u64 = s
+            let us_to_wait: i64 = s
                 .last_sent
-                .map(|t| ((t + AUTHENTICATE_INTERVAL_MS) - get_time_us()))
+                .map(|t| (t + AUTHENTICATE_INTERVAL_US) - get_time_us())
                 .unwrap_or(0);
-            if time_to_wait <= 0 {
+            if us_to_wait <= 0 {
                 send_authenticate(state);
-                return AUTHENTICATE_INTERVAL_MS.try_into().unwrap();
+                return (AUTHENTICATE_INTERVAL_US / 1000) as u32;
             } else {
-                return time_to_wait.try_into().unwrap_or(u32::MAX);
+                let ms_to_wait = (us_to_wait / 1000).try_into().unwrap_or(u32::MAX);
+                return ms_to_wait;
             }
         }
         StaMachineState::Associate(s) => {
-            let time_to_wait: u64 = s
+            let us_to_wait: i64 = s
                 .last_sent
-                .map(|t| ((t + ASSOCIATE_INTERVAL_MS) - get_time_us()))
+                .map(|t| ((t + ASSOCIATE_INTERVAL_US) - get_time_us()))
                 .unwrap_or(0);
-            if time_to_wait <= 0 {
+            if us_to_wait <= 0 {
                 send_associate(state);
-                return ASSOCIATE_INTERVAL_MS.try_into().unwrap();
+                return (ASSOCIATE_INTERVAL_US / 1000) as u32;
             } else {
-                return time_to_wait.try_into().unwrap_or(u32::MAX);
+                let ms_to_wait = (us_to_wait / 1000).try_into().unwrap_or(u32::MAX);
+                return ms_to_wait;
             }
         }
         _default => 10000,

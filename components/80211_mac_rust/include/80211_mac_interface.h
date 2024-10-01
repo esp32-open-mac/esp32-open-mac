@@ -121,3 +121,5 @@ void c_recycle_rx_frame(uint8_t* frame);
 void rust_mac_task();
 void c_mac_task();
 void c_hand_rx_to_mac_stack();
+
+int64_t rs_get_time_us();
