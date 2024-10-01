@@ -68,7 +68,7 @@ void open_mac_tx_func_callback(tx_func* t) {
 static esp_err_t openmac_netif_transmit(void *h, void *buffer, size_t len)
 {
     uint8_t* eth_data = (uint8_t*) buffer;
-    ESP_LOGI("netif-tx", "Going to transmit a packet: to "MACSTR" from "MACSTR" type=%02x%02x", MAC2STR(&eth_data[0]), MAC2STR(&eth_data[6]), eth_data[12], eth_data[13]);
+    ESP_LOGI("netif-tx", "Going to transmit a data packet: to "MACSTR" from "MACSTR" type=%02x%02x", MAC2STR(&eth_data[0]), MAC2STR(&eth_data[6]), eth_data[12], eth_data[13]);
     // TODO reimplement this to pass through the rust stack
     return ESP_OK;
 }

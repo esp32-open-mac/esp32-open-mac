@@ -54,6 +54,12 @@ inline uint32_t read_register(uint32_t address) {
 #define MAC_TX_DURATION_BASE _MMIO_ADDR(0x3ff74268)
 #define MAC_TX_DURATION_OS (-0xf)
 
+#define MAC_TX_HT_SIG_BASE _MMIO_ADDR(0x3ff74260)
+#define MAC_TX_HT_SIG_OS (-0xf)
+
+#define MAC_TX_HT_UNKNOWN_BASE _MMIO_ADDR(0x3ff74264)
+#define MAC_TX_HT_UNKNOWN_OS (-0xf)
+
 #define WIFI_DMA_INT_STATUS _MMIO_DWORD(0x3ff73c48)
 #define WIFI_DMA_INT_CLR _MMIO_DWORD(0x3ff73c4c)
 
@@ -172,17 +178,30 @@ bool transmit_80211_frame(rs_smart_frame_t* frame) {
 	WIFI_TX_CONFIG_BASE[WIFI_TX_CONFIG_OS*slot] = WIFI_TX_CONFIG_BASE[WIFI_TX_CONFIG_OS * slot] | 0xa;
 
 	MAC_TX_PLCP0_BASE[MAC_TX_PLCP0_OS*slot] = (((uint32_t)(tx_item)) & 0xfffff) | (0x00600000);
-	// uint32_t rate = WIFI_PHY_RATE_54M; // see wifi_phy_rate_t TODO
-	uint32_t rate = frame->rate;
-	uint32_t is_n_enabled = (rate >= 16);
+	uint32_t rate = frame->rate;  // see wifi_phy_rate_t
+	uint32_t is_ht = (rate >= 0x10);
+	uint32_t is_short_gi = (rate >= 0x18);
 
-	MAC_TX_PLCP1_BASE[MAC_TX_PLCP1_OS*slot] = 0x10000000 | (frame->payload_length & 0xfff) | ((rate & 0x1f) << 12) | ((is_n_enabled & 0b1) << 25);
+	MAC_TX_PLCP1_BASE[MAC_TX_PLCP1_OS*slot] = 0x10000000 | (frame->payload_length & 0xfff) | ((rate & 0x1f) << 12) | ((is_ht & 0b1) << 25);
 	MAC_TX_PLCP2_BASE[MAC_TX_PLCP2_OS*slot] = 0x00000020;
 	MAC_TX_DURATION_BASE[MAC_TX_DURATION_OS*slot] = 0;
 
-	if (is_n_enabled) {
-		ESP_LOGE(TAG, "we don't support 802.11n yet; see mac_tx_set_htsig in binary blob"); //  TODO
-		abort();
+	// check if this is a 802.11n HT frame
+	// See also https://openofdm.readthedocs.io/en/latest/sig.html
+	if (is_ht) {
+		uint32_t ht_sig = 0;
+		ht_sig |= rate & 0b111; // MCS
+		ht_sig |= 0b0 << 7; // 20/40 MHz
+		ht_sig |=  (frame->payload_length & 0xffff) << 8; // HT Length
+		ht_sig |= 1 << 24; // smoothing recommended
+		ht_sig |= 1 << 25; // not sounding
+		ht_sig |= 1 << 26; // reserved
+		ht_sig |= 0b0 << 27; // AMPDU
+		ht_sig |= 0b00 << 28; // spatial stream idx
+		ht_sig |= 0b0 << 30; // LDCP
+		ht_sig |= is_short_gi << 31; // short GI
+		MAC_TX_HT_SIG_BASE[MAC_TX_HT_SIG_OS*slot] = ht_sig;
+		MAC_TX_HT_UNKNOWN_BASE[MAC_TX_HT_UNKNOWN_OS*slot] = (frame->payload_length & 0xffff) | 0x50000;
 	}
 
 	WIFI_TX_CONFIG_BASE[WIFI_TX_CONFIG_OS*slot] |= 0x02000000;
