@@ -1,0 +1,17 @@
+[package]
+name = "rust_crate"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+ieee80211 = "0.5.0"
+esp-println = { version = "0.9.1", features = ["esp32", "uart"], default-features = false }
+
+[features]
+default = []
+
+[build-dependencies]
+bindgen = "0.69.4"

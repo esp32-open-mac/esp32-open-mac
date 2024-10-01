@@ -1,0 +1,7 @@
+[toolchain]
+# Use "esp" for ESP32, ESP32-S2, and ESP32-S3
+channel = "esp"
+# Use "nightly" for ESP32-C*, ESP32-H* targets
+# channel = "nightly"
+components = ["rustfmt", "rustc-dev"]
+targets = ["xtensa-esp32-none-elf"]

@@ -16,10 +16,13 @@
 #include "hardware.h"
 #include "hwinit.h"
 
+#include "80211_mac_interface.h"
+
 #define RX_BUFFER_AMOUNT 10
 
 static const char* TAG = "hardware.c";
 uint8_t module_mac_addr[6] = {0x00, 0x23, 0x45, 0x67, 0x89, 0xab};
+uint8_t broadcast[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 inline void write_register(uint32_t address, uint32_t value) {
 	*((volatile uint32_t*) address) = value;
@@ -51,6 +54,12 @@ inline uint32_t read_register(uint32_t address) {
 #define MAC_TX_DURATION_BASE _MMIO_ADDR(0x3ff74268)
 #define MAC_TX_DURATION_OS (-0xf)
 
+#define MAC_TX_HT_SIG_BASE _MMIO_ADDR(0x3ff74260)
+#define MAC_TX_HT_SIG_OS (-0xf)
+
+#define MAC_TX_HT_UNKNOWN_BASE _MMIO_ADDR(0x3ff74264)
+#define MAC_TX_HT_UNKNOWN_OS (-0xf)
+
 #define WIFI_DMA_INT_STATUS _MMIO_DWORD(0x3ff73c48)
 #define WIFI_DMA_INT_CLR _MMIO_DWORD(0x3ff73c4c)
 
@@ -69,16 +78,6 @@ inline uint32_t read_register(uint32_t address) {
 
 #define WIFI_MAC_ADDR_SLOT_0 0x3ff73040
 #define WIFI_MAC_ADDR_ACK_ENABLE_SLOT_0 0x3ff73064
-
-typedef struct __attribute__((packed)) dma_list_item {
-	uint16_t size : 12;
-	uint16_t length : 12;
-	uint8_t _unknown : 6;
-	uint8_t has_data : 1;
-	uint8_t owner : 1; // What does this mean?
-	void* packet;
-	struct dma_list_item* next;
-} dma_list_item;
 
 typedef enum {
 	RX_ENTRY,
@@ -119,13 +118,13 @@ volatile int interrupt_count = 0;
 typedef struct {
 	// dma_list_item must be 4-byte aligned (it's passed to hardware that only takes those addresses)
 	struct {} __attribute__ ((aligned (4)));
-	dma_list_item dma; 
+	dma_list_item dma;
 	
-	tx_queue_entry_t packet;
+	rs_smart_frame_t* frame;
 	bool in_use;
 } tx_hardware_slot_t;
 
-tx_hardware_slot_t tx_slots[TX_SLOT_CNT] = {0};
+tx_hardware_slot_t tx_slots[TX_SLOT_CNT] = {};
 
 uint32_t seqnum = 0;
 
@@ -133,11 +132,8 @@ void log_dma_item(dma_list_item* item) {
 	ESP_LOGD("dma_item", "cur=%p owner=%d has_data=%d length=%d size=%d packet=%p next=%p", item, item->owner, item->has_data, item->length, item->size, item->packet, item->next);
 }
 
-// dma_list_item tx_item_u;
-// dma_list_item* tx_item = &tx_item_u;
 
-
-bool transmit_packet(uint8_t* tx_buffer, uint32_t buffer_len) {
+bool transmit_80211_frame(rs_smart_frame_t* frame) {
 	uint32_t slot = 0;
 
 	// Find the first free TX slot
@@ -156,41 +152,56 @@ bool transmit_packet(uint8_t* tx_buffer, uint32_t buffer_len) {
 	// dma_list_item must be 4-byte aligned (it's passed to hardware that only takes those addresses)
 	assert(((uint32_t)(tx_item) & 0b11) == 0);
 
+	// TODO maybe take a mutex over the TX slots here?
 	tx_slots[slot].in_use = true;
-	tx_slots[slot].packet.packet = tx_buffer;
-	tx_slots[slot].packet.len = buffer_len;
+	tx_slots[slot].frame = frame;
 
-	uint32_t size_len = buffer_len + 32;
+	uint32_t size_len = frame->payload_length + 32;
 
 	// Set & update sequence number
-	tx_slots[slot].packet.packet[22] = (seqnum & 0x0f) << 4;
-	tx_slots[slot].packet.packet[23] = (seqnum & 0xff0) >> 4;
+	// TODO remove this code
+	frame->payload[22] = (seqnum & 0x0f) << 4;
+	frame->payload[23] = (seqnum & 0xff0) >> 4;
 	seqnum++;
 	if (seqnum > 0xfff) seqnum = 0;
 
-	ESP_LOGI(TAG, "len=%d",(int) buffer_len);
-	ESP_LOG_BUFFER_HEXDUMP("to-transmit", tx_slots[slot].packet.packet, buffer_len, ESP_LOG_INFO);
+	ESP_LOGI(TAG, "len=%d",(int) frame->payload_length);
+	ESP_LOG_BUFFER_HEXDUMP("to-transmit", frame->payload, frame->payload_length, ESP_LOG_INFO);
 
 	tx_item->owner = 1;
 	tx_item->has_data = 1;
-	tx_item->length = buffer_len;
+	tx_item->length = frame->payload_length;
 	tx_item->size = size_len;
-	tx_item->packet = tx_buffer;
+	tx_item->packet = frame->payload;
 	tx_item->next = NULL;
 
 	WIFI_TX_CONFIG_BASE[WIFI_TX_CONFIG_OS*slot] = WIFI_TX_CONFIG_BASE[WIFI_TX_CONFIG_OS * slot] | 0xa;
 
 	MAC_TX_PLCP0_BASE[MAC_TX_PLCP0_OS*slot] = (((uint32_t)(tx_item)) & 0xfffff) | (0x00600000);
-	uint32_t rate = WIFI_PHY_RATE_54M; // see wifi_phy_rate_t
-	uint32_t is_n_enabled = (rate >= 16);
+	uint32_t rate = frame->rate;  // see wifi_phy_rate_t
+	uint32_t is_ht = (rate >= 0x10);
+	uint32_t is_short_gi = (rate >= 0x18);
 
-	MAC_TX_PLCP1_BASE[MAC_TX_PLCP1_OS*slot] = 0x10000000 | (buffer_len & 0xfff) | ((rate & 0x1f) << 12) | ((is_n_enabled & 0b1) << 25);
+	MAC_TX_PLCP1_BASE[MAC_TX_PLCP1_OS*slot] = 0x10000000 | (frame->payload_length & 0xfff) | ((rate & 0x1f) << 12) | ((is_ht & 0b1) << 25);
 	MAC_TX_PLCP2_BASE[MAC_TX_PLCP2_OS*slot] = 0x00000020;
 	MAC_TX_DURATION_BASE[MAC_TX_DURATION_OS*slot] = 0;
 
-	if (is_n_enabled) {
-		ESP_LOGE(TAG, "we don't support 802.11n yet; see mac_tx_set_htsig in binary blob"); //  TODO
-		abort();
+	// check if this is a 802.11n HT frame
+	// See also https://openofdm.readthedocs.io/en/latest/sig.html
+	if (is_ht) {
+		uint32_t ht_sig = 0;
+		ht_sig |= rate & 0b111; // MCS
+		ht_sig |= 0b0 << 7; // 20/40 MHz
+		ht_sig |=  (frame->payload_length & 0xffff) << 8; // HT Length
+		ht_sig |= 1 << 24; // smoothing recommended
+		ht_sig |= 1 << 25; // not sounding
+		ht_sig |= 1 << 26; // reserved
+		ht_sig |= 0b0 << 27; // AMPDU
+		ht_sig |= 0b00 << 28; // spatial stream idx
+		ht_sig |= 0b0 << 30; // LDCP
+		ht_sig |= is_short_gi << 31; // short GI
+		MAC_TX_HT_SIG_BASE[MAC_TX_HT_SIG_OS*slot] = ht_sig;
+		MAC_TX_HT_UNKNOWN_BASE[MAC_TX_HT_UNKNOWN_OS*slot] = (frame->payload_length & 0xffff) | 0x50000;
 	}
 
 	WIFI_TX_CONFIG_BASE[WIFI_TX_CONFIG_OS*slot] |= 0x02000000;
@@ -201,6 +212,10 @@ bool transmit_packet(uint8_t* tx_buffer, uint32_t buffer_len) {
 	return true;
 }
 
+// TODO if we try to TX packets before taking over, we don't get the interrupt and
+//      forever consider that slot as occupied; so we need to:
+// - make sure we only start transmitting after everything is initialized
+// - find a way to recover from not getting an interrupt
 static void processTxComplete() {
 	uint32_t txq_state_complete = WIFI_TXQ_GET_STATE_COMPLETE;
 	ESP_LOGW(TAG, "tx complete = %lx", txq_state_complete);
@@ -212,9 +227,10 @@ static void processTxComplete() {
 	uint32_t clear_mask = 1 << slot;
 	WIFI_TXQ_CLR_STATE_COMPLETE |= clear_mask;
 	if (slot < TX_SLOT_CNT) {
+		// TODO maybe take a mutex over the TX slots here?
+		c_recycle_tx_smart_frame(tx_slots[slot].frame);
 		tx_slots[slot].in_use = false;
-		free(tx_slots[slot].packet.packet);
-		tx_slots[slot].packet.packet = NULL;
+		tx_slots[slot].frame = NULL;
 	}
 }
 
@@ -230,12 +246,15 @@ void IRAM_ATTR wifi_interrupt_handler(void* args) {
 		// TODO handle this with open-source code
 		// wdev_process_panic_watchdog() is the closed-source way to recover from this
 	}
-	volatile bool tmp = false;
-	if (xSemaphoreTakeFromISR(rx_queue_resources, &tmp)) {
+	if (xSemaphoreTakeFromISR(rx_queue_resources, NULL)) {
 		hardware_queue_entry_t queue_entry;
 		queue_entry.type = RX_ENTRY;
 		queue_entry.content.rx.interrupt_received = cause;
-		xQueueSendFromISR(hardware_event_queue, &queue_entry, NULL);
+		bool higher_prio_task_woken = false;
+		xQueueSendFromISR(hardware_event_queue, &queue_entry, &higher_prio_task_woken);
+		if (higher_prio_task_woken) {
+			portYIELD_FROM_ISR();
+		}
 	}
 }
 
@@ -298,55 +317,51 @@ void update_rx_chain() {
 	while (WIFI_MAC_BITMASK_084 & 0x1);
 }
 
-void handle_rx_messages(rx_callback rxcb) {
+void rs_recycle_dma_item(dma_list_item* item) {
+	item->length = item->size;
+	item->has_data = 0;
+	if (rx_chain_begin) {
+		rx_chain_last->next = item;
+		update_rx_chain();
+		if (WIFI_NEXT_RX_DSCR == 0x3ff00000) {
+			dma_list_item* last_dscr = (dma_list_item*) WIFI_LAST_RX_DSCR;
+			if (item == last_dscr) {
+				rx_chain_last = item;
+			} else {
+				assert(last_dscr->next != 0);
+				set_rx_base_address(last_dscr->next);
+				rx_chain_last = item;
+			}
+		} else {
+			rx_chain_last = item;
+		}
+	} else {
+		rx_chain_begin = item;
+		set_rx_base_address(item);
+		rx_chain_last = item;
+	}
+}
+
+void handle_rx_messages() {
+	// print_rx_chain(rx_chain_begin);
 	dma_list_item* current = rx_chain_begin;
 	
 	// This is a workaround for when we receive a lot of packets; otherwise we get stuck in this function,
 	// handling packets for all eternity
 	// This is much less of a problem now that we implement hardware filtering
 	int received = 0;
-	while (current) {
+	while (current && current->has_data) {
 		dma_list_item* next = current->next;
-		if (current->has_data) {
-			//TODO enable interrupt
+		//TODO enable interrupt?
 
-			received++;
-			// Has data, but actual 802.11 MAC frame only starts at 28 bytes into the packet
-			// The data before contains packet metadata
-			wifi_promiscuous_pkt_t* packet = current->packet;
-			// packet->rx_ctrl.sig_len includes the FCS (4 bytes), but we don't need this
+		received++;
 
-			// call callback of upper layer
-			rxcb(packet);
-			// Recycle DMA item and buffer
-			rx_chain_begin = current->next;
-			current->next = NULL;
-			current->length = current->size;
-			current->has_data = 0;
-
-			// This puts the DMA buffer back in the linked list
-			// TODO: this code looks pretty ugly and might not be optimal
-			if (rx_chain_begin) {
-				rx_chain_last->next = current;
-				update_rx_chain();
-				if (WIFI_NEXT_RX_DSCR == 0x3ff00000) {
-					dma_list_item* last_dscr = (dma_list_item*) WIFI_LAST_RX_DSCR;
-					if (current == last_dscr) {
-						rx_chain_last = current;
-					} else {
-						set_rx_base_address(last_dscr->next);
-						rx_chain_last = current;
-					}
-				} else {
-					rx_chain_last = current;
-				}
-			} else {
-				rx_chain_begin = current;
-				set_rx_base_address(current);
-				rx_chain_last = current;
-			}
-			//TODO disable interrupt
-		}
+		// update rx chain
+		rx_chain_begin = next;
+		current->next = NULL;
+		c_hand_rx_to_mac_stack(current);
+		
+		//TODO disable interrupt?
 		current = next;
 		if (received > 10) {
 			goto out;
@@ -392,8 +407,9 @@ static void set_mac_addr_filter(uint8_t slot, uint8_t* addr) {
 	write_register(WIFI_MAC_ADDR_SLOT_0 + slot*8 + 8*4, ~0); // ?
 }
 
+void wifi_set_rx_policy(int arg); // TODO remove for testing
 
-void wifi_hardware_task(hardware_mac_args* pvParameter) {
+void wifi_hardware_task(void* pvArguments) {
 	// Print MAC addresses
 	for (int i = 0; i < 2; i++) {
 		uint8_t mac[6] = {0};
@@ -422,7 +438,6 @@ void wifi_hardware_task(hardware_mac_args* pvParameter) {
 
 	setup_rx_chain();
 
-	pvParameter->_tx_func_callback(&wifi_hardware_tx_func);
 	ESP_LOGW(TAG, "Starting to receive messages");
 
 	set_mac_addr_filter(0, module_mac_addr);
@@ -431,6 +446,11 @@ void wifi_hardware_task(hardware_mac_args* pvParameter) {
 
 	uint32_t first_part = read_register(WIFI_MAC_ADDR_SLOT_0 + 4);
 	ESP_LOGW(TAG, "addr_p = %lx %lx", first_part & 0xff, (first_part >> 8) & 0xff);
+
+	// We're ready now, start the MAC task
+	xTaskCreatePinnedToCore(&c_mac_task, "rs_wifi", 4096, NULL, 23, NULL, 1);
+	vTaskDelay(50 / portTICK_PERIOD_MS);
+	wifi_set_rx_policy(3); // just for testing
 	
 	while (true) {
 		hardware_queue_entry_t queue_entry;
@@ -449,8 +469,8 @@ void wifi_hardware_task(hardware_mac_args* pvParameter) {
 					ESP_LOGE(TAG, "something bad, we should reboot");
 				}
 				if (cause & 0x1000024) {
-					// ESP_LOGW(TAG, "received message");
-					handle_rx_messages(pvParameter->_rx_callback);
+					ESP_LOGW(TAG, "received message");
+					handle_rx_messages();
 				}
 				if (cause & 0x80) {
 					processTxComplete();
@@ -465,7 +485,6 @@ void wifi_hardware_task(hardware_mac_args* pvParameter) {
 			} else if (queue_entry.type == TX_ENTRY) {
 				ESP_LOGI(TAG, "TX from queue");
 				// TODO: implement retry
-				transmit_packet(queue_entry.content.tx.packet, queue_entry.content.tx.len);
 				xSemaphoreGive(tx_queue_resources);
 			} else {
 				ESP_LOGI(TAG, "unknown queue type");
