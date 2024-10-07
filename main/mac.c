@@ -10,6 +10,8 @@
 #include "mac.h"
 #include "proprietary.h"
 
+#include "80211_mac_interface.h"
+
 #include <string.h>
 
 static char* TAG = "mac.c";
@@ -25,39 +27,6 @@ typedef struct openmac_netif_driver {
 static bool receive_task_is_running = true;
 static esp_netif_t *netif_openmac = NULL;
 
-// Gets called with a packet that was received. This function does not need to free the memory of the packet,
-//  but the packet will become invalid after this function returns. If you need any data from the packet,
-//  better copy it before returning!
-// Please avoid doing heavy processing here: it's not in an interrupt, but if this function is not fast enough,
-// the RX queue that is used to pass packets to this function might overflow and drop packets.
-void open_mac_rx_callback(wifi_promiscuous_pkt_t* packet) {
-    mac80211_frame* p = (mac80211_frame*) packet->payload;
-
-    // fuck beacon frames, all my homies hate beacon frames
-    if (p->frame_control.type == IEEE80211_TYPE_MGT && p->frame_control.sub_type == IEEE80211_TYPE_MGT_SUBTYPE_BEACON) return;
-
-    // check that receiver mac address matches our mac address or is broadcast
-    if ((memcmp(module_mac_addr, p->receiver_address, 6))
-     && (memcmp(BROADCAST_MAC, p->receiver_address, 6))) {
-        // We're not interested in this packet, return early to avoid having to copy it further to the networking stack
-        ESP_LOGD(TAG, "Discarding packet from "MACSTR" to "MACSTR, MAC2STR(p->transmitter_address), MAC2STR(p->receiver_address));
-        return;
-    }
-    ESP_LOGI(TAG, "Accepted: from "MACSTR" to "MACSTR" type=%d, subtype=%d from_ds=%d to_ds=%d", MAC2STR(p->transmitter_address), MAC2STR(p->receiver_address), p->frame_control.type, p->frame_control.sub_type, p->frame_control.from_ds, p->frame_control.to_ds);
-
-    if (!reception_queue) {
-        ESP_LOGI(TAG, "Received, but queue does not exist yet");
-        return;
-    }
-    // 28 is size of rx_ctrl, 4 is size of FCS (which we don't need)
-    wifi_promiscuous_pkt_t* packet_queue_copy = malloc(packet->rx_ctrl.sig_len + 28 - 4);
-    memcpy(packet_queue_copy, packet, packet->rx_ctrl.sig_len + 28 - 4);
-
-    if (!(xQueueSendToBack(reception_queue, &packet_queue_copy, 0))) {
-        ESP_LOGW(TAG, "MAC RX queue full!");
-    }
-}
-
 // This function will get called exactly once, with as argument a function (`bool tx_func(uint8_t* packet, uint32_t len)`).
 // The function that is passed will TX packets. If it returned `true`, that means that the packet was sent. If false,
 //  you'll need to call the function again.
@@ -69,17 +38,24 @@ static esp_err_t openmac_netif_transmit(void *h, void *buffer, size_t len)
 {
     uint8_t* eth_data = (uint8_t*) buffer;
     ESP_LOGI("netif-tx", "Going to transmit a data packet: to "MACSTR" from "MACSTR" type=%02x%02x", MAC2STR(&eth_data[0]), MAC2STR(&eth_data[6]), eth_data[12], eth_data[13]);
-    // TODO reimplement this to pass through the rust stack
+    c_transmit_data_frame(buffer, len);
     return ESP_OK;
 }
+
 static esp_err_t openmac_netif_transmit_wrap(void *h, void *buffer, size_t len, void *netstack_buf)
 {
     return openmac_netif_transmit(h, buffer, len);
 }
 
+// Put Ethernet-formatted frame in MAC stack; does not take ownership of the buffer: after the function returns, you can delete/reuse it.
+void openmac_netif_receive(void* buffer, size_t len) {
+    assert(buffer != NULL);
+    void* newbuf = malloc(len);
+    memcpy(newbuf, buffer, len);
+    esp_netif_receive(netif_openmac, newbuf, len, NULL);
+}
 
-// Free RX buffer (not used as the buffer is static)
-// TODO ^ is this true?
+// Free RX buffer
 static void openmac_free(void *h, void* buffer)
 {
     ESP_LOGI(TAG, "Free-ing RX'd packet %p", buffer);

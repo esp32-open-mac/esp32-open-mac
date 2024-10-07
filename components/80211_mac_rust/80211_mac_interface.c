@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "80211_mac_interface.h"
 
@@ -15,6 +16,7 @@
 typedef struct {
 	void* ptr;
 	rs_event_type_t event_type;
+	size_t len;
 } rust_mac_event_queue_item_t;
 
 typedef struct {
@@ -42,11 +44,12 @@ void interface_init() {
 	init_done = true;
 }
 
-bool rs_get_next_mac_event_raw(uint32_t ms_to_wait, rs_event_type_t* event_type, void** ptr) {
+bool rs_get_next_mac_event_raw(uint32_t ms_to_wait, rs_event_type_t* event_type, void** ptr,  size_t* len) {
 	rust_mac_event_queue_item_t item;
 	if (xQueueReceive(rust_mac_event_queue, &item, ms_to_wait / portTICK_PERIOD_MS)) {
 		*event_type = item.event_type;
 		*ptr = item.ptr;
+		*len = item.len;
 		return true;
 	}
 	return false;
@@ -70,21 +73,14 @@ rs_smart_frame_t* rs_get_smart_frame(size_t size_required) {
 	return NULL;
 }
 
-// declaration
+// declaration from hardware:
 bool transmit_80211_frame(rs_smart_frame_t* frame);
 
-/*Called from the Rust MAC stack, to TX a smart frame previously obtained via rs_get_smart_frame*/
-void rs_tx_smart_frame(rs_smart_frame_t* frame) {
-	// TODO eventually use a frame queue when we want to send more than 5 frames at a time
-    transmit_80211_frame(frame);
-}
 
-void c_hand_rx_to_mac_stack(dma_list_item* item) {
-	rust_mac_event_queue_item_t to_queue;
-	to_queue.event_type = EVENT_TYPE_PHY_RX_DATA;
-	to_queue.ptr = item;
-	xQueueSendToBack(rust_mac_event_queue, &to_queue, 0);
-}
+// declaration from IP
+// RX'ed 802.11 packets -> RX queue of MAC stack
+void openmac_netif_receive(void* buffer, size_t len);
+
 
 /*
   Called from the hardware stack to recycle a smart frame after it was sent
@@ -100,13 +96,48 @@ void c_recycle_tx_smart_frame(rs_smart_frame_t* frame) {
 	abort();
 }
 
-/*Called from the Rust MAC stack, to pass a data frame to the MAC stack. Expects the frame to be in Ethernet format*/
-void rs_rx_mac_frame(uint8_t* frame, size_t len);
-
-/*Called from the the IP stack, to hand an RX frame back*/
-void c_recycle_rx_frame(uint8_t* frame) {
-
+/*Called from the Rust MAC stack, to TX a smart frame previously obtained via rs_get_smart_frame*/
+void rs_tx_smart_frame(rs_smart_frame_t* frame) {
+	// TODO eventually use a frame queue when we want to send more than 5 frames at a time
+    if (!transmit_80211_frame(frame)) {
+		// failed to send
+		// TODO mutex here?
+		c_recycle_tx_smart_frame(frame);
+	}
 }
+
+// Called from hardware to hand frames it received to the Rust MAC stack
+void c_hand_rx_to_mac_stack(dma_list_item* item) {
+	rust_mac_event_queue_item_t to_queue;
+	to_queue.event_type = EVENT_TYPE_PHY_RX_DATA;
+	to_queue.ptr = item;
+	xQueueSendToBack(rust_mac_event_queue, &to_queue, 0);
+}
+
+/*Called from the Rust MAC stack, to pass a data frame to the IP stack. Expects the frame to be in Ethernet format. Does not take ownership of the data*/
+void rs_rx_mac_frame(uint8_t* frame, size_t len) {
+	openmac_netif_receive(frame, len);
+}
+
+void rs_recycle_data_frame(uint8_t* frame) {
+	free(frame);
+}
+
+// Called from the C stack to request the Rust MAC stack to TX a frame
+// This function does NOT take ownership of the frame, so you're allowed to reuse the buffer directly after this returns
+void c_transmit_data_frame(uint8_t* frame, size_t len) {
+	void* queued_buffer = malloc(len);
+	memcpy(queued_buffer, frame, len);
+
+	rust_mac_event_queue_item_t to_queue = {0};
+	to_queue.event_type = EVENT_TYPE_MAC_TX_DATA_FRAME;
+	to_queue.ptr = queued_buffer;
+	to_queue.len = len;
+	if (xQueueSendToBack(rust_mac_event_queue, &to_queue, 0) != pdTRUE) {
+		rs_recycle_data_frame(queued_buffer);
+	}
+}
+
 
 void c_mac_task() {
 	interface_init();

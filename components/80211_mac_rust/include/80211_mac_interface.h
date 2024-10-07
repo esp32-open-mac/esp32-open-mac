@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -97,7 +99,7 @@ typedef struct {
 } rs_rx_frame_t;
 
 /*Called from the Rust MAC stack, gets the next event*/
-bool rs_get_next_mac_event_raw(uint32_t ms_to_wait, rs_event_type_t* event_type, void** ptr);
+bool rs_get_next_mac_event_raw(uint32_t ms_to_wait, rs_event_type_t* event_type, void** ptr, size_t* len);
 
 /*Called from the Rust MAC stack, to obtain a smart frame, which can then be filled in*/
 rs_smart_frame_t* rs_get_smart_frame(size_t size_hint);
@@ -105,7 +107,7 @@ rs_smart_frame_t* rs_get_smart_frame(size_t size_hint);
 /*Called from the Rust MAC stack, to TX a smart frame previously obtained via rs_get_smart_frame*/
 void rs_tx_smart_frame(rs_smart_frame_t* frame);
 
-/*Called from the Rust MAC stack, to pass a data frame to the MAC stack. Expects the frame to be in Ethernet format*/
+/*Called from the Rust MAC stack, to pass a data frame to the IP stack. Expects the frame to be in Ethernet format. Does not take ownership of the data*/
 void rs_rx_mac_frame(uint8_t* frame, size_t len);
 
 void rs_recycle_dma_item(dma_list_item* item);
@@ -115,11 +117,12 @@ void rs_recycle_dma_item(dma_list_item* item);
 */
 void c_recycle_tx_smart_frame(rs_smart_frame_t* frame);
 
-/*Called from the the IP stack, to hand an RX frame back*/
-void c_recycle_rx_frame(uint8_t* frame);
 
 void rust_mac_task();
 void c_mac_task();
 void c_hand_rx_to_mac_stack();
 
 int64_t rs_get_time_us();
+
+void c_transmit_data_frame(uint8_t* frame, size_t len);
+void rs_recycle_data_frame(uint8_t* frame);
