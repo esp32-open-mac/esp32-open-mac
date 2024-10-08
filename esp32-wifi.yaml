@@ -29,7 +29,7 @@ _add:
                     ADDR:
                         bitOffset: 0
                         bitWidth: 16
-            BSSID_FILTER_ADDR_MASK_FIRSt:
+            BSSID_FILTER_ADDR_MASK_FIRST:
                 description: mask applied to BSSID MAC address filter
                 addressOffset: 0x20
                 access: read-write
@@ -55,7 +55,7 @@ _add:
                     ADDR:
                         bitOffset: 0
                         bitWidth: 16
-            MAC_FILTER_ADDR_MASK_FIRSt:
+            MAC_FILTER_ADDR_MASK_FIRST:
                 description: mask applied to MAC address filter
                 addressOffset: 0x60
                 access: read-write
