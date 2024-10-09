@@ -112,6 +112,10 @@ void rs_rx_mac_frame(uint8_t* frame, size_t len);
 
 void rs_recycle_dma_item(dma_list_item* item);
 
+
+void rs_mark_iface_up();
+void rs_mark_iface_down();
+
 /*
   Called from the hardware stack to recycle a smart frame after it was sent
 */

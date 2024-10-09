@@ -404,7 +404,8 @@ static void set_mac_addr_filter(uint8_t slot, uint8_t* addr) {
 	assert(slot <= 1);
 	write_register(WIFI_MAC_ADDR_SLOT_0 + slot*8, addr[0] | addr[1] << 8 | addr[2] << 16 | addr[3] << 24);
 	write_register(WIFI_MAC_ADDR_SLOT_0 + slot*8 + 4, addr[4] | addr[5] << 8);
-	write_register(WIFI_MAC_ADDR_SLOT_0 + slot*8 + 8*4, ~0); // ?
+	write_register(WIFI_MAC_ADDR_SLOT_0 + slot*8 + 8*4, ~0); // mask bits
+	write_register(WIFI_MAC_ADDR_ACK_ENABLE_SLOT_0 + slot*8, read_register(WIFI_MAC_ADDR_ACK_ENABLE_SLOT_0 + slot*8) | 0xffff); // mask bits
 }
 
 void wifi_set_rx_policy(int arg); // TODO remove for testing
@@ -440,17 +441,16 @@ void wifi_hardware_task(void* pvArguments) {
 
 	ESP_LOGW(TAG, "Starting to receive messages");
 
+	wifi_set_rx_policy(0); // just for testing
+
 	set_mac_addr_filter(0, module_mac_addr);
 	set_enable_mac_addr_filter(0, true);
 	// acking will only happen if the hardware puts the packet in an RX buffer
 
-	uint32_t first_part = read_register(WIFI_MAC_ADDR_SLOT_0 + 4);
-	ESP_LOGW(TAG, "addr_p = %lx %lx", first_part & 0xff, (first_part >> 8) & 0xff);
-
 	// We're ready now, start the MAC task
 	xTaskCreatePinnedToCore(&c_mac_task, "rs_wifi", 4096, NULL, 23, NULL, 1);
 	vTaskDelay(50 / portTICK_PERIOD_MS);
-	wifi_set_rx_policy(3); // just for testing
+	
 	
 	while (true) {
 		hardware_queue_entry_t queue_entry;

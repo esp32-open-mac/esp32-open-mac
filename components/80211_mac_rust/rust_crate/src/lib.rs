@@ -1,14 +1,16 @@
 #![no_std]
 
+use core::default;
 use core::ffi::c_void;
 use core::marker::PhantomData;
 use core::ptr::NonNull;
 
+use ether_type::EtherType;
 use ieee80211::common::{
-    CapabilitiesInformation, FCFFlags, IEEE80211AuthenticationAlgorithmNumber, IEEE80211StatusCode, SequenceControl,
+    CapabilitiesInformation, FCFFlags, IEEE80211AuthenticationAlgorithmNumber, IEEE80211StatusCode, SequenceControl, IEEE_OUI,
 };
 use ieee80211::data_frame::header::DataFrameHeader;
-use ieee80211::data_frame::DataFrame;
+use ieee80211::data_frame::{DataFrame, DataFrameReadPayload};
 use ieee80211::elements::element_chain::ElementChainEnd;
 use ieee80211::elements::rsn::RSNElement;
 use ieee80211::elements::{DSSSParameterSetElement, SSIDElement};
@@ -19,8 +21,9 @@ use ieee80211::mgmt_frame::{
     DeauthenticationFrame, ManagementFrameHeader,
 };
 use ieee80211::scroll::ctx::{MeasureWith, TryIntoCtx};
-use ieee80211::scroll::Pwrite;
+use ieee80211::scroll::{Pread, Pwrite};
 use ieee80211::{element_chain, match_frames, ssid, supported_rates};
+use llc::SnapLlcFrame;
 use sys::{dma_list_item, rs_event_type_t, rs_get_smart_frame, rs_rx_frame_t, rs_tx_smart_frame, rs_get_time_us};
 
 use esp_println as _;
@@ -97,11 +100,18 @@ impl TxDataFrameWrapper {
         }
     }
 
+    pub fn ether_type(&mut self) -> EtherType {
+        // TODO check that frame is big enough!
+        unsafe {
+            let ether: &[u8] = core::slice::from_raw_parts(self.frame.wrapping_add(6 + 6), 2).try_into().unwrap();
+            EtherType::from_bits(((ether[1] as u16) << 8) | ether[0] as u16)
+        }
+    }
 
     pub fn payload(&mut self) -> &[u8] {
         // TODO check that frame is big enough!
         unsafe {
-            core::slice::from_raw_parts(self.frame.wrapping_add(6+6), self.len - 12).try_into().unwrap()
+            core::slice::from_raw_parts(self.frame.wrapping_add(6+6+2), self.len - (6+6+2) + 1).try_into().unwrap()
         }
     }
 }
@@ -260,10 +270,46 @@ fn handle_auth(state: &mut STAState, auth_frame: AuthenticationFrame) {
 fn handle_assoc_resp(state: &mut STAState, assoc_resp_frame: AssociationResponseFrame) {
     if assoc_resp_frame.body.status_code == IEEE80211StatusCode::Success {
         // yay, they accepted our association
+        match state.state {
+            StaMachineState::Associated => {},
+            _ => {unsafe { sys::rs_mark_iface_up() }}
+        }
         state.state = StaMachineState::Associated;
-        // TODO let network adapter know the network is up
     }
 }
+
+fn handle_data_frame(_state: &mut STAState, data_frame: DataFrame) -> Option<()> {
+    // TODO validate MAC address?
+    let payload = data_frame.payload?;
+    match payload {
+        DataFrameReadPayload::Single(llc) => {
+            let llc: Result<SnapLlcFrame, _> = llc.pread(0);
+            let Ok(inner_payload) = llc else {
+                return None;
+            };
+            // we now have everything we need, finally
+            match (data_frame.header.fcf_flags.from_ds(), data_frame.header.fcf_flags.to_ds()) {
+                (true, false) => {
+                    // Frame from DS
+                    let destination: MACAddress = data_frame.header.address_1;
+                    let sender: MACAddress = data_frame.header.address_3;
+                    let ethertype = inner_payload.ether_type;
+                    let packet = inner_payload.payload;
+                    // TODO actually send this back up the ESP-NETIF stack
+                    // ignore for now
+                }
+                _ => {println!("unhandled data frame from={} to={}", data_frame.header.fcf_flags.from_ds(), data_frame.header.fcf_flags.to_ds())}
+            }
+        }
+        DataFrameReadPayload::AMSDU(_) => {
+            println!("AMSDU not handled yet")
+        }
+    }
+    None
+
+}
+
+// TODO handle deauth / deassoc
 
 const AUTHENTICATE_INTERVAL_US: i64 = 500*1000;
 const ASSOCIATE_INTERVAL_US: i64 = 500*1000;
@@ -320,6 +366,7 @@ fn send_associate(state: &mut STAState) {
 
 fn send_data_frame(state: &mut STAState, wrapper: &mut TxDataFrameWrapper) {
     let fcf = FCFFlags::new().with_to_ds(true);
+
     let dataframe = DataFrame {
         
         header: DataFrameHeader {
@@ -332,7 +379,12 @@ fn send_data_frame(state: &mut STAState, wrapper: &mut TxDataFrameWrapper) {
             address_4: None,
             ..Default::default()
         },
-        payload: Some(ieee80211::data_frame::DataFrameReadPayload::Single(wrapper.payload())),
+        payload: Some(SnapLlcFrame {
+            oui: [0, 0, 0],
+            ether_type: wrapper.ether_type(),
+            payload: wrapper.payload(),
+            _phantom: PhantomData
+        }),
         _phantom: PhantomData,
     };
     transmit_frame(dataframe, 12).unwrap();
@@ -405,7 +457,8 @@ pub extern "C" fn rust_mac_task() -> *const c_void {
                             println!("assoc response");
                             handle_assoc_resp(&mut state, assoc_resp_frame)
                         }
-                        _data_frame = DataFrame => {
+                        data_frame = DataFrame => {
+                            handle_data_frame(&mut state, data_frame);
                             println!("TODO data frame")
                         }
                         _ = DeauthenticationFrame => {

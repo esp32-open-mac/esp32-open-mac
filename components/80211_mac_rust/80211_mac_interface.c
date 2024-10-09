@@ -114,6 +114,17 @@ void c_hand_rx_to_mac_stack(dma_list_item* item) {
 	xQueueSendToBack(rust_mac_event_queue, &to_queue, 0);
 }
 
+void openmac_netif_up();
+void openmac_netif_down();
+
+void rs_mark_iface_up() {
+	openmac_netif_up();
+}
+
+void rs_mark_iface_down() {
+	openmac_netif_down();
+}
+
 /*Called from the Rust MAC stack, to pass a data frame to the IP stack. Expects the frame to be in Ethernet format. Does not take ownership of the data*/
 void rs_rx_mac_frame(uint8_t* frame, size_t len) {
 	openmac_netif_receive(frame, len);

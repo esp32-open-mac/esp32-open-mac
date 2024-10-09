@@ -55,6 +55,14 @@ void openmac_netif_receive(void* buffer, size_t len) {
     esp_netif_receive(netif_openmac, newbuf, len, NULL);
 }
 
+void openmac_netif_up() {
+    esp_netif_action_connected(netif_openmac, NULL, 0, NULL);
+}
+
+void openmac_netif_down() {
+    esp_netif_action_disconnected(netif_openmac, NULL, 0, NULL);
+}
+
 // Free RX buffer
 static void openmac_free(void *h, void* buffer)
 {
