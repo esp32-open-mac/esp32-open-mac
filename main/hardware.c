@@ -469,7 +469,7 @@ void wifi_hardware_task(void* pvArguments) {
 					ESP_LOGE(TAG, "something bad, we should reboot");
 				}
 				if (cause & 0x1000024) {
-					ESP_LOGW(TAG, "received message");
+					ESP_LOGW(TAG, "HW RX");
 					handle_rx_messages();
 				}
 				if (cause & 0x80) {

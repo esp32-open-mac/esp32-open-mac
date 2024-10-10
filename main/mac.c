@@ -47,13 +47,6 @@ static esp_err_t openmac_netif_transmit_wrap(void *h, void *buffer, size_t len, 
     return openmac_netif_transmit(h, buffer, len);
 }
 
-// Put Ethernet-formatted frame in MAC stack; does not take ownership of the buffer: after the function returns, you can delete/reuse it.
-void openmac_netif_receive(void* buffer, size_t len) {
-    assert(buffer != NULL);
-    void* newbuf = malloc(len);
-    memcpy(newbuf, buffer, len);
-    esp_netif_receive(netif_openmac, newbuf, len, NULL);
-}
 
 void openmac_netif_up() {
     esp_netif_action_connected(netif_openmac, NULL, 0, NULL);
@@ -63,11 +56,16 @@ void openmac_netif_down() {
     esp_netif_action_disconnected(netif_openmac, NULL, 0, NULL);
 }
 
+// Put Ethernet-formatted frame in MAC stack; does not take ownership of the buffer: after the function returns, you can delete/reuse it.
+void openmac_netif_receive(void* buffer, size_t len) {
+    assert(buffer != NULL);
+    esp_netif_receive(netif_openmac, buffer, len, buffer);
+}
+
 // Free RX buffer
 static void openmac_free(void *h, void* buffer)
 {
-    ESP_LOGI(TAG, "Free-ing RX'd packet %p", buffer);
-    free(buffer);
+    c_recycle_mac_rx_frame(buffer);
 }
 
 static esp_err_t openmac_driver_start(esp_netif_t * esp_netif, void * args)

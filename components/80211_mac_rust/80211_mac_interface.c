@@ -11,7 +11,11 @@
 
 #define IEEE80211_MAX_FRAME_LEN   (2352)
 
+// TODO check this is correct
+#define IEEE80211_MAX_PAYLOAD_LEN (2304)
+
 #define NUM_TX_SMART_FRAME_BUFFERS (5)
+#define NUM_RX_BUFFERS (5)
 
 typedef struct {
 	void* ptr;
@@ -24,8 +28,15 @@ typedef struct {
 	bool in_use;
 } smart_frame_tracker_t;
 
+typedef struct {
+	uint8_t* buffer;
+	bool in_use;
+	size_t buffersize;
+} mac_rx_frame_t;
+
 static QueueHandle_t rust_mac_event_queue = NULL;
 smart_frame_tracker_t smart_frame_tracker_list[NUM_TX_SMART_FRAME_BUFFERS] = {{0}};
+mac_rx_frame_t mac_rx_frame_list[NUM_RX_BUFFERS] = {{0}};
 bool init_done = false;
 
 void interface_init() {
@@ -40,6 +51,12 @@ void interface_init() {
 		smart_frame->payload_size = IEEE80211_MAX_FRAME_LEN;
 		smart_frame_tracker_list[i].frame = smart_frame;
 		smart_frame_tracker_list[i].in_use = false;
+	}
+	for (int i = 0; i < NUM_RX_BUFFERS; i++) {
+		// TODO also allocate smaller buffers?
+		uint8_t* buffer = malloc(IEEE80211_MAX_PAYLOAD_LEN);
+		mac_rx_frame_t rx_frame = {.buffer = buffer, .buffersize = IEEE80211_MAX_PAYLOAD_LEN, .in_use = false};
+		mac_rx_frame_list[i] = rx_frame;
 	}
 	init_done = true;
 }
@@ -61,6 +78,42 @@ int64_t rs_get_time_us() {
 	return esp_timer_get_time();
 }
 
+// declaration from IP
+// RX'ed 802.11 packets -> RX queue of MAC stack
+void openmac_netif_receive(void* buffer, size_t len);
+
+/*Called from the Rust MAC stack, to obtain a frame to receive MAC data in and pass it to ESP-NETIF */
+uint8_t* rs_get_mac_rx_frame(size_t size_required) {
+	for (int i = 0; i < NUM_RX_BUFFERS; i++) {
+		if (!mac_rx_frame_list[i].in_use && mac_rx_frame_list[i].buffersize >= size_required) {
+			mac_rx_frame_list[i].in_use = true;
+			printf("handing out %d %p\n", i, mac_rx_frame_list[i].buffer);
+			return mac_rx_frame_list[i].buffer;
+		}
+	}
+	return NULL;
+}
+
+/*Called from the Rust MAC stack, to pass a previously obtained data frame buffer to ESP-NETIF. Expects the frame to be in Ethernet format. Does not take ownership of the data*/
+void rs_rx_mac_frame(uint8_t* frame, size_t len) {
+	openmac_netif_receive(frame, len);
+}
+
+/*
+  Called from the ESP-NETIF stack to recycle a MAC RX frame after it was sent. Takes ownership of the buffer.
+*/
+void c_recycle_mac_rx_frame(uint8_t* buffer) {
+	printf("recycling %p\n", buffer);
+	for (int i = 0; i < NUM_RX_BUFFERS; i++) {
+		if (mac_rx_frame_list[i].buffer == buffer) {
+			mac_rx_frame_list[i].in_use = false;
+			return;
+		}
+	}
+	// if we reached this, we somehow recycled a frame that wasn't in the list
+	abort();
+}
+
 /*Called from the Rust MAC stack, to obtain a smart frame from the hardware, which can then be filled in*/
 rs_smart_frame_t* rs_get_smart_frame(size_t size_required) {
 	for (int i = 0; i < NUM_TX_SMART_FRAME_BUFFERS; i++) {
@@ -75,11 +128,6 @@ rs_smart_frame_t* rs_get_smart_frame(size_t size_required) {
 
 // declaration from hardware:
 bool transmit_80211_frame(rs_smart_frame_t* frame);
-
-
-// declaration from IP
-// RX'ed 802.11 packets -> RX queue of MAC stack
-void openmac_netif_receive(void* buffer, size_t len);
 
 
 /*
@@ -125,18 +173,15 @@ void rs_mark_iface_down() {
 	openmac_netif_down();
 }
 
-/*Called from the Rust MAC stack, to pass a data frame to the IP stack. Expects the frame to be in Ethernet format. Does not take ownership of the data*/
-void rs_rx_mac_frame(uint8_t* frame, size_t len) {
-	openmac_netif_receive(frame, len);
+void rs_recycle_mac_tx_data(uint8_t* data) {
+	free(data);
 }
 
-void rs_recycle_data_frame(uint8_t* frame) {
-	free(frame);
-}
-
-// Called from the C stack to request the Rust MAC stack to TX a frame
+// Called from the C ESP-NETIF stack to request the Rust MAC stack to TX a frame
 // This function does NOT take ownership of the frame, so you're allowed to reuse the buffer directly after this returns
 void c_transmit_data_frame(uint8_t* frame, size_t len) {
+	// TODO make sure we don't flood the stack by sending too much frames
+	// maybe use a counting semaphore?
 	void* queued_buffer = malloc(len);
 	memcpy(queued_buffer, frame, len);
 
@@ -145,7 +190,7 @@ void c_transmit_data_frame(uint8_t* frame, size_t len) {
 	to_queue.ptr = queued_buffer;
 	to_queue.len = len;
 	if (xQueueSendToBack(rust_mac_event_queue, &to_queue, 0) != pdTRUE) {
-		rs_recycle_data_frame(queued_buffer);
+		rs_recycle_mac_tx_data(queued_buffer);
 	}
 }
 

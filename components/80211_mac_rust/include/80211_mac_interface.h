@@ -129,4 +129,7 @@ void c_hand_rx_to_mac_stack();
 int64_t rs_get_time_us();
 
 void c_transmit_data_frame(uint8_t* frame, size_t len);
-void rs_recycle_data_frame(uint8_t* frame);
+void rs_recycle_mac_tx_data(uint8_t* frame);
+
+uint8_t* rs_get_mac_rx_frame(size_t size_required);
+void c_recycle_mac_rx_frame(uint8_t* buffer);
