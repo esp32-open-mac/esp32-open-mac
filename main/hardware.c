@@ -226,6 +226,13 @@ static void processTxComplete() {
 	ESP_LOGW(TAG, "slot %lx is now free again", slot);
 	uint32_t clear_mask = 1 << slot;
 	WIFI_TXQ_CLR_STATE_COMPLETE |= clear_mask;
+	// Periodic power calibration
+	static uint8_t ctr = 0;
+	ctr++;
+	if (ctr % 4 == 0) {
+		tx_pwctrl_background(1, 0);
+	}
+	// Recycle the buffer the packet was received in
 	if (slot < TX_SLOT_CNT) {
 		// TODO maybe take a mutex over the TX slots here?
 		c_recycle_tx_smart_frame(tx_slots[slot].frame);

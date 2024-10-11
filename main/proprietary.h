@@ -10,6 +10,9 @@ extern uint32_t config_get_wifi_task_core_id();
 
 // extern void wdev_process_panic_watchdog();
 
+// Power calibration of TX
+extern void tx_pwctrl_background(int a, int b);
+
 typedef struct xt_handler_table_entry {
     void * handler;
     void * arg;
