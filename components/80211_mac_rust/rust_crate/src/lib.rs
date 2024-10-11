@@ -299,10 +299,13 @@ fn handle_assoc_resp(state: &mut STAState, assoc_resp_frame: AssociationResponse
 
 fn handle_disassoc(state: &mut STAState, _disassoc_frame: DisassociationFrame) {
     state.state = StaMachineState::Scanning;
+    unsafe { sys::rs_mark_iface_down() }
 }
+
 
 fn handle_deauth(state: &mut STAState, _deauth: DeauthenticationFrame) {
     state.state = StaMachineState::Scanning;
+    unsafe { sys::rs_mark_iface_down() }
 }
 
 fn handle_data_frame(_state: &mut STAState, data_frame: DataFrame) -> Option<()> {
