@@ -14,8 +14,7 @@ use ieee80211::elements::rsn::RSNElement;
 use ieee80211::mac_parser::MACAddress;
 use ieee80211::mgmt_frame::body::{AssociationRequestBody, AuthenticationBody};
 use ieee80211::mgmt_frame::{
-    AssociationRequestFrame, AssociationResponseFrame, AuthenticationFrame, BeaconFrame,
-    DeauthenticationFrame, ManagementFrameHeader,
+    AssociationRequestFrame, AssociationResponseFrame, AuthenticationFrame, BeaconFrame, DeauthenticationFrame, DisassociationFrame, ManagementFrameHeader
 };
 use ieee80211::scroll::ctx::{MeasureWith, TryIntoCtx};
 use ieee80211::scroll::{Pread, Pwrite};
@@ -298,6 +297,14 @@ fn handle_assoc_resp(state: &mut STAState, assoc_resp_frame: AssociationResponse
     }
 }
 
+fn handle_disassoc(state: &mut STAState, _disassoc_frame: DisassociationFrame) {
+    state.state = StaMachineState::Scanning;
+}
+
+fn handle_deauth(state: &mut STAState, _deauth: DeauthenticationFrame) {
+    state.state = StaMachineState::Scanning;
+}
+
 fn handle_data_frame(_state: &mut STAState, data_frame: DataFrame) -> Option<()> {
     let payload = data_frame.payload?;
     match payload {
@@ -329,7 +336,6 @@ fn handle_data_frame(_state: &mut STAState, data_frame: DataFrame) -> Option<()>
 
 }
 
-// TODO handle deauth / deassoc
 
 const AUTHENTICATE_INTERVAL_US: i64 = 500*1000;
 const ASSOCIATE_INTERVAL_US: i64 = 500*1000;
@@ -454,14 +460,15 @@ pub extern "C" fn rust_mac_task() -> *const c_void {
         own_mac: MACAddress([0x00, 0x23, 0x45, 0x67, 0x89, 0xab]), // TODO don't hardcode this
     };
 
+    let mut wait_for: u32 = 0;
     loop {
-        let wait_for = handle_state(&mut state);
-
         let a = get_next_mac_event(wait_for);
         match a {
-            Some(event) => match event {
+            Some(event) => {
+                wait_for = 0;
+                match event {
                 MacEvent::HardwareRx(mut wrapper) => {
-                    println!("RX frame");
+                    println!("HardwareRx");
                     let payload = wrapper.payload();
                     let res = match_frames! {
                         payload,
@@ -473,10 +480,22 @@ pub extern "C" fn rust_mac_task() -> *const c_void {
                             println!("auth frame");
                             handle_auth(&mut state, auth_frame)
                         }
+                        
+                        deauth_frame = DeauthenticationFrame => {
+                            println!("deauth frame");
+                            handle_deauth(&mut state, deauth_frame);
+                        }
+
                         assoc_resp_frame = AssociationResponseFrame => {
                             println!("assoc response");
                             handle_assoc_resp(&mut state, assoc_resp_frame)
                         }
+
+                        disassoc_frame = DisassociationFrame => {
+                            println!("disassociation");
+                            handle_disassoc(&mut state, disassoc_frame)
+                        }
+
                         data_frame = DataFrame => {
                             handle_data_frame(&mut state, data_frame);
                         }
@@ -490,6 +509,7 @@ pub extern "C" fn rust_mac_task() -> *const c_void {
                     }
                 }
                 MacEvent::MacTx(mut wrapper) => {
+                    println!("MacTx");
                     match state.state {
                         StaMachineState::Associated => {
                             send_data_frame(&mut state, &mut wrapper);
@@ -499,8 +519,12 @@ pub extern "C" fn rust_mac_task() -> *const c_void {
                         }
                     }
                 }
+            }
             },
-            None => {}
+            None => {
+                println!("none; handle state");
+                wait_for = handle_state(&mut state);
+            }
         }
     }
 }

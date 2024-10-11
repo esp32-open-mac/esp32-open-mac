@@ -250,6 +250,7 @@ void IRAM_ATTR wifi_interrupt_handler(void* args) {
 		hardware_queue_entry_t queue_entry;
 		queue_entry.type = RX_ENTRY;
 		queue_entry.content.rx.interrupt_received = cause;
+		ESP_DRAM_LOGE("isr", "%08x", cause);
 		bool higher_prio_task_woken = false;
 		xQueueSendFromISR(hardware_event_queue, &queue_entry, &higher_prio_task_woken);
 		if (higher_prio_task_woken) {
@@ -448,7 +449,7 @@ void wifi_hardware_task(void* pvArguments) {
 	// acking will only happen if the hardware puts the packet in an RX buffer
 
 	// We're ready now, start the MAC task
-	xTaskCreatePinnedToCore(&c_mac_task, "rs_wifi", 4096, NULL, 23, NULL, 1);
+	xTaskCreatePinnedToCore(&c_mac_task, "rs_wifi", 4096, NULL, 22, NULL, 0);
 	vTaskDelay(50 / portTICK_PERIOD_MS);
 	
 	

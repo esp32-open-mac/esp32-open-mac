@@ -159,7 +159,13 @@ void c_hand_rx_to_mac_stack(dma_list_item* item) {
 	rust_mac_event_queue_item_t to_queue;
 	to_queue.event_type = EVENT_TYPE_PHY_RX_DATA;
 	to_queue.ptr = item;
-	xQueueSendToBack(rust_mac_event_queue, &to_queue, 0);
+	// TODO can this queue be full?
+	if (xQueueSendToBack(rust_mac_event_queue, &to_queue, 0) != pdTRUE) {
+		printf("failed to push HW RX to Rust\n");
+		abort();
+	} else {
+		printf("handed to RX stack\n");
+	}
 }
 
 void openmac_netif_up();
