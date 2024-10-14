@@ -13,7 +13,7 @@ use ieee80211::common::{
 use ieee80211::data_frame::header::DataFrameHeader;
 use ieee80211::data_frame::{DataFrame, DataFrameReadPayload};
 use ieee80211::elements::rsn::RSNElement;
-use ieee80211::mac_parser::MACAddress;
+use ieee80211::mac_parser::{MACAddress, BROADCAST};
 use ieee80211::mgmt_frame::body::{AssociationRequestBody, AuthenticationBody};
 use ieee80211::mgmt_frame::{
     AssociationRequestFrame, AssociationResponseFrame, AuthenticationFrame, BeaconFrame,
@@ -21,7 +21,7 @@ use ieee80211::mgmt_frame::{
 };
 use ieee80211::scroll::ctx::{MeasureWith, TryIntoCtx};
 use ieee80211::scroll::{Pread, Pwrite};
-use ieee80211::{element_chain, match_frames, ssid, supported_rates};
+use ieee80211::{element_chain, match_frames, ssid, supported_rates, GenericFrame};
 use llc::SnapLlcFrame;
 use sys::{
     dma_list_item, rs_change_channel, rs_event_type_t, rs_get_smart_frame, rs_get_time_us,
@@ -280,7 +280,14 @@ struct STAState {
     bssid: MACAddress,
     state: StaMachineState,
     current_channel: u8,
+
+    // sequence control is done per transmitter/receiver combination
+    // this is only valid for the `bssid`/`own_mac` for now
+    sequence_control_bitmap: u32, // bitmap has 32 bits
+    sequence_control_last_seqno: i32,
 }
+
+const SEQNO_WINDOW_SIZE: i32 = 32;
 
 fn transition_to_scanning(state: &mut STAState) {
     unsafe { sys::rs_mark_iface_down() }
@@ -554,15 +561,67 @@ fn handle_state(state: &mut STAState) -> u32 {
     }
 }
 
+fn sequence_control_accept(
+    state: &mut STAState,
+    seq: SequenceControl,
+    transmitter: MACAddress,
+    receiver: MACAddress,
+) -> bool {
+    if state.bssid != transmitter {
+        println!("accepting non-bssid frame");
+        return true; // we only know about the bssid
+    }
+    if state.own_mac != receiver {
+        println!("accepting likely broadcast frame");
+        return true;
+    }
+
+    let seqno_diff = seq.sequence_number() as i32 - state.sequence_control_last_seqno;
+    println!(
+        "sequence number = {} last = {}, diff = {}",
+        seq.sequence_number(),
+        state.sequence_control_last_seqno,
+        seqno_diff
+    );
+
+    if (seqno_diff <= 0 && seqno_diff > -SEQNO_WINDOW_SIZE) {
+        // inside the window, slightly older
+        if (state.sequence_control_bitmap & (1 << -seqno_diff)) != 0 {
+            return false;
+        }
+        state.sequence_control_bitmap |= 1 << -seqno_diff;
+        return true;
+    } else if (seqno_diff > 0 && seqno_diff < SEQNO_WINDOW_SIZE) {
+        // sequence number is slightly newer
+        state.sequence_control_bitmap <<= seqno_diff;
+        state.sequence_control_bitmap |= 1;
+        state.sequence_control_last_seqno = seq.sequence_number() as i32;
+        return true;
+    } else if (seqno_diff >= SEQNO_WINDOW_SIZE && seqno_diff < 4095) {
+        // sequence number is much newer
+        println!("missed a lot of packets ({})", seqno_diff - 1);
+        state.sequence_control_bitmap = 1;
+        state.sequence_control_last_seqno = seq.sequence_number() as i32;
+        return true;
+    } else {
+        println!("other host may have restarted");
+        state.sequence_control_bitmap = 1;
+        state.sequence_control_last_seqno = seq.sequence_number() as i32;
+        return true;
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn rust_mac_task() -> *const c_void {
     let mut state: STAState = STAState {
-        bssid: MACAddress([0x9c, 0xef, 0xd5, 0xfa, 0x4c, 0xcb]),
+        bssid: BROADCAST,
         state: StaMachineState::Scanning(ScanningS {
             last_channel_change: None,
         }),
         own_mac: MACAddress([0x00, 0x23, 0x45, 0x67, 0x89, 0xab]), // TODO don't hardcode this
         current_channel: 1,
+        sequence_control_bitmap: 0,
+        sequence_control_last_seqno: 0,
     };
 
     transition_to_scanning(&mut state);
@@ -583,6 +642,27 @@ pub extern "C" fn rust_mac_task() -> *const c_void {
                         // if let Ok(fcf) = fcf {
                         //     println!("type = {:?}", fcf.frame_type());
                         // }
+
+                        let generic = GenericFrame::new(payload, false);
+                        let Ok(generic) = generic else {
+                            continue;
+                        };
+                        match (generic.sequence_control(), generic.address_2()) {
+                            (Some(seq), Some(ta)) => {
+                                if !sequence_control_accept(
+                                    &mut state,
+                                    seq,
+                                    ta,
+                                    generic.address_1(),
+                                ) {
+                                    println!("duplicate frame detected!");
+                                    continue;
+                                } else {
+                                    println!("accepted!");
+                                }
+                            }
+                            _ => (),
+                        }
 
                         let res = match_frames! {
                             payload,

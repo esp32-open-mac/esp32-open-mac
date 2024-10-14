@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["staticlib"]
 
 [dependencies]
-ieee80211 = { git = "https://github.com/Frostie314159/ieee80211-rs", rev = "fa4e8ee06d318166f26e6b2598d3a3c95ea77c46" }
+ieee80211 = { git = "https://github.com/Frostie314159/ieee80211-rs", rev = "66c863cf2768742397e90c01211b31b4285a5e67" }
 esp-println = { version = "0.9.1", features = ["esp32", "uart"], default-features = false }
 llc = { git = "https://github.com/Frostie314159/llc-rs.git", version = "0.1.0" }
 ether-type = { version = "0.1.3" }
