@@ -11,12 +11,18 @@ Currently, we can send and receive frames, without any proprietary code *running
 - [X] Send an ACK packet as reply to packets that are sent to the ESP32
 - [X] intermediate goal: connect to an open access point & send UDP packets
 - [X] intermediate goal: use the ESP-NETIF custom IO driver to tie our Wi-Fi driver into the higher-level lwIP stack
-- [ ] Switching channels
-- [ ] Changing rate
-- [ ] Adjusting TX power
+- [x] Switching channels
+- [x] Changing rate
+- [x] Adjusting TX power
 - [X] Hardware packet filtering based on MAC address (we previously used promiscuous mode to receive all packets, but this is a bit inefficient)
 - [ ] Implement wifi hardware initialization ourselves (this is now done using the functions in the proprietary blobs)
-- [ ] Connect our sending, receiving and other primitives to an open source 802.11 MAC implementation to handle association/authentication
+- [x] Connect our sending, receiving and other primitives to an open source 802.11 MAC implementation to handle association/authentication
+- [ ] Connecting to WPA2 networks w/ hardware acceleration
+- [ ] WPA3 dragonfly handshake
+- [ ] AP mode
+- [ ] 802.11s mesh networking
+- [ ] dual AP/client
+- [ ] decouple blobs from ESP-IDF version 
 
 ## Frequently asked questions
 
