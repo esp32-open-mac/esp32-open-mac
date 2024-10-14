@@ -10,6 +10,14 @@ extern uint32_t config_get_wifi_task_core_id();
 
 // extern void wdev_process_panic_watchdog();
 
+// Power calibration of TX
+extern void tx_pwctrl_background(int a, int b);
+
+// changing channel
+extern void chip_v7_set_chan_nomac(uint8_t channel, uint8_t _unknown);
+extern void disable_wifi_agc();
+extern void enable_wifi_agc();
+
 typedef struct xt_handler_table_entry {
     void * handler;
     void * arg;
