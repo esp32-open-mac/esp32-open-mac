@@ -183,6 +183,23 @@ void rs_recycle_mac_tx_data(uint8_t* data) {
 	free(data);
 }
 
+void request_channel_change(uint8_t channel);
+
+void rs_change_channel(uint8_t channel) {
+	request_channel_change(channel);
+}
+
+void filters_set_scanning_mode();
+void filters_set_client_mode(const uint8_t* bssid);
+
+void rs_filters_set_scanning() {
+	filters_set_scanning_mode();
+}
+
+void rs_filters_set_client_with_bssid(const uint8_t* addr) {
+	filters_set_client_mode(addr);
+}
+
 // Called from the C ESP-NETIF stack to request the Rust MAC stack to TX a frame
 // This function does NOT take ownership of the frame, so you're allowed to reuse the buffer directly after this returns
 void c_transmit_data_frame(uint8_t* frame, size_t len) {

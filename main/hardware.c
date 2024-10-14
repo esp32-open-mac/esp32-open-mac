@@ -79,9 +79,15 @@ inline uint32_t read_register(uint32_t address) {
 #define WIFI_MAC_ADDR_SLOT_0 0x3ff73040
 #define WIFI_MAC_ADDR_ACK_ENABLE_SLOT_0 0x3ff73064
 
+#define WIFI_BSSID_FILTER_ADDR_SLOT_0 _MMIO_ADDR(0x3ff73000)
+
+
+#define MAC_CTRL_REG _MMIO_DWORD(0x3ff73cb8)
+
 typedef enum {
 	RX_ENTRY,
-	TX_ENTRY
+	TX_ENTRY,
+	CHANGE_CHANNEL_ENTRY,
 } hardware_queue_entry_type_t;
 
 typedef struct
@@ -96,10 +102,15 @@ typedef struct
 } tx_queue_entry_t;
 
 typedef struct {
+	uint8_t channel;
+} change_channel_queue_entry_t;
+
+typedef struct {
 	hardware_queue_entry_type_t type;
 	union {
 		rx_queue_entry_t rx;
 		tx_queue_entry_t tx;
+		change_channel_queue_entry_t change_channel;
 	} content;
 } hardware_queue_entry_t;
 
@@ -130,6 +141,14 @@ uint32_t seqnum = 0;
 
 void log_dma_item(dma_list_item* item) {
 	ESP_LOGD("dma_item", "cur=%p owner=%d has_data=%d length=%d size=%d packet=%p next=%p", item, item->owner, item->has_data, item->length, item->size, item->packet, item->next);
+}
+
+void request_channel_change(uint8_t channel) {
+	hardware_queue_entry_t msg = {.type = CHANGE_CHANNEL_ENTRY, .content.change_channel.channel = channel};
+	if (xQueueSendToBack(hardware_event_queue, &msg, 0) != pdTRUE) {
+		ESP_LOGE(TAG, "queueing channel change request failed");
+		abort();
+	}
 }
 
 
@@ -212,6 +231,31 @@ bool transmit_80211_frame(rs_smart_frame_t* frame) {
 	return true;
 }
 
+static void deinit_mac() {
+	MAC_CTRL_REG = MAC_CTRL_REG | 0x17ff;
+	while ((MAC_CTRL_REG & 0x2000) != 0) {
+		// nothing
+	}
+}
+
+static void init_mac() {
+	MAC_CTRL_REG = MAC_CTRL_REG & 0xffffe800;
+}
+
+static void change_channel_to(uint8_t channel) {
+	ESP_LOGI(TAG, "changing channel to %d", channel);
+	if (channel <= 0 || channel >= 13) {
+		ESP_LOGE(TAG, "channel %d not valid", channel);
+		abort();
+	}
+	// but not actually
+	deinit_mac();
+	chip_v7_set_chan_nomac(channel, 0);
+	disable_wifi_agc();
+	init_mac();
+	enable_wifi_agc();
+}
+
 // TODO if we try to TX packets before taking over, we don't get the interrupt and
 //      forever consider that slot as occupied; so we need to:
 // - make sure we only start transmitting after everything is initialized
@@ -257,7 +301,7 @@ void IRAM_ATTR wifi_interrupt_handler(void* args) {
 		hardware_queue_entry_t queue_entry;
 		queue_entry.type = RX_ENTRY;
 		queue_entry.content.rx.interrupt_received = cause;
-		ESP_DRAM_LOGE("isr", "%08x", cause);
+		// ESP_DRAM_LOGE("isr", "%08x", cause);
 		bool higher_prio_task_woken = false;
 		xQueueSendFromISR(hardware_event_queue, &queue_entry, &higher_prio_task_woken);
 		if (higher_prio_task_woken) {
@@ -408,7 +452,7 @@ static void set_enable_mac_addr_filter(uint8_t slot, bool enable) {
 	}
 }
 
-static void set_mac_addr_filter(uint8_t slot, uint8_t* addr) {
+static void set_mac_addr_filter(uint8_t slot, const uint8_t* addr) {
 	assert(slot <= 1);
 	write_register(WIFI_MAC_ADDR_SLOT_0 + slot*8, addr[0] | addr[1] << 8 | addr[2] << 16 | addr[3] << 24);
 	write_register(WIFI_MAC_ADDR_SLOT_0 + slot*8 + 4, addr[4] | addr[5] << 8);
@@ -416,7 +460,52 @@ static void set_mac_addr_filter(uint8_t slot, uint8_t* addr) {
 	write_register(WIFI_MAC_ADDR_ACK_ENABLE_SLOT_0 + slot*8, read_register(WIFI_MAC_ADDR_ACK_ENABLE_SLOT_0 + slot*8) | 0xffff); // mask bits
 }
 
-void wifi_set_rx_policy(int arg); // TODO remove for testing
+static void set_enable_bssid_filter(uint8_t slot, bool enable) {
+	assert(slot <= 1);
+	if (enable) {
+		*(WIFI_BSSID_FILTER_ADDR_SLOT_0 + slot*2 + 9) |= 0x10000;
+	} else {
+		*(WIFI_BSSID_FILTER_ADDR_SLOT_0 + slot*2 + 9) &= ~(0x10000);
+	}
+}
+
+// also used in rust stack
+void set_bssid_filter(uint8_t slot, const uint8_t* addr) {
+	assert(slot <= 1);
+	// disable
+	*(WIFI_BSSID_FILTER_ADDR_SLOT_0 + slot*2 + 9) &= 0xfffeffff;
+
+	*(WIFI_BSSID_FILTER_ADDR_SLOT_0 + slot*2) = addr[0] | addr[1] << 8 | addr[2] << 16 | addr[3] << 24;
+	*(WIFI_BSSID_FILTER_ADDR_SLOT_0 + slot*2 + 1) = addr[4] | addr[5] << 8;
+	*(WIFI_BSSID_FILTER_ADDR_SLOT_0 + slot*2 + 8) = ~0; // mask bits
+	*(WIFI_BSSID_FILTER_ADDR_SLOT_0 + slot*2 + 9) = 0xffff; // mask bits
+
+	// enable
+	*(WIFI_BSSID_FILTER_ADDR_SLOT_0 + slot*2 + 9) |= 0x10000;
+}
+
+// related to beacons/probe requests?
+void set_some_kind_of_rx_policy(uint8_t slot, bool enable) {
+	assert(slot <= 1);
+	if (enable) {
+		*(volatile uint32_t*)(0x3ff730d8 + 4*slot) |= 0x110;
+	} else {
+		*(volatile uint32_t*)(0x3ff730d8 + 4*slot) &= ~0x110;
+	}
+}
+
+void filters_set_scanning_mode() {
+	set_enable_mac_addr_filter(0, true);
+	set_enable_bssid_filter(0, true);
+	set_some_kind_of_rx_policy(0, true);
+}
+
+void filters_set_client_mode(const uint8_t* bssid) {
+	set_enable_mac_addr_filter(0, true);
+	set_enable_bssid_filter(0, true);
+	set_bssid_filter(0, bssid);
+	set_some_kind_of_rx_policy(0, false);
+}
 
 void wifi_hardware_task(void* pvArguments) {
 	// Print MAC addresses
@@ -448,8 +537,6 @@ void wifi_hardware_task(void* pvArguments) {
 	setup_rx_chain();
 
 	ESP_LOGW(TAG, "Starting to receive messages");
-
-	wifi_set_rx_policy(0); // just for testing
 
 	set_mac_addr_filter(0, module_mac_addr);
 	set_enable_mac_addr_filter(0, true);
@@ -494,6 +581,9 @@ void wifi_hardware_task(void* pvArguments) {
 				ESP_LOGI(TAG, "TX from queue");
 				// TODO: implement retry
 				xSemaphoreGive(tx_queue_resources);
+			} else if (queue_entry.type == CHANGE_CHANNEL_ENTRY) {
+				uint8_t desired_channel = queue_entry.content.change_channel.channel;
+				change_channel_to(desired_channel);
 			} else {
 				ESP_LOGI(TAG, "unknown queue type");
 			}

@@ -1,12 +1,14 @@
 #![no_std]
 
+use core::default;
 use core::ffi::c_void;
 use core::marker::PhantomData;
 use core::ptr::NonNull;
 
 use ether_type::EtherType;
 use ieee80211::common::{
-    CapabilitiesInformation, FCFFlags, IEEE80211AuthenticationAlgorithmNumber, IEEE80211StatusCode, SequenceControl,
+    CapabilitiesInformation, FCFFlags, FrameControlField, IEEE80211AuthenticationAlgorithmNumber,
+    IEEE80211StatusCode, SequenceControl,
 };
 use ieee80211::data_frame::header::DataFrameHeader;
 use ieee80211::data_frame::{DataFrame, DataFrameReadPayload};
@@ -14,13 +16,17 @@ use ieee80211::elements::rsn::RSNElement;
 use ieee80211::mac_parser::MACAddress;
 use ieee80211::mgmt_frame::body::{AssociationRequestBody, AuthenticationBody};
 use ieee80211::mgmt_frame::{
-    AssociationRequestFrame, AssociationResponseFrame, AuthenticationFrame, BeaconFrame, DeauthenticationFrame, DisassociationFrame, ManagementFrameHeader
+    AssociationRequestFrame, AssociationResponseFrame, AuthenticationFrame, BeaconFrame,
+    DeauthenticationFrame, DisassociationFrame, ManagementFrameHeader,
 };
 use ieee80211::scroll::ctx::{MeasureWith, TryIntoCtx};
 use ieee80211::scroll::{Pread, Pwrite};
 use ieee80211::{element_chain, match_frames, ssid, supported_rates};
 use llc::SnapLlcFrame;
-use sys::{dma_list_item, rs_event_type_t, rs_get_smart_frame, rs_tx_smart_frame, rs_get_time_us};
+use sys::{
+    dma_list_item, rs_change_channel, rs_event_type_t, rs_get_smart_frame, rs_get_time_us,
+    rs_tx_smart_frame,
+};
 
 use esp_println as _;
 use esp_println::println;
@@ -57,6 +63,22 @@ impl HardwareRxDataWrapper {
                 .as_mut_slice(packet.rx_ctrl.sig_len() as usize)
         }
     }
+
+    pub fn channel(&mut self) -> u8 {
+        // This does not work on all packets, apparently
+        let dma = self.dma();
+        let packet = unsafe { dma.packet.as_mut().unwrap() };
+
+        let channel: u8 = packet.rx_ctrl.channel() as u8;
+        match packet.rx_ctrl.secondary_channel() {
+            0 => channel,
+            1 => channel + 1,
+            2 => channel - 1,
+            _ => {
+                panic!("should be either equal, above or below")
+            }
+        }
+    }
 }
 
 impl Drop for HardwareRxDataWrapper {
@@ -69,37 +91,44 @@ impl Drop for HardwareRxDataWrapper {
 
 pub struct MacTxDataWrapper {
     frame: *mut u8,
-    len: usize
+    len: usize,
 }
 
 impl Drop for MacTxDataWrapper {
     fn drop(&mut self) {
-        unsafe {
-            sys::rs_recycle_mac_tx_data(self.frame)
-        }
+        unsafe { sys::rs_recycle_mac_tx_data(self.frame) }
     }
 }
 
 impl MacTxDataWrapper {
-
     pub fn destination_mac(&mut self) -> MACAddress {
         // TODO check that frame is big enough!
         unsafe {
-            MACAddress(core::slice::from_raw_parts(self.frame, 6).try_into().unwrap())
+            MACAddress(
+                core::slice::from_raw_parts(self.frame, 6)
+                    .try_into()
+                    .unwrap(),
+            )
         }
     }
 
     pub fn source_mac(&mut self) -> MACAddress {
         // TODO check that frame is big enough!
         unsafe {
-            MACAddress(core::slice::from_raw_parts(self.frame.wrapping_add(6), 6).try_into().unwrap())
+            MACAddress(
+                core::slice::from_raw_parts(self.frame.wrapping_add(6), 6)
+                    .try_into()
+                    .unwrap(),
+            )
         }
     }
 
     pub fn ether_type(&mut self) -> EtherType {
         // TODO check that frame is big enough!
         unsafe {
-            let ether: &[u8] = core::slice::from_raw_parts(self.frame.wrapping_add(6 + 6), 2).try_into().unwrap();
+            let ether: &[u8] = core::slice::from_raw_parts(self.frame.wrapping_add(6 + 6), 2)
+                .try_into()
+                .unwrap();
             EtherType::from_bits(((ether[1] as u16) << 8) | ether[0] as u16)
         }
     }
@@ -107,17 +136,20 @@ impl MacTxDataWrapper {
     pub fn payload(&mut self) -> &[u8] {
         // TODO check that frame is big enough!
         unsafe {
-            core::slice::from_raw_parts(self.frame.wrapping_add(6+6+2), self.len - (6+6+2) + 1).try_into().unwrap()
+            core::slice::from_raw_parts(
+                self.frame.wrapping_add(6 + 6 + 2),
+                self.len - (6 + 6 + 2) + 1,
+            )
+            .try_into()
+            .unwrap()
         }
     }
 }
-
 
 pub enum MacEvent {
     HardwareRx(HardwareRxDataWrapper),
     MacTx(MacTxDataWrapper),
 }
-
 
 pub fn get_next_mac_event(timeout_ms: u32) -> Option<MacEvent> {
     let mut event_type: rs_event_type_t = rs_event_type_t::EVENT_TYPE_MAC_FREE_RX_DATA;
@@ -129,7 +161,7 @@ pub fn get_next_mac_event(timeout_ms: u32) -> Option<MacEvent> {
             timeout_ms,
             &mut event_type,
             &mut data_ptr as *mut *mut c_void,
-            &mut len
+            &mut len,
         )
     };
     if !res {
@@ -183,32 +215,32 @@ pub fn transmit_hardware_frame<
     Ok(())
 }
 
-fn receive_mac_frame(source: MACAddress, destination: MACAddress, ether_type: EtherType, payload: &[u8]) -> Result<(), ()> {
+fn receive_mac_frame(
+    source: MACAddress,
+    destination: MACAddress,
+    ether_type: EtherType,
+    payload: &[u8],
+) -> Result<(), ()> {
     let total_length: usize = 6 + 6 + 2 + payload.len();
-    let buffer = unsafe {sys::rs_get_mac_rx_frame(total_length)};
+    let buffer = unsafe { sys::rs_get_mac_rx_frame(total_length) };
 
     if buffer.is_null() {
         return Err(());
     }
 
-    let buffer = unsafe {
-        core::slice::from_raw_parts_mut(
-            buffer,
-            total_length,
-        )
-    };
+    let buffer = unsafe { core::slice::from_raw_parts_mut(buffer, total_length) };
 
     buffer.pwrite(destination, 0).unwrap();
-    buffer.pwrite(source,6).unwrap();
-    buffer.pwrite(ether_type.into_bits(), 6+6).unwrap();
-    buffer.pwrite(payload, 6+6+2).unwrap();
+    buffer.pwrite(source, 6).unwrap();
+    buffer.pwrite(ether_type.into_bits(), 6 + 6).unwrap();
+    buffer.pwrite(payload, 6 + 6 + 2).unwrap();
 
-    unsafe {sys::rs_rx_mac_frame(buffer.as_mut_ptr(), buffer.len())};
+    unsafe { sys::rs_rx_mac_frame(buffer.as_mut_ptr(), buffer.len()) };
     Ok(())
 }
 
 pub fn get_time_us() -> i64 {
-    return unsafe {rs_get_time_us()};
+    return unsafe { rs_get_time_us() };
 }
 
 // network we can connect to
@@ -229,8 +261,13 @@ struct AssociateS {
 }
 
 #[derive(Debug, PartialEq, Eq)]
+struct ScanningS {
+    last_channel_change: Option<i64>,
+}
+
+#[derive(Debug, PartialEq, Eq)]
 enum StaMachineState {
-    Scanning,
+    Scanning(ScanningS),
     Authenticate(AuthenticateS),
     Associate(AssociateS),
     Associated,
@@ -242,28 +279,51 @@ struct STAState {
     own_mac: MACAddress,
     bssid: MACAddress,
     state: StaMachineState,
+    current_channel: u8,
 }
 
-fn handle_beacon(state: &mut STAState, beacon_frame: BeaconFrame) {
+fn transition_to_scanning(state: &mut STAState) {
+    unsafe { sys::rs_mark_iface_down() }
+    unsafe { sys::rs_filters_set_scanning() }
+    state.state = StaMachineState::Scanning(ScanningS {
+        last_channel_change: None,
+    });
+}
+
+fn transition_to_authenticating(state: &mut STAState, bssid: MACAddress, _channel: u8) {
+    println!("transitioning to authenticating");
+    unsafe {
+        sys::rs_filters_set_client_with_bssid(bssid.as_ptr());
+    }
+    // TODO change to correct channel
+    // unsafe {rs_change_channel(channel)};
+    state.bssid = bssid;
+    state.state = StaMachineState::Authenticate(AuthenticateS { last_sent: None });
+}
+
+fn handle_beacon(state: &mut STAState, beacon_frame: BeaconFrame, channel: u8) {
     let Some(ssid) = beacon_frame.ssid() else {
+        println!("no ssid");
         return; // no SSID in beacon frame
     };
-
+    println!("ssid: {}", ssid);
     match NETWORK_TO_CONNECT {
         KnownNetwork::OpenNetwork(ssid_to_connect) => {
-            // TODO: I don't think RSNElement is the only way a beacon makes it known that you need to authenticate
-            let None = beacon_frame.elements.get_first_element::<RSNElement>() else {
-                return; // there shouldn't be an RSN element for open network
-            };
             if ssid_to_connect != ssid {
+                println!("ssid '{}' does not match, not connecting", ssid);
                 return;
             }
+            // TODO: I don't think RSNElement is the only way a beacon makes it known that you need to authenticate
+            let None = beacon_frame.elements.get_first_element::<RSNElement>() else {
+                println!("network {} has a RSN element, not connecting", ssid);
+                return; // there shouldn't be an RSN element for open network
+            };
+
             // SSID matches and no security
-            // TODO save MAC address and set state
-            // TODO enable filters 
-            if state.state == StaMachineState::Scanning {
-                state.bssid = beacon_frame.header.bssid;
-                state.state = StaMachineState::Authenticate(AuthenticateS { last_sent: None });
+            // TODO enable filters
+            if let StaMachineState::Scanning(_) = state.state {
+                println!("ssid matches, changing to authenticating");
+                transition_to_authenticating(state, beacon_frame.header.bssid, channel);
             }
         }
     }
@@ -290,22 +350,25 @@ fn handle_assoc_resp(state: &mut STAState, assoc_resp_frame: AssociationResponse
     if assoc_resp_frame.body.status_code == IEEE80211StatusCode::Success {
         // yay, they accepted our association
         match state.state {
-            StaMachineState::Associated => {},
-            _ => {unsafe { sys::rs_mark_iface_up() }}
+            StaMachineState::Associated => {}
+            _ => unsafe { sys::rs_mark_iface_up() },
         }
         state.state = StaMachineState::Associated;
     }
 }
 
 fn handle_disassoc(state: &mut STAState, _disassoc_frame: DisassociationFrame) {
-    state.state = StaMachineState::Scanning;
-    unsafe { sys::rs_mark_iface_down() }
+    if let StaMachineState::Scanning(_) = state.state {
+        return;
+    }
+    transition_to_scanning(state);
 }
 
-
 fn handle_deauth(state: &mut STAState, _deauth: DeauthenticationFrame) {
-    state.state = StaMachineState::Scanning;
-    unsafe { sys::rs_mark_iface_down() }
+    if let StaMachineState::Scanning(_) = state.state {
+        return;
+    }
+    transition_to_scanning(state);
 }
 
 fn handle_data_frame(_state: &mut STAState, data_frame: DataFrame) -> Option<()> {
@@ -317,7 +380,10 @@ fn handle_data_frame(_state: &mut STAState, data_frame: DataFrame) -> Option<()>
                 return None;
             };
             // we now have everything we need, finally
-            match (data_frame.header.fcf_flags.from_ds(), data_frame.header.fcf_flags.to_ds()) {
+            match (
+                data_frame.header.fcf_flags.from_ds(),
+                data_frame.header.fcf_flags.to_ds(),
+            ) {
                 (true, false) => {
                     // Frame from DS
                     let destination: MACAddress = data_frame.header.address_1;
@@ -328,7 +394,13 @@ fn handle_data_frame(_state: &mut STAState, data_frame: DataFrame) -> Option<()>
                         println!("Receiving MAC frame failed");
                     }
                 }
-                _ => {println!("unhandled data frame from={} to={}", data_frame.header.fcf_flags.from_ds(), data_frame.header.fcf_flags.to_ds())}
+                _ => {
+                    println!(
+                        "unhandled data frame from={} to={}",
+                        data_frame.header.fcf_flags.from_ds(),
+                        data_frame.header.fcf_flags.to_ds()
+                    )
+                }
             }
         }
         DataFrameReadPayload::AMSDU(_) => {
@@ -336,13 +408,12 @@ fn handle_data_frame(_state: &mut STAState, data_frame: DataFrame) -> Option<()>
         }
     }
     None
-
 }
 
+const AUTHENTICATE_INTERVAL_US: i64 = 500 * 1000;
+const ASSOCIATE_INTERVAL_US: i64 = 500 * 1000;
 
-const AUTHENTICATE_INTERVAL_US: i64 = 500*1000;
-const ASSOCIATE_INTERVAL_US: i64 = 500*1000;
-
+const CHANNEL_HOPPING_INTERVAL_US: i64 = 1500 * 1000;
 
 fn send_authenticate(state: &mut STAState) {
     let auth = AuthenticationFrame {
@@ -397,14 +468,15 @@ fn send_data_frame(state: &mut STAState, wrapper: &mut MacTxDataWrapper) {
     let fcf = FCFFlags::new().with_to_ds(true);
 
     let dataframe = DataFrame {
-        
         header: DataFrameHeader {
             fcf_flags: fcf,
-            duration: 0, // TODO
-            address_1: state.bssid, // RA
-            address_2: state.own_mac, // TA
+            duration: 0,                          // TODO
+            address_1: state.bssid,               // RA
+            address_2: state.own_mac,             // TA
             address_3: wrapper.destination_mac(), // DA
-            sequence_control: SequenceControl::new().with_fragment_number(1).with_sequence_number(1), // TODO update these instead of hardcoding
+            sequence_control: SequenceControl::new()
+                .with_fragment_number(1)
+                .with_sequence_number(1), // TODO update these instead of hardcoding
             address_4: None,
             ..Default::default()
         },
@@ -412,18 +484,45 @@ fn send_data_frame(state: &mut STAState, wrapper: &mut MacTxDataWrapper) {
             oui: [0, 0, 0],
             ether_type: wrapper.ether_type(),
             payload: wrapper.payload(),
-            _phantom: PhantomData
+            _phantom: PhantomData,
         }),
         _phantom: PhantomData,
     };
     transmit_hardware_frame(dataframe, 12).unwrap();
 }
 
+fn next_channel(channel: u8) -> u8 {
+    if channel < 12 {
+        return channel + 1;
+    }
+    return 1;
+}
+
 // handles whatever we need to do with the current state, then return the amount of ms to wait if no external events happen
 fn handle_state(state: &mut STAState) -> u32 {
     // TODO
-    match &state.state {
-        StaMachineState::Scanning => 10000,
+    match &mut state.state {
+        StaMachineState::Scanning(ref mut s) => {
+            if let None = s.last_channel_change {
+                println!("setting last ch change to now");
+                s.last_channel_change = Some(get_time_us());
+            }
+
+            let us_to_wait: i64 = s
+                .last_channel_change
+                .map(|t| (t + CHANNEL_HOPPING_INTERVAL_US) - get_time_us())
+                .unwrap_or(0);
+
+            if us_to_wait <= 0 {
+                state.current_channel = next_channel(state.current_channel);
+                unsafe { sys::rs_change_channel(state.current_channel) };
+                s.last_channel_change = Some(get_time_us());
+                return (CHANNEL_HOPPING_INTERVAL_US / 1000) as u32;
+            } else {
+                let ms_to_wait = (us_to_wait / 1000).try_into().unwrap_or(u32::MAX);
+                return ms_to_wait;
+            }
+        }
         StaMachineState::Authenticate(s) => {
             let us_to_wait: i64 = s
                 .last_sent
@@ -459,9 +558,14 @@ fn handle_state(state: &mut STAState) -> u32 {
 pub extern "C" fn rust_mac_task() -> *const c_void {
     let mut state: STAState = STAState {
         bssid: MACAddress([0x9c, 0xef, 0xd5, 0xfa, 0x4c, 0xcb]),
-        state: StaMachineState::Authenticate(AuthenticateS {last_sent: None}),
+        state: StaMachineState::Scanning(ScanningS {
+            last_channel_change: None,
+        }),
         own_mac: MACAddress([0x00, 0x23, 0x45, 0x67, 0x89, 0xab]), // TODO don't hardcode this
+        current_channel: 1,
     };
+
+    transition_to_scanning(&mut state);
 
     let mut wait_for: u32 = 0;
     loop {
@@ -470,62 +574,68 @@ pub extern "C" fn rust_mac_task() -> *const c_void {
             Some(event) => {
                 wait_for = 0;
                 match event {
-                MacEvent::HardwareRx(mut wrapper) => {
-                    println!("HardwareRx");
-                    let payload = wrapper.payload();
-                    let res = match_frames! {
-                        payload,
-                        beacon_frame = BeaconFrame => {
-                            println!("beacon frame");
-                            handle_beacon(&mut state, beacon_frame)
-                        }
-                        auth_frame = AuthenticationFrame => {
-                            println!("auth frame");
-                            handle_auth(&mut state, auth_frame)
-                        }
-                        
-                        deauth_frame = DeauthenticationFrame => {
-                            println!("deauth frame");
-                            handle_deauth(&mut state, deauth_frame);
-                        }
+                    MacEvent::HardwareRx(mut wrapper) => {
+                        println!("HardwareRx");
+                        let channel = wrapper.channel();
+                        println!("channel {}", channel);
+                        let payload = wrapper.payload();
+                        // let fcf = payload.pread(0).map(FrameControlField::from_bits);
+                        // if let Ok(fcf) = fcf {
+                        //     println!("type = {:?}", fcf.frame_type());
+                        // }
 
-                        assoc_resp_frame = AssociationResponseFrame => {
-                            println!("assoc response");
-                            handle_assoc_resp(&mut state, assoc_resp_frame)
-                        }
+                        let res = match_frames! {
+                            payload,
+                            beacon_frame = BeaconFrame => {
+                                println!("beacon frame");
+                                handle_beacon(&mut state, beacon_frame, channel)
+                            }
+                            auth_frame = AuthenticationFrame => {
+                                println!("auth frame");
+                                handle_auth(&mut state, auth_frame)
+                            }
 
-                        disassoc_frame = DisassociationFrame => {
-                            println!("disassociation");
-                            handle_disassoc(&mut state, disassoc_frame)
-                        }
+                            deauth_frame = DeauthenticationFrame => {
+                                println!("deauth frame");
+                                handle_deauth(&mut state, deauth_frame);
+                            }
 
-                        data_frame = DataFrame => {
-                            handle_data_frame(&mut state, data_frame);
+                            assoc_resp_frame = AssociationResponseFrame => {
+                                println!("assoc response");
+                                handle_assoc_resp(&mut state, assoc_resp_frame)
+                            }
+
+                            disassoc_frame = DisassociationFrame => {
+                                println!("disassociation");
+                                handle_disassoc(&mut state, disassoc_frame)
+                            }
+
+                            data_frame = DataFrame => {
+                                println!("data frame");
+                                handle_data_frame(&mut state, data_frame);
+                            }
+                        };
+                        match res {
+                            Ok(_) => {}
+                            Err(a) => {
+                                println!("unmatched frame {}", a)
+                            }
                         }
-                        _ = DeauthenticationFrame => {
-                            println!("TODO deauth")
-                        }
-                    };
-                    match res {
-                        Ok(_) => {}
-                        Err(a) => {println!("unmatched frame {}", a)}
                     }
-                }
-                MacEvent::MacTx(mut wrapper) => {
-                    println!("MacTx");
-                    match state.state {
-                        StaMachineState::Associated => {
-                            send_data_frame(&mut state, &mut wrapper);
-                        }
-                        _ => {
-                            println!("Dropping frame because not yet associated")
+                    MacEvent::MacTx(mut wrapper) => {
+                        println!("MacTx");
+                        match state.state {
+                            StaMachineState::Associated => {
+                                send_data_frame(&mut state, &mut wrapper);
+                            }
+                            _ => {
+                                println!("Dropping frame because not yet associated")
+                            }
                         }
                     }
                 }
             }
-            },
             None => {
-                println!("none; handle state");
                 wait_for = handle_state(&mut state);
             }
         }

@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#define CONFIG_IDF_TARGET_ESP32 1
+
 /** @brief Received packet radio metadata header, this is the common header at the beginning of all promiscuous mode RX callback buffers */
 typedef struct {
     signed rssi:8;                /**< Received Signal Strength Indicator(RSSI) of packet. unit: dBm */
@@ -133,3 +135,8 @@ void rs_recycle_mac_tx_data(uint8_t* frame);
 
 uint8_t* rs_get_mac_rx_frame(size_t size_required);
 void c_recycle_mac_rx_frame(uint8_t* buffer);
+
+void rs_change_channel(uint8_t channel);
+void rs_filters_set_scanning();
+void rs_filters_set_client_with_bssid(const uint8_t* addr);
+
