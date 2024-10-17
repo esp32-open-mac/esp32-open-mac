@@ -1,0 +1,23 @@
+stages:
+  - check
+
+check_lib_reversion:
+  stage: check
+  except:
+    - master
+    - /^release\/v/
+  image: $CI_DOCKER_REGISTRY/esp32-ci-env
+  variables:
+    GIT_SUBMODULE_STRATEGY: none
+  script:
+    - mkdir riscv32
+    - wget https://github.com/espressif/crosstool-NG/releases/download/esp-2021r2-patch3/riscv32-esp-elf-gcc8_4_0-esp-2021r2-patch3-linux-amd64.tar.gz >/dev/null 2>&1
+    - tar -zxvf riscv32-esp-elf-gcc8_4_0-esp-2021r2-patch3-linux-amd64.tar.gz -C ./riscv32 >/dev/null 2>&1
+    - for dir in esp32c3; do test $(riscv32/riscv32-esp-elf/bin/riscv32-esp-elf-nm $dir/*.a | grep -w printf | wc -l) -eq 0; done;
+    - for dir in esp32c3; do test $(riscv32/riscv32-esp-elf/bin/riscv32-esp-elf-nm $dir/*.a | grep -w ets_printf | wc -l) -eq 0; done;
+    - test $(riscv32/riscv32-esp-elf/bin/riscv32-esp-elf-nm esp32h2/rev1/*.a | grep -w printf | wc -l) -eq 0;
+    - test $(riscv32/riscv32-esp-elf/bin/riscv32-esp-elf-nm esp32h2/rev1/*.a | grep -w ets_printf | wc -l) -eq 0;
+    - test $(riscv32/riscv32-esp-elf/bin/riscv32-esp-elf-nm esp32h2/rev2/*.a | grep -w printf | wc -l) -eq 0;
+    - test $(riscv32/riscv32-esp-elf/bin/riscv32-esp-elf-nm esp32h2/rev2/*.a | grep -w ets_printf | wc -l) -eq 0;
+    - for dir in esp32 esp32s2 esp32s3; do test $(xtensa-esp32-elf-nm $dir/*.a | grep -w printf | wc -l) -eq 0; done;
+    - for dir in esp32 esp32s2 esp32s3; do test $(xtensa-esp32-elf-nm $dir/*.a | grep -w ets_printf | wc -l) -eq 0; done;
