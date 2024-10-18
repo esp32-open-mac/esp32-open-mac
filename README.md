@@ -73,7 +73,7 @@ Yes:
 
 We've decided to write our own MAC layer in Rust, see `components/80211_mac_rust`
 
-### Why are there blobs in teh esp_wifi and esp_phy folders?
+### Why are there blobs in the esp_wifi and esp_phy folders?
 
 These are currently still needed for hardware initialization. They were separated out to make the blobs (mostly) independent from the ESP-IDF version. They will eventually be fully replaced with open source code.
 
