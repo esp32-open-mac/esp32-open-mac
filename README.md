@@ -22,7 +22,7 @@ Currently, we can send and receive frames, without any proprietary code *running
 - [ ] AP mode
 - [ ] 802.11s mesh networking
 - [ ] dual AP/client
-- [ ] decouple blobs from ESP-IDF version 
+- [x] decouple blobs from ESP-IDF version 
 
 ## Frequently asked questions
 
@@ -65,6 +65,12 @@ Yes:
 ### What will this project use as MAC layer?
 
 How we'll implement the MAC layer (this does among others the association with access points) is still an open question. The only open source 802.11 MAC implementation I know is the one in the Linux kernel (mac80211), and I don't know how hard it will be to rip it out and combine it with FreeRTOS instead.
+
+### Why are there blobs in teh esp_wifi and esp_phy folders?
+
+These are currently still needed for hardware initialization. They were separated out to make the blobs (mostly) independent from the ESP-IDF version. They will eventually be fully replaced with open source code.
+
+You can verify that the blobs weren't altered: in commit `d1fcca071eb2e6e50f4c40930640586d7ee9487c`, the folders were copied over from ESP-IDF v5.0.1. In further commits, the cmake files were modified to reduce the amount of blobs compiled in.
 
 ### Some free ideas
 
