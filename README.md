@@ -1,6 +1,6 @@
-# ESP32 open Wi-Fi MAC proof-of-concept
+# ESP32 open Wi-Fi MAC
 
-This is a proof-of-concept, showing how to use the ESP32 Wi-Fi hardware peripherals. Espressif (the manufacturer of the ESP32) did not document the Wi-Fi hardware peripherals in any of their (public) datasheets, so we had to reverse engineer the functionality of the hardware, see https://zeus.ugent.be/blog/23-24/open-source-esp32-wifi-mac/ for how this was done. The goal is to have a Wi-Fi capable, blob-free SDK/firmware for the ESP32.
+This repository is used as a showcase for how to use the ESP32 Wi-Fi hardware peripherals. Espressif (the manufacturer of the ESP32) did not document the Wi-Fi hardware peripherals in any of their (public) datasheets, so we had to reverse engineer the functionality of the hardware, see https://zeus.ugent.be/blog/23-24/open-source-esp32-wifi-mac/ (and further blobposts on https://esp32-open-mac.be/) for how this was done. The goal is to have a Wi-Fi capable, blob-free SDK/firmware for the ESP32.
 
 ## Features
 
