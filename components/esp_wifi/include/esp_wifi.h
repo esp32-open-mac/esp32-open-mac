@@ -165,7 +165,7 @@ typedef struct {
 #define WIFI_NANO_FORMAT_ENABLED  0
 #endif
 
-extern const wpa_crypto_funcs_t g_wifi_default_wpa_crypto_funcs;
+// extern const wpa_crypto_funcs_t g_wifi_default_wpa_crypto_funcs;
 extern uint64_t g_wifi_feature_caps;
 
 #define WIFI_INIT_CONFIG_MAGIC    0x1F2F3F4F
@@ -207,7 +207,7 @@ extern uint64_t g_wifi_feature_caps;
 
 #define WIFI_INIT_CONFIG_DEFAULT() { \
     .osi_funcs = &g_wifi_osi_funcs, \
-    .wpa_crypto_funcs = g_wifi_default_wpa_crypto_funcs, \
+    .wpa_crypto_funcs = {.size=108,.version=1}, \
     .static_rx_buf_num = CONFIG_ESP32_WIFI_STATIC_RX_BUFFER_NUM,\
     .dynamic_rx_buf_num = CONFIG_ESP32_WIFI_DYNAMIC_RX_BUFFER_NUM,\
     .tx_buf_type = CONFIG_ESP32_WIFI_TX_BUFFER_TYPE,\

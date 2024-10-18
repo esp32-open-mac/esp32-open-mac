@@ -1,7 +1,7 @@
 if(CONFIG_ESP32_WIFI_ENABLED)
     idf_build_get_property(idf_target IDF_TARGET)
 
-    if(CONFIG_APP_NO_BLOBS AND FALSE)
+    if(CONFIG_APP_NO_BLOBS)
         set(link_binary_libs 0)
         set(ldfragments)
     else()
@@ -17,22 +17,23 @@ if(CONFIG_ESP32_WIFI_ENABLED)
     endif()
 
     set(srcs
-        "src/coexist.c"
-        "src/mesh_event.c"
-        "src/smartconfig.c"
-        "src/smartconfig_ack.c"
+        # "src/coexist.c"
+        # "src/mesh_event.c"
+        # "src/smartconfig.c"
+        # "src/smartconfig_ack.c"
         "src/wifi_init.c"
-        "src/wifi_default.c"
-        "src/wifi_netif.c"
-        "src/wifi_default_ap.c"
-        "${idf_target}/esp_adapter.c")
+        # "src/wifi_default.c"
+        # "src/wifi_netif.c"
+        # "src/wifi_default_ap.c"
+        "${idf_target}/esp_adapter.c"
+        )
 endif()
 
 idf_component_register(SRCS "${srcs}"
                     INCLUDE_DIRS "include"
                     REQUIRES esp_event esp_phy esp_netif
                     PRIV_REQUIRES driver esptool_py esp_pm esp_timer nvs_flash
-                                  wpa_supplicant hal lwip ${extra_priv_requires}
+                                hal lwip ${extra_priv_requires}
                     LDFRAGMENTS "${ldfragments}")
 
 if(CONFIG_ESP32_WIFI_ENABLED)
@@ -45,7 +46,7 @@ if(CONFIG_ESP32_WIFI_ENABLED)
         if(CONFIG_IDF_TARGET_ESP32C2)
             set(blobs coexist core espnow net80211 pp smartconfig)
         else()
-            set(blobs coexist core espnow mesh net80211 pp smartconfig wapi)
+            set(blobs core net80211 pp)
         endif()
 
         foreach(blob ${blobs})

@@ -13,8 +13,8 @@
 #include "esp_sleep.h"
 #include "esp_private/pm_impl.h"
 #include "esp_private/esp_clk.h"
-#include "esp_wpa.h"
-#include "esp_netif.h"
+// #include "esp_wpa.h"
+// #include "esp_netif.h"
 #include "esp_coexist_internal.h"
 #include "esp_phy_init.h"
 #include "phy.h"
@@ -104,7 +104,6 @@ esp_err_t esp_wifi_deinit(void)
         ESP_LOGW(TAG, "Failed to unregister Rx callbacks");
     }
 
-    esp_supplicant_deinit();
     err = esp_wifi_deinit_internal();
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to deinit Wi-Fi driver (0x%x)", err);
@@ -257,16 +256,6 @@ esp_err_t esp_wifi_init(const wifi_init_config_t *config)
         s_wifi_mac_time_update_cb = esp_wifi_internal_update_mac_time;
 #endif
 
-        result = esp_supplicant_init();
-        if (result != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to init supplicant (0x%x)", result);
-            esp_err_t deinit_ret = esp_wifi_deinit();
-            if (deinit_ret != ESP_OK) {
-                ESP_LOGE(TAG, "Failed to deinit Wi-Fi (0x%x)", deinit_ret);
-            }
-
-            return result;
-        }
     }
 #if CONFIG_ESP_WIFI_SLP_BEACON_LOST_OPT
     esp_wifi_beacon_monitor_configure(true, CONFIG_ESP_WIFI_SLP_BEACON_LOST_TIMEOUT,

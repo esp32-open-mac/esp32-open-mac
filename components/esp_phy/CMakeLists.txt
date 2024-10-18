@@ -2,7 +2,7 @@ idf_build_get_property(idf_target IDF_TARGET)
 
 set(srcs "src/phy_override.c" "src/lib_printf.c")
 
-if(CONFIG_APP_NO_BLOBS AND FALSE)
+if(CONFIG_APP_NO_BLOBS)
     set(link_binary_libs 0)
     set(ldfragments)
 else()
