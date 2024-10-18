@@ -1,10 +1,10 @@
-# ESP32 open Wi-Fi MAC proof-of-concept
+# ESP32 open Wi-Fi MAC
 
-This is a proof-of-concept, showing how to use the ESP32 Wi-Fi hardware peripherals. Espressif (the manufacturer of the ESP32) did not document the Wi-Fi hardware peripherals in any of their (public) datasheets, so we had to reverse engineer the functionality of the hardware, see https://zeus.ugent.be/blog/23-24/open-source-esp32-wifi-mac/ for how this was done. The goal is to have a Wi-Fi capable, blob-free SDK/firmware for the ESP32.
+This repository is used as a showcase for how to use the ESP32 Wi-Fi hardware peripherals. Espressif (the manufacturer of the ESP32) did not document the Wi-Fi hardware peripherals in any of their (public) datasheets, so we had to reverse engineer the functionality of the hardware, see https://zeus.ugent.be/blog/23-24/open-source-esp32-wifi-mac/ (and further blobposts on https://esp32-open-mac.be/) for how this was done. The goal is to have a Wi-Fi capable, blob-free SDK/firmware for the ESP32.
 
 ## Features
 
-Currently, we can send and receive frames, without any proprietary code *running* (proprietary code is still used to initialize the hardware in the begin, but is not needed anymore after that). The example code currently connects to a hardcoded open access point and transmits UDP packets to a hardcoded IP address.
+Currently, we can send and receive frames, without any proprietary code *running* (proprietary code is still used to initialize the hardware in the begin, but is not needed anymore after that). We've implemented a minimal MAC layer that can scan all channels and then connect to a predefined open network.
 
 - [X] Sending wifi frames
 - [X] Receiving wifi frames
@@ -22,7 +22,15 @@ Currently, we can send and receive frames, without any proprietary code *running
 - [ ] AP mode
 - [ ] 802.11s mesh networking
 - [ ] dual AP/client
-- [ ] decouple blobs from ESP-IDF version 
+- [x] decouple blobs from ESP-IDF version
+
+## Building instructions
+
+TODO elaborate on this
+
+- install ESP-IDF v5.0.1 (ideally via vscode)
+- install ESP32 Rust toolchain (https://docs.esp-rs.org/book/installation/index.html)
+- compile and flash to an ESP32
 
 ## Frequently asked questions
 
@@ -44,14 +52,13 @@ My original goal was to have 802.11 standards compliant mesh networking (IEEE 80
 
 At the moment, this only runs on the plain ESP32 (so not the ESP32-S2, ESP32-S3 or other variants).
 This is because the location and functionality of the Wi-Fi hardware peripherals is hardcoded.
-Porting this to other variants of the ESP32 might or might not be trivial, depending on how similar the internal hardware is.
+Porting this to other variants of the ESP32 might or might not be trivial, depending on how similar the internal hardware is. From some basic reverse engineering work, we're seeing that there are a lot of similarities.
 
-This project was only tested against ESP-IDF v5.0.1.
-After we implement the hardware initialisation ourselves, we won't have to use the proprietary esp32-wifi-lib anymore, and we'll be able to run on other ESP-IDF versions.
+This project was only tested against ESP-IDF v5.0.1; but now that the binary blobs are separated out, it should be possible to port it to other ESP-IDF versions with minimal changes.
 
 ### Can I contribute?
 
-Yes! Please contact zeusblog@devreker.be to coordinate, so you don't waste your time trying to reverse engineer functionality someone else has already reverse engineered
+Yes! Join the [Matrix room](https://matrix.to/#/#esp32-open-mac:matrix.org) to coordinate.
 
 ### Are there other works related to this?
 
@@ -64,7 +71,13 @@ Yes:
 
 ### What will this project use as MAC layer?
 
-How we'll implement the MAC layer (this does among others the association with access points) is still an open question. The only open source 802.11 MAC implementation I know is the one in the Linux kernel (mac80211), and I don't know how hard it will be to rip it out and combine it with FreeRTOS instead.
+We've decided to write our own MAC layer in Rust, see `components/80211_mac_rust`
+
+### Why are there blobs in the esp_wifi and esp_phy folders?
+
+These are currently still needed for hardware initialization. They were separated out to make the blobs (mostly) independent from the ESP-IDF version. They will eventually be fully replaced with open source code.
+
+You can verify that the blobs weren't altered: in commit `d1fcca071eb2e6e50f4c40930640586d7ee9487c`, the folders were copied over from ESP-IDF v5.0.1. In further commits, the cmake files were modified to reduce the amount of blobs compiled in.
 
 ### Some free ideas
 
