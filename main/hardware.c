@@ -423,23 +423,6 @@ void handle_rx_messages() {
 	// TODO enable interrupt
 }
 
-// Copies packet content to internal buffer, so you can free `packet` immediately after calling this function
-static bool wifi_hardware_tx_func(uint8_t* packet, uint32_t len) {
-	if (!xSemaphoreTake(tx_queue_resources, 1)) {
-		ESP_LOGE(TAG, "TX semaphore full!");
-		return false;
-	}
-	uint8_t* queue_copy = (uint8_t*) malloc(len);
-	memcpy(queue_copy, packet, len);
-	hardware_queue_entry_t queue_entry;
-	queue_entry.type = TX_ENTRY;
-	queue_entry.content.tx.len = len;
-	queue_entry.content.tx.packet = queue_copy;
-	xQueueSendToFront(hardware_event_queue, &queue_entry, 0);
-	ESP_LOGI("mac-interface", "TX entry queued");
-	return true;
-}
-
 static void set_enable_mac_addr_filter(uint8_t slot, bool enable) {
 	// This will allow packets that match the filter to be queued in our reception queue
 	// will also ack them once they arrive
