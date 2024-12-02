@@ -32,10 +32,9 @@ ExternalProject_Add(
     BUILD_COMMAND ${CMAKE_COMMAND} -E env
         CARGO_BUILD_TARGET=${RUST_CARGO_TARGET}
         CARGO_BUILD_TARGET_DIR=${RUST_TARGET_DIR}
-        cargo ${RUST_CARGO_TOOLCHAIN} build --release ${CARGO_BUILD_FLAGS} -Zbuild-std-features=compiler-builtins-weak-intrinsics
+        cargo ${RUST_CARGO_TOOLCHAIN} build --release ${CARGO_BUILD_FLAGS}
     BUILD_ALWAYS TRUE
     INSTALL_COMMAND ""
-    WORKING_DIRECTORY ${RUST_PROJECT_DIR}
     TMP_DIR "${RUST_BUILD_DIR}/tmp"
     STAMP_DIR "${RUST_BUILD_DIR}/stamp"
     DOWNLOAD_DIR "${RUST_BUILD_DIR}"
