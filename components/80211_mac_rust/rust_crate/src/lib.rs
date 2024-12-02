@@ -1,13 +1,12 @@
 #![no_std]
 
-use core::default;
 use core::ffi::c_void;
 use core::marker::PhantomData;
 use core::ptr::NonNull;
 
 use ether_type::EtherType;
 use ieee80211::common::{
-    CapabilitiesInformation, FCFFlags, FrameControlField, IEEE80211AuthenticationAlgorithmNumber,
+    CapabilitiesInformation, FCFFlags, IEEE80211AuthenticationAlgorithmNumber,
     IEEE80211StatusCode, SequenceControl,
 };
 use ieee80211::data_frame::header::DataFrameHeader;
@@ -24,7 +23,7 @@ use ieee80211::scroll::{Pread, Pwrite};
 use ieee80211::{element_chain, match_frames, ssid, supported_rates, GenericFrame};
 use llc::SnapLlcFrame;
 use sys::{
-    dma_list_item, rs_change_channel, rs_event_type_t, rs_get_smart_frame, rs_get_time_us,
+    dma_list_item, rs_event_type_t, rs_get_smart_frame, rs_get_time_us,
     rs_tx_smart_frame,
 };
 
@@ -172,16 +171,16 @@ pub fn get_next_mac_event(timeout_ms: u32) -> Option<MacEvent> {
             let wrapper: HardwareRxDataWrapper = HardwareRxDataWrapper {
                 ptr: NonNull::new(data_ptr as *mut dma_list_item).unwrap(),
             };
-            return Some(MacEvent::HardwareRx(wrapper));
+            Some(MacEvent::HardwareRx(wrapper))
         }
         rs_event_type_t::EVENT_TYPE_MAC_TX_DATA_FRAME => {
             let wrapper: MacTxDataWrapper = MacTxDataWrapper {
                 frame: data_ptr as *mut u8,
                 len,
             };
-            return Some(MacEvent::MacTx(wrapper));
+            Some(MacEvent::MacTx(wrapper))
         }
-        _ => return None,
+        _ => None,
     }
 }
 
@@ -240,7 +239,7 @@ fn receive_mac_frame(
 }
 
 pub fn get_time_us() -> i64 {
-    return unsafe { rs_get_time_us() };
+    unsafe { rs_get_time_us() }
 }
 
 // network we can connect to
@@ -397,7 +396,7 @@ fn handle_data_frame(_state: &mut STAState, data_frame: DataFrame) -> Option<()>
                     let source: MACAddress = data_frame.header.address_3;
                     let ethertype = inner_payload.ether_type;
                     let packet = inner_payload.payload;
-                    if let Err(_) = receive_mac_frame(source, destination, ethertype, packet) {
+                    if receive_mac_frame(source, destination, ethertype, packet).is_err() {
                         println!("Receiving MAC frame failed");
                     }
                 }
@@ -502,7 +501,7 @@ fn next_channel(channel: u8) -> u8 {
     if channel < 12 {
         return channel + 1;
     }
-    return 1;
+    1
 }
 
 // handles whatever we need to do with the current state, then return the amount of ms to wait if no external events happen
@@ -510,7 +509,7 @@ fn handle_state(state: &mut STAState) -> u32 {
     // TODO
     match &mut state.state {
         StaMachineState::Scanning(ref mut s) => {
-            if let None = s.last_channel_change {
+            if s.last_channel_change.is_none() {
                 println!("setting last ch change to now");
                 s.last_channel_change = Some(get_time_us());
             }
@@ -524,10 +523,10 @@ fn handle_state(state: &mut STAState) -> u32 {
                 state.current_channel = next_channel(state.current_channel);
                 unsafe { sys::rs_change_channel(state.current_channel) };
                 s.last_channel_change = Some(get_time_us());
-                return (CHANNEL_HOPPING_INTERVAL_US / 1000) as u32;
+                (CHANNEL_HOPPING_INTERVAL_US / 1000) as u32
             } else {
-                let ms_to_wait = (us_to_wait / 1000).try_into().unwrap_or(u32::MAX);
-                return ms_to_wait;
+                
+                (us_to_wait / 1000).try_into().unwrap_or(u32::MAX)
             }
         }
         StaMachineState::Authenticate(s) => {
@@ -537,10 +536,10 @@ fn handle_state(state: &mut STAState) -> u32 {
                 .unwrap_or(0);
             if us_to_wait <= 0 {
                 send_authenticate(state);
-                return (AUTHENTICATE_INTERVAL_US / 1000) as u32;
+                (AUTHENTICATE_INTERVAL_US / 1000) as u32
             } else {
-                let ms_to_wait = (us_to_wait / 1000).try_into().unwrap_or(u32::MAX);
-                return ms_to_wait;
+                
+                (us_to_wait / 1000).try_into().unwrap_or(u32::MAX)
             }
         }
         StaMachineState::Associate(s) => {
@@ -551,10 +550,10 @@ fn handle_state(state: &mut STAState) -> u32 {
             if us_to_wait <= 0 {
                 println!("sending assoc request");
                 send_associate(state);
-                return (ASSOCIATE_INTERVAL_US / 1000) as u32;
+                (ASSOCIATE_INTERVAL_US / 1000) as u32
             } else {
-                let ms_to_wait = (us_to_wait / 1000).try_into().unwrap_or(u32::MAX);
-                return ms_to_wait;
+                
+                (us_to_wait / 1000).try_into().unwrap_or(u32::MAX)
             }
         }
         _default => 10000,
@@ -584,20 +583,20 @@ fn sequence_control_accept(
         seqno_diff
     );
 
-    if (seqno_diff <= 0 && seqno_diff > -SEQNO_WINDOW_SIZE) {
+    if seqno_diff <= 0 && seqno_diff > -SEQNO_WINDOW_SIZE {
         // inside the window, slightly older
         if (state.sequence_control_bitmap & (1 << -seqno_diff)) != 0 {
             return false;
         }
         state.sequence_control_bitmap |= 1 << -seqno_diff;
-        return true;
-    } else if (seqno_diff > 0 && seqno_diff < SEQNO_WINDOW_SIZE) {
+        true
+    } else if seqno_diff > 0 && seqno_diff < SEQNO_WINDOW_SIZE {
         // sequence number is slightly newer
         state.sequence_control_bitmap <<= seqno_diff;
         state.sequence_control_bitmap |= 1;
         state.sequence_control_last_seqno = seq.sequence_number() as i32;
         return true;
-    } else if (seqno_diff >= SEQNO_WINDOW_SIZE && seqno_diff < 4095) {
+    } else if (SEQNO_WINDOW_SIZE..4095).contains(&seqno_diff) {
         // sequence number is much newer
         println!("missed a lot of packets ({})", seqno_diff - 1);
         state.sequence_control_bitmap = 1;
@@ -647,21 +646,18 @@ pub extern "C" fn rust_mac_task() -> *const c_void {
                         let Ok(generic) = generic else {
                             continue;
                         };
-                        match (generic.sequence_control(), generic.address_2()) {
-                            (Some(seq), Some(ta)) => {
-                                if !sequence_control_accept(
-                                    &mut state,
-                                    seq,
-                                    ta,
-                                    generic.address_1(),
-                                ) {
-                                    println!("duplicate frame detected!");
-                                    continue;
-                                } else {
-                                    println!("accepted!");
-                                }
+                        if let (Some(seq), Some(ta)) = (generic.sequence_control(), generic.address_2()) {
+                            if !sequence_control_accept(
+                                &mut state,
+                                seq,
+                                ta,
+                                generic.address_1(),
+                            ) {
+                                println!("duplicate frame detected!");
+                                continue;
+                            } else {
+                                println!("accepted!");
                             }
-                            _ => (),
                         }
 
                         let res = match_frames! {
