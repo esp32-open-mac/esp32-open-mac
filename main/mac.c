@@ -6,7 +6,6 @@
 #include "esp_netif_defaults.h"
 
 #include "hardware.h"
-#include "80211.h"
 #include "mac.h"
 #include "proprietary.h"
 
@@ -16,11 +15,10 @@
 
 static char* TAG = "mac.c";
 
-typedef struct openmac_netif_driver* openmac_netif_driver_t;
-
 typedef struct openmac_netif_driver {
     esp_netif_driver_base_t base;
-}* openmac_netif_driver_t;
+    mac_interface_type_t interface_type;
+} openmac_netif_driver_t;
 
 static esp_netif_t *netif_openmac_sta = NULL;
 
@@ -60,7 +58,7 @@ static void openmac_free(void *h, void* buffer)
 
 static esp_err_t openmac_driver_start(esp_netif_t * esp_netif, void * args)
 {
-    openmac_netif_driver_t driver = args;
+    openmac_netif_driver_t* driver = args;
     driver->base.netif = esp_netif;
     esp_netif_driver_ifconfig_t driver_ifconfig = {
             .handle =  driver,
@@ -73,9 +71,9 @@ static esp_err_t openmac_driver_start(esp_netif_t * esp_netif, void * args)
 }
 
 
-openmac_netif_driver_t openmac_create_if_driver()
+openmac_netif_driver_t* openmac_create_if_driver()
 {
-    openmac_netif_driver_t driver = calloc(1, sizeof(struct openmac_netif_driver));
+    openmac_netif_driver_t* driver = calloc(1, sizeof(struct openmac_netif_driver));
     if (driver == NULL) {
         ESP_LOGE(TAG, "No memory to create a wifi interface handle");
         return NULL;
@@ -97,7 +95,7 @@ esp_err_t openmac_netif_start()
     netif_openmac_sta = esp_netif_new(&cfg_sta);
     assert(netif_openmac_sta);
 
-    openmac_netif_driver_t driver = openmac_create_if_driver();
+    openmac_netif_driver_t* driver = openmac_create_if_driver();
     if (driver == NULL) {
         ESP_LOGE(TAG, "Failed to create wifi interface handle");
         return ESP_FAIL;

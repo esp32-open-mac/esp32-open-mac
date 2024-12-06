@@ -74,6 +74,13 @@ typedef struct __attribute__((packed)) dma_list_item { // TODO replace the field
 } dma_list_item;
 
 typedef enum {
+    STA_1_MAC_INTERFACE_TYPE,
+    STA_2_MAC_INTERFACE_TYPE,
+    AP_1_MAC_INTERFACE_TYPE,
+    AP_2_MAC_INTERFACE_TYPE,
+} mac_interface_type_t;
+
+typedef enum {
     EVENT_TYPE_MAC_TX_DATA_FRAME,
     EVENT_TYPE_MAC_FREE_RX_DATA,
     EVENT_TYPE_PHY_RX_DATA,
