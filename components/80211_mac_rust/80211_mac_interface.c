@@ -80,7 +80,7 @@ int64_t rs_get_time_us() {
 
 // declaration from IP
 // RX'ed 802.11 packets -> RX queue of MAC stack
-void openmac_netif_receive(void* buffer, size_t len);
+void openmac_netif_receive(rs_mac_interface_type_t interface, void* buffer, size_t len);
 
 /*Called from the Rust MAC stack, to obtain a frame to receive MAC data in and pass it to ESP-NETIF */
 uint8_t* rs_get_mac_rx_frame(size_t size_required) {
@@ -95,8 +95,8 @@ uint8_t* rs_get_mac_rx_frame(size_t size_required) {
 }
 
 /*Called from the Rust MAC stack, to pass a previously obtained data frame buffer to ESP-NETIF. Expects the frame to be in Ethernet format. Does not take ownership of the data*/
-void rs_rx_mac_frame(uint8_t* frame, size_t len) {
-	openmac_netif_receive(frame, len);
+void rs_rx_mac_frame(rs_mac_interface_type_t interface, uint8_t* frame, size_t len) {
+	openmac_netif_receive(interface, frame, len);
 }
 
 /*
@@ -168,15 +168,15 @@ void c_hand_rx_to_mac_stack(dma_list_item* item) {
 	}
 }
 
-void openmac_netif_up();
-void openmac_netif_down();
+void openmac_netif_up(rs_mac_interface_type_t interface);
+void openmac_netif_down(rs_mac_interface_type_t interface);
 
-void rs_mark_iface_up() {
-	openmac_netif_up();
+void rs_mark_iface_up(rs_mac_interface_type_t interface) {
+	openmac_netif_up(interface);
 }
 
-void rs_mark_iface_down() {
-	openmac_netif_down();
+void rs_mark_iface_down(rs_mac_interface_type_t interface) {
+	openmac_netif_down(interface);
 }
 
 void rs_recycle_mac_tx_data(uint8_t* data) {
@@ -202,7 +202,7 @@ void rs_filters_set_client_with_bssid(const uint8_t* addr) {
 
 // Called from the C ESP-NETIF stack to request the Rust MAC stack to TX a frame
 // This function does NOT take ownership of the frame, so you're allowed to reuse the buffer directly after this returns
-void c_transmit_data_frame(uint8_t* frame, size_t len) {
+void c_transmit_data_frame(rs_mac_interface_type_t interface, uint8_t* frame, size_t len) {
 	// TODO make sure we don't flood the stack by sending too much frames
 	// maybe use a counting semaphore?
 	void* queued_buffer = malloc(len);
