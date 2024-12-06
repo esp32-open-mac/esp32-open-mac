@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+// Number of virtual interfaces the hardware supports
+// See https://esp32-open-mac.be/posts/0008-rx-filter/
+#define NUM_VIRTUAL_INTERFACES (2)
+
 #define CONFIG_IDF_TARGET_ESP32 1
 
 /** @brief Received packet radio metadata header, this is the common header at the beginning of all promiscuous mode RX callback buffers */
@@ -78,7 +82,7 @@ typedef enum {
     STA_2_MAC_INTERFACE_TYPE,
     AP_1_MAC_INTERFACE_TYPE,
     AP_2_MAC_INTERFACE_TYPE,
-} mac_interface_type_t;
+} rs_mac_interface_type_t;
 
 typedef enum {
     EVENT_TYPE_MAC_TX_DATA_FRAME,
@@ -117,13 +121,13 @@ rs_smart_frame_t* rs_get_smart_frame(size_t size_hint);
 void rs_tx_smart_frame(rs_smart_frame_t* frame);
 
 /*Called from the Rust MAC stack, to pass a data frame to the IP stack. Expects the frame to be in Ethernet format. Does not take ownership of the data*/
-void rs_rx_mac_frame(uint8_t* frame, size_t len);
+void rs_rx_mac_frame(rs_mac_interface_type_t interface, uint8_t* frame, size_t len);
 
 void rs_recycle_dma_item(dma_list_item* item);
 
 
-void rs_mark_iface_up();
-void rs_mark_iface_down();
+void rs_mark_iface_up(rs_mac_interface_type_t interface);
+void rs_mark_iface_down(rs_mac_interface_type_t interface);
 
 /*
   Called from the hardware stack to recycle a smart frame after it was sent
@@ -137,7 +141,7 @@ void c_hand_rx_to_mac_stack();
 
 int64_t rs_get_time_us();
 
-void c_transmit_data_frame(uint8_t* frame, size_t len);
+void c_transmit_data_frame(rs_mac_interface_type_t interface, uint8_t* frame, size_t len);
 void rs_recycle_mac_tx_data(uint8_t* frame);
 
 uint8_t* rs_get_mac_rx_frame(size_t size_required);

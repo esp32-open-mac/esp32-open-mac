@@ -23,8 +23,7 @@ use ieee80211::scroll::{Pread, Pwrite};
 use ieee80211::{element_chain, match_frames, ssid, supported_rates, GenericFrame};
 use llc::SnapLlcFrame;
 use sys::{
-    dma_list_item, rs_event_type_t, rs_get_smart_frame, rs_get_time_us,
-    rs_tx_smart_frame,
+    dma_list_item, rs_event_type_t, rs_get_smart_frame, rs_get_time_us, rs_mac_interface_type_t, rs_tx_smart_frame
 };
 
 use esp_println as _;
@@ -215,6 +214,7 @@ pub fn transmit_hardware_frame<
 }
 
 fn receive_mac_frame(
+    interface: sys::rs_mac_interface_type_t,
     source: MACAddress,
     destination: MACAddress,
     ether_type: EtherType,
@@ -234,7 +234,7 @@ fn receive_mac_frame(
     buffer.pwrite(ether_type.into_bits(), 6 + 6).unwrap();
     buffer.pwrite(payload, 6 + 6 + 2).unwrap();
 
-    unsafe { sys::rs_rx_mac_frame(buffer.as_mut_ptr(), buffer.len()) };
+    unsafe { sys::rs_rx_mac_frame(interface, buffer.as_mut_ptr(), buffer.len()) };
     Ok(())
 }
 
@@ -289,7 +289,10 @@ struct STAState {
 const SEQNO_WINDOW_SIZE: i32 = 32;
 
 fn transition_to_scanning(state: &mut STAState) {
-    unsafe { sys::rs_mark_iface_down() }
+    unsafe {
+        // TODO don't hardcode this to STA 1
+        sys::rs_mark_iface_down(rs_mac_interface_type_t::STA_1_MAC_INTERFACE_TYPE)
+    }
     unsafe { sys::rs_filters_set_scanning() }
     state.state = StaMachineState::Scanning(ScanningS {
         last_channel_change: None,
@@ -357,7 +360,10 @@ fn handle_assoc_resp(state: &mut STAState, assoc_resp_frame: AssociationResponse
         // yay, they accepted our association
         match state.state {
             StaMachineState::Associated => {}
-            _ => unsafe { sys::rs_mark_iface_up() },
+            _ => unsafe {
+                // TODO don't hardcode this to STA 1
+                sys::rs_mark_iface_up(rs_mac_interface_type_t::STA_1_MAC_INTERFACE_TYPE)
+            },
         }
         state.state = StaMachineState::Associated;
     }
@@ -396,7 +402,8 @@ fn handle_data_frame(_state: &mut STAState, data_frame: DataFrame) -> Option<()>
                     let source: MACAddress = data_frame.header.address_3;
                     let ethertype = inner_payload.ether_type;
                     let packet = inner_payload.payload;
-                    if receive_mac_frame(source, destination, ethertype, packet).is_err() {
+                    // TODO make this dynamic instead of hardcofing STA_1
+                    if receive_mac_frame(sys::rs_mac_interface_type_t::STA_1_MAC_INTERFACE_TYPE, source, destination, ethertype, packet).is_err() {
                         println!("Receiving MAC frame failed");
                     }
                 }
