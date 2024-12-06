@@ -114,29 +114,57 @@ openmac_netif_driver_t* openmac_create_if_driver()
 
 esp_err_t openmac_netif_start()
 {
-    esp_netif_inherent_config_t base_cfg_sta = ESP_NETIF_INHERENT_DEFAULT_WIFI_STA();
-    base_cfg_sta.if_desc = "openmac_sta";
+    { // STA mode
+        esp_netif_inherent_config_t base_cfg_sta = ESP_NETIF_INHERENT_DEFAULT_WIFI_STA();
+        base_cfg_sta.if_desc = "openmac_sta";
 
-    esp_netif_config_t cfg_sta = {
-            .base = &base_cfg_sta,
-            .driver = NULL,
-            .stack = ESP_NETIF_NETSTACK_DEFAULT_WIFI_STA };
+        esp_netif_config_t cfg_sta = {
+                .base = &base_cfg_sta,
+                .driver = NULL,
+                .stack = ESP_NETIF_NETSTACK_DEFAULT_WIFI_STA };
 
-    esp_netif_t* netif_openmac_sta = esp_netif_new(&cfg_sta);
-    assert(netif_openmac_sta);
+        esp_netif_t* netif_openmac_sta = esp_netif_new(&cfg_sta);
+        assert(netif_openmac_sta);
 
-    openmac_netif_driver_t* driver = openmac_create_if_driver();
-    if (driver == NULL) {
-        ESP_LOGE(TAG, "Failed to create wifi interface handle");
-        return ESP_FAIL;
+        openmac_netif_driver_t* driver = openmac_create_if_driver();
+        if (driver == NULL) {
+            ESP_LOGE(TAG, "Failed to create wifi interface handle");
+            return ESP_FAIL;
+        }
+
+        driver->interface_type = STA_1_MAC_INTERFACE_TYPE;
+        active_interfaces[0] = driver;
+
+        esp_netif_attach(netif_openmac_sta, driver);
+        esp_netif_set_hostname(netif_openmac_sta, "esp32-open-mac");
+        esp_netif_set_mac(netif_openmac_sta, iface_1_mac_addr);
+        esp_netif_action_start(netif_openmac_sta, NULL, 0, NULL);
     }
+    { // AP mode
+        esp_netif_inherent_config_t base_cfg_ap = ESP_NETIF_INHERENT_DEFAULT_WIFI_AP();
+        base_cfg_ap.if_desc = "openmac_ap";
 
-    driver->interface_type = STA_1_MAC_INTERFACE_TYPE;
-    active_interfaces[0] = driver;
+        esp_netif_config_t cfg_ap = {
+                .base = &base_cfg_ap,
+                .driver = NULL,
+                .stack = ESP_NETIF_NETSTACK_DEFAULT_WIFI_AP };
 
-    esp_netif_attach(netif_openmac_sta, driver);
-    esp_netif_set_hostname(netif_openmac_sta, "esp32-open-mac");
-    esp_netif_set_mac(netif_openmac_sta, module_mac_addr);
-    esp_netif_action_start(netif_openmac_sta, NULL, 0, NULL);
+        esp_netif_t* netif_openmac_ap = esp_netif_new(&cfg_ap);
+        assert(netif_openmac_ap);
+
+        openmac_netif_driver_t* driver = openmac_create_if_driver();
+        if (driver == NULL) {
+            ESP_LOGE(TAG, "Failed to create wifi interface handle");
+            return ESP_FAIL;
+        }
+
+        driver->interface_type = AP_2_MAC_INTERFACE_TYPE;
+        active_interfaces[1] = driver;
+
+        esp_netif_attach(netif_openmac_ap, driver);
+        esp_netif_set_hostname(netif_openmac_ap, "esp32-open-mac-ap");
+        esp_netif_set_mac(netif_openmac_ap, iface_2_mac_addr);
+        esp_netif_action_start(netif_openmac_ap, NULL, 0, NULL);
+    }
     return ESP_OK;
 }

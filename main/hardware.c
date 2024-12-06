@@ -21,7 +21,8 @@
 #define RX_BUFFER_AMOUNT 10
 
 static const char* TAG = "hardware.c";
-uint8_t module_mac_addr[6] = {0x00, 0x23, 0x45, 0x67, 0x89, 0xab};
+uint8_t iface_1_mac_addr[6] = {0x00, 0x23, 0x45, 0x67, 0x89, 0xab};
+uint8_t iface_2_mac_addr[6] = {0x00, 0x20, 0x91, 0x00, 0x00, 0x00};
 uint8_t broadcast[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 inline void write_register(uint32_t address, uint32_t value) {
@@ -521,7 +522,7 @@ void wifi_hardware_task(void* pvArguments) {
 
 	ESP_LOGW(TAG, "Starting to receive messages");
 
-	set_mac_addr_filter(0, module_mac_addr);
+	set_mac_addr_filter(0, iface_1_mac_addr);
 	set_enable_mac_addr_filter(0, true);
 	// acking will only happen if the hardware puts the packet in an RX buffer
 

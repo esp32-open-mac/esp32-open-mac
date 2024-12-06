@@ -272,23 +272,29 @@ enum StaMachineState {
     Associated,
 }
 
+#[derive(Debug, Default, PartialEq, Eq)]
+struct SequenceControlTracker {
+    sequence_control_bitmap: u32, // bitmap has 32 bits
+    sequence_control_last_seqno: i32,
+    mac_address: MACAddress,
+}
+
 // holds all state for the case where we are a station
 // TODO find better name for this and for the StaMachineState
-struct STAState {
-    own_mac: MACAddress,
+struct GlobalState {
+    iface_1_mac: MACAddress,
+    iface_2_mac: MACAddress,
     bssid: MACAddress,
     state: StaMachineState,
     current_channel: u8,
 
     // sequence control is done per transmitter/receiver combination
-    // this is only valid for the `bssid`/`own_mac` for now
-    sequence_control_bitmap: u32, // bitmap has 32 bits
-    sequence_control_last_seqno: i32,
+    seq_control_trackers: [SequenceControlTracker; 1]
 }
 
 const SEQNO_WINDOW_SIZE: i32 = 32;
 
-fn transition_to_scanning(state: &mut STAState) {
+fn transition_to_scanning(state: &mut GlobalState) {
     unsafe {
         // TODO don't hardcode this to STA 1
         sys::rs_mark_iface_down(rs_mac_interface_type_t::STA_1_MAC_INTERFACE_TYPE)
@@ -299,7 +305,7 @@ fn transition_to_scanning(state: &mut STAState) {
     });
 }
 
-fn transition_to_authenticating(state: &mut STAState, bssid: MACAddress, _channel: u8) {
+fn transition_to_authenticating(state: &mut GlobalState, bssid: MACAddress, _channel: u8) {
     println!("transitioning to authenticating");
     unsafe {
         sys::rs_filters_set_client_with_bssid(bssid.as_ptr());
@@ -310,7 +316,7 @@ fn transition_to_authenticating(state: &mut STAState, bssid: MACAddress, _channe
     state.state = StaMachineState::Authenticate(AuthenticateS { last_sent: None });
 }
 
-fn handle_beacon(state: &mut STAState, beacon_frame: BeaconFrame, channel: u8) {
+fn handle_beacon(state: &mut GlobalState, beacon_frame: BeaconFrame, channel: u8) {
     let Some(ssid) = beacon_frame.ssid() else {
         println!("no ssid");
         return; // no SSID in beacon frame
@@ -338,7 +344,7 @@ fn handle_beacon(state: &mut STAState, beacon_frame: BeaconFrame, channel: u8) {
     }
 }
 
-fn handle_auth(state: &mut STAState, auth_frame: AuthenticationFrame) {
+fn handle_auth(state: &mut GlobalState, auth_frame: AuthenticationFrame) {
     // I guess we should validate the MAC address; TODO
     match NETWORK_TO_CONNECT {
         KnownNetwork::OpenNetwork(_) => {
@@ -355,7 +361,7 @@ fn handle_auth(state: &mut STAState, auth_frame: AuthenticationFrame) {
     }
 }
 
-fn handle_assoc_resp(state: &mut STAState, assoc_resp_frame: AssociationResponseFrame) {
+fn handle_assoc_resp(state: &mut GlobalState, assoc_resp_frame: AssociationResponseFrame) {
     if assoc_resp_frame.body.status_code == IEEE80211StatusCode::Success {
         // yay, they accepted our association
         match state.state {
@@ -369,21 +375,21 @@ fn handle_assoc_resp(state: &mut STAState, assoc_resp_frame: AssociationResponse
     }
 }
 
-fn handle_disassoc(state: &mut STAState, _disassoc_frame: DisassociationFrame) {
+fn handle_disassoc(state: &mut GlobalState, _disassoc_frame: DisassociationFrame) {
     if let StaMachineState::Scanning(_) = state.state {
         return;
     }
     transition_to_scanning(state);
 }
 
-fn handle_deauth(state: &mut STAState, _deauth: DeauthenticationFrame) {
+fn handle_deauth(state: &mut GlobalState, _deauth: DeauthenticationFrame) {
     if let StaMachineState::Scanning(_) = state.state {
         return;
     }
     transition_to_scanning(state);
 }
 
-fn handle_data_frame(_state: &mut STAState, data_frame: DataFrame) -> Option<()> {
+fn handle_data_frame(_state: &mut GlobalState, data_frame: DataFrame) -> Option<()> {
     let payload = data_frame.payload?;
     match payload {
         DataFrameReadPayload::Single(llc) => {
@@ -428,13 +434,13 @@ const ASSOCIATE_INTERVAL_US: i64 = 500 * 1000;
 
 const CHANNEL_HOPPING_INTERVAL_US: i64 = 1500 * 1000;
 
-fn send_authenticate(state: &mut STAState) {
+fn send_authenticate(state: &mut GlobalState) {
     let auth = AuthenticationFrame {
         header: ManagementFrameHeader {
             fcf_flags: FCFFlags::new(),
             duration: 0, // TODO
             receiver_address: state.bssid,
-            transmitter_address: state.own_mac,
+            transmitter_address: state.iface_1_mac,
             bssid: state.bssid,
             ..Default::default()
         },
@@ -453,13 +459,13 @@ fn send_authenticate(state: &mut STAState) {
     };
 }
 
-fn send_associate(state: &mut STAState) {
+fn send_associate(state: &mut GlobalState) {
     let assoc = AssociationRequestFrame {
         header: ManagementFrameHeader {
             fcf_flags: FCFFlags::new(),
             duration: 0, // TODO
             receiver_address: state.bssid,
-            transmitter_address: state.own_mac,
+            transmitter_address: state.iface_1_mac,
             bssid: state.bssid,
             ..Default::default()
         },
@@ -477,7 +483,7 @@ fn send_associate(state: &mut STAState) {
     };
 }
 
-fn send_data_frame(state: &mut STAState, wrapper: &mut MacTxDataWrapper) {
+fn send_data_frame(state: &mut GlobalState, wrapper: &mut MacTxDataWrapper) {
     let fcf = FCFFlags::new().with_to_ds(true);
 
     let dataframe = DataFrame {
@@ -485,7 +491,7 @@ fn send_data_frame(state: &mut STAState, wrapper: &mut MacTxDataWrapper) {
             fcf_flags: fcf,
             duration: 0,                          // TODO
             address_1: state.bssid,               // RA
-            address_2: state.own_mac,             // TA
+            address_2: state.iface_1_mac,             // TA
             address_3: wrapper.destination_mac(), // DA
             sequence_control: SequenceControl::new()
                 .with_fragment_number(1)
@@ -512,7 +518,7 @@ fn next_channel(channel: u8) -> u8 {
 }
 
 // handles whatever we need to do with the current state, then return the amount of ms to wait if no external events happen
-fn handle_state(state: &mut STAState) -> u32 {
+fn handle_state(state: &mut GlobalState) -> u32 {
     // TODO
     match &mut state.state {
         StaMachineState::Scanning(ref mut s) => {
@@ -568,66 +574,70 @@ fn handle_state(state: &mut STAState) -> u32 {
 }
 
 fn sequence_control_accept(
-    state: &mut STAState,
+    state: &mut GlobalState,
     seq: SequenceControl,
     transmitter: MACAddress,
     receiver: MACAddress,
 ) -> bool {
-    if state.bssid != transmitter {
-        println!("accepting non-bssid frame");
-        return true; // we only know about the bssid
-    }
-    if state.own_mac != receiver {
-        println!("accepting likely broadcast frame");
-        return true;
-    }
 
-    let seqno_diff = seq.sequence_number() as i32 - state.sequence_control_last_seqno;
-    println!(
-        "sequence number = {} last = {}, diff = {}",
-        seq.sequence_number(),
-        state.sequence_control_last_seqno,
-        seqno_diff
-    );
-
-    if seqno_diff <= 0 && seqno_diff > -SEQNO_WINDOW_SIZE {
-        // inside the window, slightly older
-        if (state.sequence_control_bitmap & (1 << -seqno_diff)) != 0 {
-            return false;
+    for seq_ctrl_tracker in &mut state.seq_control_trackers {
+        if state.iface_1_mac != receiver && state.iface_2_mac != receiver {
+            println!("accepting likely broadcast frame");
+            return true;
         }
-        state.sequence_control_bitmap |= 1 << -seqno_diff;
-        true
-    } else if seqno_diff > 0 && seqno_diff < SEQNO_WINDOW_SIZE {
-        // sequence number is slightly newer
-        state.sequence_control_bitmap <<= seqno_diff;
-        state.sequence_control_bitmap |= 1;
-        state.sequence_control_last_seqno = seq.sequence_number() as i32;
-        return true;
-    } else if (SEQNO_WINDOW_SIZE..4095).contains(&seqno_diff) {
-        // sequence number is much newer
-        println!("missed a lot of packets ({})", seqno_diff - 1);
-        state.sequence_control_bitmap = 1;
-        state.sequence_control_last_seqno = seq.sequence_number() as i32;
-        return true;
-    } else {
-        println!("other host may have restarted");
-        state.sequence_control_bitmap = 1;
-        state.sequence_control_last_seqno = seq.sequence_number() as i32;
-        return true;
+        if seq_ctrl_tracker.mac_address != transmitter {
+            continue
+        }
+
+        let seqno_diff = seq.sequence_number() as i32 - seq_ctrl_tracker.sequence_control_last_seqno;
+        println!(
+            "sequence number = {} last = {}, diff = {}",
+            seq.sequence_number(),
+            seq_ctrl_tracker.sequence_control_last_seqno,
+            seqno_diff
+        );
+    
+        if seqno_diff <= 0 && seqno_diff > -SEQNO_WINDOW_SIZE {
+            // inside the window, slightly older
+            if (seq_ctrl_tracker.sequence_control_bitmap & (1 << -seqno_diff)) != 0 {
+                return false;
+            }
+            seq_ctrl_tracker.sequence_control_bitmap |= 1 << -seqno_diff;
+            return true
+        } else if seqno_diff > 0 && seqno_diff < SEQNO_WINDOW_SIZE {
+            // sequence number is slightly newer
+            seq_ctrl_tracker.sequence_control_bitmap <<= seqno_diff;
+            seq_ctrl_tracker.sequence_control_bitmap |= 1;
+            seq_ctrl_tracker.sequence_control_last_seqno = seq.sequence_number() as i32;
+            return true;
+        } else if (SEQNO_WINDOW_SIZE..4095).contains(&seqno_diff) {
+            // sequence number is much newer
+            println!("missed a lot of packets ({})", seqno_diff - 1);
+            seq_ctrl_tracker.sequence_control_bitmap = 1;
+            seq_ctrl_tracker.sequence_control_last_seqno = seq.sequence_number() as i32;
+            return true;
+        } else {
+            println!("other host may have restarted");
+            seq_ctrl_tracker.sequence_control_bitmap = 1;
+            seq_ctrl_tracker.sequence_control_last_seqno = seq.sequence_number() as i32;
+            return true;
+        }
     }
+
+    true
 }
 
 #[no_mangle]
 pub extern "C" fn rust_mac_task() -> *const c_void {
-    let mut state: STAState = STAState {
+    let mut state: GlobalState = GlobalState {
         bssid: BROADCAST,
         state: StaMachineState::Scanning(ScanningS {
             last_channel_change: None,
         }),
-        own_mac: MACAddress([0x00, 0x23, 0x45, 0x67, 0x89, 0xab]), // TODO don't hardcode this
+        iface_1_mac: MACAddress([0x00, 0x23, 0x45, 0x67, 0x89, 0xab]), // TODO don't hardcode this
+        iface_2_mac: MACAddress([0x00, 0x20, 0x91, 0x00, 0x00, 0x00]), // TODO don't hardcode this
         current_channel: 1,
-        sequence_control_bitmap: 0,
-        sequence_control_last_seqno: 0,
+        seq_control_trackers: [SequenceControlTracker::default()]
     };
 
     transition_to_scanning(&mut state);
