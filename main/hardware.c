@@ -21,7 +21,8 @@
 #define RX_BUFFER_AMOUNT 10
 
 static const char* TAG = "hardware.c";
-uint8_t module_mac_addr[6] = {0x00, 0x23, 0x45, 0x67, 0x89, 0xab};
+uint8_t iface_1_mac_addr[6] = {0x00, 0x23, 0x45, 0x67, 0x89, 0xab};
+uint8_t iface_2_mac_addr[6] = {0x00, 0x20, 0x91, 0x00, 0x00, 0x00};
 uint8_t broadcast[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 inline void write_register(uint32_t address, uint32_t value) {
@@ -477,17 +478,36 @@ void set_some_kind_of_rx_policy(uint8_t slot, bool enable) {
 	}
 }
 
-void filters_set_scanning_mode() {
-	set_enable_mac_addr_filter(0, true);
-	set_enable_bssid_filter(0, true);
-	set_some_kind_of_rx_policy(0, true);
+void filters_set_scanning_mode(uint8_t interface, const uint8_t* own_mac) {
+	set_mac_addr_filter(interface, own_mac);
+	set_bssid_filter(interface, own_mac);
+
+	set_enable_mac_addr_filter(interface, true);
+	set_enable_bssid_filter(interface, true);
+	set_some_kind_of_rx_policy(interface, true);
 }
 
-void filters_set_client_mode(const uint8_t* bssid) {
-	set_enable_mac_addr_filter(0, true);
-	set_enable_bssid_filter(0, true);
-	set_bssid_filter(0, bssid);
-	set_some_kind_of_rx_policy(0, false);
+void filters_set_client_mode(uint8_t interface, const uint8_t* own_mac, const uint8_t* bssid) {
+	set_mac_addr_filter(interface, own_mac);
+	set_bssid_filter(interface, bssid);
+
+	set_enable_mac_addr_filter(interface, true);
+	set_enable_bssid_filter(interface, true);
+	set_some_kind_of_rx_policy(interface, false);
+}
+
+void hal_mac_tsf_reset(uint8_t a);
+
+void filters_set_ap_mode(uint8_t interface, const uint8_t* bssid) {
+	set_mac_addr_filter(interface, bssid);
+	set_bssid_filter(interface, bssid);
+
+	set_enable_mac_addr_filter(interface, true);
+	set_enable_bssid_filter(interface, true);
+	set_some_kind_of_rx_policy(interface, false);
+
+	hal_mac_tsf_reset(1);
+	WIFI_MAC_BITMASK_084 |= 0x80000000;
 }
 
 void wifi_hardware_task(void* pvArguments) {
@@ -521,8 +541,15 @@ void wifi_hardware_task(void* pvArguments) {
 
 	ESP_LOGW(TAG, "Starting to receive messages");
 
-	set_mac_addr_filter(0, module_mac_addr);
-	set_enable_mac_addr_filter(0, true);
+	set_enable_mac_addr_filter(0, false);
+	set_enable_bssid_filter(0, false);
+
+	set_enable_mac_addr_filter(1, false);
+	set_enable_bssid_filter(1, false);
+
+	set_some_kind_of_rx_policy(0, false);
+	set_some_kind_of_rx_policy(1, false);
+
 	// acking will only happen if the hardware puts the packet in an RX buffer
 
 	// We're ready now, start the MAC task

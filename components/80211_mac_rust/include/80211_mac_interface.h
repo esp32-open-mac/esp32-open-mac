@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+// Number of virtual interfaces the hardware supports
+// See https://esp32-open-mac.be/posts/0008-rx-filter/
+#define NUM_VIRTUAL_INTERFACES (2)
+
 #define CONFIG_IDF_TARGET_ESP32 1
 
 /** @brief Received packet radio metadata header, this is the common header at the beginning of all promiscuous mode RX callback buffers */
@@ -12,7 +16,10 @@ typedef struct {
     unsigned rate:5;              /**< PHY rate encoding of the packet. Only valid for non HT(11bg) packet */
     unsigned :1;                  /**< reserved */
     unsigned sig_mode:2;          /**< 0: non HT(11bg) packet; 1: HT(11n) packet; 3: VHT(11ac) packet */
-    unsigned :16;                 /**< reserved */
+    unsigned :8;                  /**< reserved */
+    unsigned :4;
+    unsigned filter_match:2;
+    unsigned :2;
     unsigned mcs:7;               /**< Modulation Coding Scheme. If is HT(11n) packet, shows the modulation, range from 0 to 76(MSC0 ~ MCS76) */
     unsigned cwb:1;               /**< Channel Bandwidth of the packet. 0: 20MHz; 1: 40MHz */
     unsigned :16;                 /**< reserved */
@@ -74,6 +81,13 @@ typedef struct __attribute__((packed)) dma_list_item { // TODO replace the field
 } dma_list_item;
 
 typedef enum {
+    STA_1_MAC_INTERFACE_TYPE,
+    STA_2_MAC_INTERFACE_TYPE,
+    AP_1_MAC_INTERFACE_TYPE,
+    AP_2_MAC_INTERFACE_TYPE,
+} rs_mac_interface_type_t;
+
+typedef enum {
     EVENT_TYPE_MAC_TX_DATA_FRAME,
     EVENT_TYPE_MAC_FREE_RX_DATA,
     EVENT_TYPE_PHY_RX_DATA,
@@ -110,13 +124,13 @@ rs_smart_frame_t* rs_get_smart_frame(size_t size_hint);
 void rs_tx_smart_frame(rs_smart_frame_t* frame);
 
 /*Called from the Rust MAC stack, to pass a data frame to the IP stack. Expects the frame to be in Ethernet format. Does not take ownership of the data*/
-void rs_rx_mac_frame(uint8_t* frame, size_t len);
+void rs_rx_mac_frame(rs_mac_interface_type_t interface, uint8_t* frame, size_t len);
 
 void rs_recycle_dma_item(dma_list_item* item);
 
 
-void rs_mark_iface_up();
-void rs_mark_iface_down();
+void rs_mark_iface_up(rs_mac_interface_type_t interface);
+void rs_mark_iface_down(rs_mac_interface_type_t interface);
 
 /*
   Called from the hardware stack to recycle a smart frame after it was sent
@@ -130,13 +144,14 @@ void c_hand_rx_to_mac_stack();
 
 int64_t rs_get_time_us();
 
-void c_transmit_data_frame(uint8_t* frame, size_t len);
+void c_transmit_data_frame(rs_mac_interface_type_t interface, uint8_t* frame, size_t len);
 void rs_recycle_mac_tx_data(uint8_t* frame);
 
 uint8_t* rs_get_mac_rx_frame(size_t size_required);
 void c_recycle_mac_rx_frame(uint8_t* buffer);
 
 void rs_change_channel(uint8_t channel);
-void rs_filters_set_scanning();
-void rs_filters_set_client_with_bssid(const uint8_t* addr);
+void rs_filters_set_scanning(uint8_t interface, const uint8_t* own_addr);
+void rs_filters_set_client_with_bssid(uint8_t interface, const uint8_t* own_addr, const uint8_t* bssid);
+void rs_filters_set_ap_mode(uint8_t interface, const uint8_t* bssid);
 

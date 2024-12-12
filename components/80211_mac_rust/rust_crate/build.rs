@@ -17,6 +17,7 @@ fn run_bindgen(target: &str, out_dir: &Path) {
         .header(header)
         .allowlist_item(r#"(rs_.*)"#)
         .rustified_enum("rs_event_type_t")
+        .rustified_enum("rs_mac_interface_type_t")
         .allowlist_item("dma_list_item");
     match target {
         "riscv32imc-esp-espidf" => {
