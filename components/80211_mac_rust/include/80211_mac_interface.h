@@ -16,7 +16,10 @@ typedef struct {
     unsigned rate:5;              /**< PHY rate encoding of the packet. Only valid for non HT(11bg) packet */
     unsigned :1;                  /**< reserved */
     unsigned sig_mode:2;          /**< 0: non HT(11bg) packet; 1: HT(11n) packet; 3: VHT(11ac) packet */
-    unsigned :16;                 /**< reserved */
+    unsigned :8;                  /**< reserved */
+    unsigned :4;
+    unsigned filter_match:2;
+    unsigned :2;
     unsigned mcs:7;               /**< Modulation Coding Scheme. If is HT(11n) packet, shows the modulation, range from 0 to 76(MSC0 ~ MCS76) */
     unsigned cwb:1;               /**< Channel Bandwidth of the packet. 0: 20MHz; 1: 40MHz */
     unsigned :16;                 /**< reserved */
@@ -148,6 +151,7 @@ uint8_t* rs_get_mac_rx_frame(size_t size_required);
 void c_recycle_mac_rx_frame(uint8_t* buffer);
 
 void rs_change_channel(uint8_t channel);
-void rs_filters_set_scanning();
-void rs_filters_set_client_with_bssid(const uint8_t* addr);
+void rs_filters_set_scanning(uint8_t interface, const uint8_t* own_addr);
+void rs_filters_set_client_with_bssid(uint8_t interface, const uint8_t* own_addr, const uint8_t* bssid);
+void rs_filters_set_ap_mode(uint8_t interface, const uint8_t* bssid);
 

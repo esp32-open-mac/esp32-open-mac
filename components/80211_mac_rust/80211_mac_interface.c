@@ -189,15 +189,20 @@ void rs_change_channel(uint8_t channel) {
 	request_channel_change(channel);
 }
 
-void filters_set_scanning_mode();
-void filters_set_client_mode(const uint8_t* bssid);
+void filters_set_scanning_mode(uint8_t interface, const uint8_t* own_mac);
+void filters_set_client_mode(uint8_t interface, const uint8_t* own_mac, const uint8_t* bssid);
+void filters_set_ap_mode(uint8_t interface, const uint8_t* bssid);
 
-void rs_filters_set_scanning() {
-	filters_set_scanning_mode();
+void rs_filters_set_scanning(uint8_t interface, const uint8_t* own_mac) {
+	filters_set_scanning_mode(interface, own_mac);
 }
 
-void rs_filters_set_client_with_bssid(const uint8_t* addr) {
-	filters_set_client_mode(addr);
+void rs_filters_set_client_with_bssid(uint8_t interface, const uint8_t* own_mac, const uint8_t* bssid) {
+	filters_set_client_mode(interface, own_mac, bssid);
+}
+
+void rs_filters_set_ap_mode(uint8_t interface, const uint8_t* addr) {
+	filters_set_ap_mode(interface, addr);
 }
 
 // Called from the C ESP-NETIF stack to request the Rust MAC stack to TX a frame
@@ -205,13 +210,14 @@ void rs_filters_set_client_with_bssid(const uint8_t* addr) {
 void c_transmit_data_frame(rs_mac_interface_type_t interface, uint8_t* frame, size_t len) {
 	// TODO make sure we don't flood the stack by sending too much frames
 	// maybe use a counting semaphore?
-	void* queued_buffer = malloc(len);
-	memcpy(queued_buffer, frame, len);
+	uint8_t* queued_buffer = malloc(1 + len);
+	queued_buffer[0] = interface;
+	memcpy(queued_buffer + 1, frame, len);
 
 	rust_mac_event_queue_item_t to_queue = {0};
 	to_queue.event_type = EVENT_TYPE_MAC_TX_DATA_FRAME;
 	to_queue.ptr = queued_buffer;
-	to_queue.len = len;
+	to_queue.len = len + 1;
 	if (xQueueSendToBack(rust_mac_event_queue, &to_queue, 0) != pdTRUE) {
 		rs_recycle_mac_tx_data(queued_buffer);
 	}

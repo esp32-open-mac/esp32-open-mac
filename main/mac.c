@@ -71,6 +71,7 @@ void openmac_netif_receive(rs_mac_interface_type_t interface, void* buffer, size
 
     for (int i = 0; i < NUM_VIRTUAL_INTERFACES; i++) {
         if (active_interfaces[i] != NULL && active_interfaces[i]->interface_type == interface) {
+            ESP_LOGI(TAG, "received frame for vif %d", interface);
             esp_netif_receive(active_interfaces[i]->base.netif, buffer, len, buffer);
             return;
         }
