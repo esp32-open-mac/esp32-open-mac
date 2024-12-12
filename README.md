@@ -19,9 +19,9 @@ Currently, we can send and receive frames, without any proprietary code *running
 - [x] Connect our sending, receiving and other primitives to an open source 802.11 MAC implementation to handle association/authentication
 - [ ] Connecting to WPA2 networks w/ hardware acceleration
 - [ ] WPA3 dragonfly handshake
-- [ ] AP mode
+- [x] AP mode
 - [ ] 802.11s mesh networking
-- [ ] dual AP/client
+- [x] dual AP/client
 - [x] decouple blobs from ESP-IDF version
 
 ## Building instructions
