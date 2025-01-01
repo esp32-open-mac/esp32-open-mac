@@ -244,7 +244,7 @@ static void init_mac() {
 }
 
 static void change_channel_to(uint8_t channel) {
-	ESP_LOGI(TAG, "changing channel to %d", channel);
+	ESP_LOGE(TAG, "changing channel to %d", channel);
 	if (channel <= 0 || channel >= 13) {
 		ESP_LOGE(TAG, "channel %d not valid", channel);
 		abort();
@@ -314,12 +314,6 @@ void IRAM_ATTR wifi_interrupt_handler(void* args) {
 void setup_interrupt() {
 	// See the documentation of intr_matrix_set in esp-idf/components/esp_rom/include/esp32s3/rom/ets_sys.h
 	intr_matrix_set(0, ETS_WIFI_MAC_INTR_SOURCE, ETS_WMAC_INUM);
-	
-	// Wait for interrupt to be set, so we can replace it
-	while (_xt_interrupt_table[ETS_WMAC_INUM*portNUM_PROCESSORS+xPortGetCoreID()].handler == &xt_unhandled_interrupt) {
-		vTaskDelay(100 / portTICK_PERIOD_MS);
-		ESP_LOGW(TAG, "Waiting for interrupt to become set");
-	}
 
 	// Replace the existing wDev_ProcessFiq interrupt
 	xt_set_interrupt_handler(ETS_WMAC_INUM, wifi_interrupt_handler, NULL);
@@ -528,14 +522,7 @@ void wifi_hardware_task(void* pvArguments) {
 
 	hwinit();
 
-	// From here, we start taking over the hardware; no more proprietary code is executed from now on
 	setup_interrupt();
-
-	// ppTask is a FreeRTOS task included in the esp32-wifi-lib blob
-	// It reads from a queue that the proprietary WMAC interrupt handler writes to
-	// We kill it to make sure that no proprietary code is running anymore
-	ESP_LOGW(TAG, "Killing proprietary wifi task (ppTask)");
-	pp_post(0xf, 0);
 
 	setup_rx_chain();
 

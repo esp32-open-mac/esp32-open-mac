@@ -2,7 +2,6 @@
 #include "esp_log.h"
 #include "esp_phy_init.h"
 #include "hardware.h"
-#include "chm.h"
 
 static const char* TAG = "hwinit";
 
@@ -13,21 +12,16 @@ static const char* TAG = "hwinit";
 void wifi_hw_start(int a);
 void wifi_module_enable();
 void ic_mac_init();
-void chm_init(void* ptr);
 void ic_enable();
 void chip_enable();
 void pm_noise_check_enable();
 int64_t esp_timer_get_time();
 void coex_bt_high_prio();
 void* phy_get_romfuncs();
-void chm_set_home_channel(channel_specification *);
-void chm_set_current_channel(channel_specification *);
 void ets_timer_setfn(volatile void *, void *, void *);
 void ieee80211_timer_process(uint32_t, uint32_t, void *);
 void mutex_lock_wraper(void *);
 void mutex_unlock_wraper(void *);
-extern void* g_ic;
-extern volatile chm* g_chm;
 extern uint32_t g_wifi_mac_time_delta;
 extern void* g_wifi_nvs;
 extern void* g_wifi_global_lock;
@@ -94,59 +88,17 @@ void ic_mac_init_openmac() {
     // taken from libpp/hal_mac.o hal_mac_init
     IC_MAC_INIT_REGISTER &= 0xffffe800;
 }
-uint16_t num2mhz(uint8_t num) {
-    if (num == 14) {
-        return 2484;
-    } else {
-        return 2412 + (num - 1) * 5;
-    }
-}
-void timer_process(void* unknown) {
-    ieee80211_timer_process(0x7, 0x8, unknown);
-}
-void chm_init_openmac(void* ic) {
-    // The only refrence to this is upon init.
-    g_chm->field76_0x4f = 0xe;
 
-    for (int channel = 0; channel < 14; channel++) {
-        volatile channel_information* channel_info = &g_chm->channel_information[channel];
-        channel_info->_flags = 0x83;
-        channel_info->channel_number = channel;
-        channel_info->freq_mhz = num2mhz(channel + 1);
-    }
-    channel_specification channel_spec;
-    if (*(char *) g_wifi_nvs == 1) {
-        channel_spec.channel = 1;
-    } else {
-        channel_spec.channel = *(char *)(g_wifi_nvs + 0x3f3);
-        channel_spec.channel_bandwidth = *(channel_width *)(g_wifi_nvs + 0x3fc);
-    }
-    g_chm->ic = ic;
-    g_chm->field1_0x4 = 0xff;
-
-    // There was no need to rebuild the entire chm_set_home_channel function, so I just inlined this.
-    g_chm->home_channel_spec = channel_spec;
-    chm_set_current_channel(&channel_spec);
-    ets_timer_setfn(&g_chm->field33_0x24, timer_process, NULL);
-    ets_timer_setfn(&g_chm->field53_0x38, timer_process, (void*) 0x1);
-}
+void hal_init();
+void esp_wifi_power_domain_on();
 
 void wifi_hw_start_openmac(wifi_mode_t mode) {
-    // wifi_apb80m_request_wrapper is empty on ESP32
- 
-    // wifi_clock_enable_wrapper =
+    esp_wifi_power_domain_on();
     wifi_module_enable();
     
     esp_phy_enable_openmac();
-
-    // coex_enable_wrapper is empty on ESP32
-    
-    wifi_reset_mac();
     ic_mac_init_openmac();
-    chm_init(&g_ic);
-    ic_enable();
-    chip_enable();
-    pm_noise_check_enable();
+    hal_init(); // the only needed function from ic_enable
 }
 
 void wifi_start_process_openmac() {
@@ -157,23 +109,6 @@ void wifi_start_process_openmac() {
 }
 
 void hwinit() {
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-	cfg.static_rx_buf_num = 2; // we won't use these buffers, so reduce the amount from default 10, so we don't waste as much memory
-	// Disable AMPDU and AMSDU for now, we don't support this (yet)
-	cfg.ampdu_rx_enable = false;
-	cfg.ampdu_tx_enable = false;
-	cfg.amsdu_tx_enable = false;
-	cfg.nvs_enable = false;
-    ESP_LOGW(TAG, "calling esp_wifi_init");
-	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-	// esp_phy_common_clock_enable();
-	ESP_LOGW(TAG, "done esp_wifi_init");
-
-	ESP_LOGW(TAG, "Starting wifi_hardware task, running on %d", xPortGetCoreID());
-	ESP_LOGW(TAG, "calling esp_wifi_set_mode");
-	ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-	ESP_LOGW(TAG, "done esp_wifi_set_mode");
-
 	ESP_LOGW(TAG, "calling esp_wifi_start");
 	wifi_start_process_openmac();
 	ESP_LOGW(TAG, "done esp_wifi_start");

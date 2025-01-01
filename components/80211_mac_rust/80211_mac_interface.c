@@ -208,6 +208,11 @@ void rs_filters_set_ap_mode(uint8_t interface, const uint8_t* addr) {
 // Called from the C ESP-NETIF stack to request the Rust MAC stack to TX a frame
 // This function does NOT take ownership of the frame, so you're allowed to reuse the buffer directly after this returns
 void c_transmit_data_frame(rs_mac_interface_type_t interface, uint8_t* frame, size_t len) {
+	if (!rust_mac_event_queue) {
+		printf("netif-tx, but no rust queue yet\n");
+		return;
+	}
+
 	// TODO make sure we don't flood the stack by sending too much frames
 	// maybe use a counting semaphore?
 	uint8_t* queued_buffer = malloc(1 + len);
