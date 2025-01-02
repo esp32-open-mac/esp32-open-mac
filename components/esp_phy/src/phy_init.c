@@ -25,9 +25,13 @@
 #include "endian.h"
 #include "phy.h"
 #include "phy_init_data.h"
+#if 0
 #include "esp_coexist_internal.h"
+#endif
 #include "esp_private/periph_ctrl.h"
+#if 0
 #include "esp_private/wifi.h"
+#endif
 #include "esp_rom_crc.h"
 #include "esp_rom_sys.h"
 
@@ -39,7 +43,7 @@
 #include "hal/efuse_hal.h"
 
 #if CONFIG_IDF_TARGET_ESP32
-extern wifi_mac_time_update_cb_t s_wifi_mac_time_update_cb;
+// extern wifi_mac_time_update_cb_t s_wifi_mac_time_update_cb;
 #endif
 
 static const char* TAG = "phy_init";
@@ -182,20 +186,20 @@ int64_t esp_phy_rf_get_on_ts(void)
 
 static inline void phy_update_wifi_mac_time(bool en_clock_stopped, int64_t now)
 {
-    static uint32_t s_common_clock_disable_time = 0;
+    // static uint32_t s_common_clock_disable_time = 0;
 
-    if (en_clock_stopped) {
-        s_common_clock_disable_time = (uint32_t)now;
-    } else {
-        if (s_common_clock_disable_time) {
-            uint32_t diff = (uint64_t)now - s_common_clock_disable_time;
+    // if (en_clock_stopped) {
+    //     s_common_clock_disable_time = (uint32_t)now;
+    // } else {
+    //     if (s_common_clock_disable_time) {
+    //         uint32_t diff = (uint64_t)now - s_common_clock_disable_time;
 
-            if (s_wifi_mac_time_update_cb) {
-                s_wifi_mac_time_update_cb(diff);
-            }
-            s_common_clock_disable_time = 0;
-        }
-    }
+    //         if (s_wifi_mac_time_update_cb) {
+    //             s_wifi_mac_time_update_cb(diff);
+    //         }
+    //         s_common_clock_disable_time = 0;
+    //     }
+    // }
 }
 #endif
 

@@ -1,5 +1,4 @@
 #pragma once
-#include "esp_wifi.h"
 
 void wifi_hardware_task(void* pvParameter);
 extern uint8_t iface_1_mac_addr[6];

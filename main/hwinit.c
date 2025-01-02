@@ -1,4 +1,3 @@
-#include "esp_wifi.h"
 #include "esp_log.h"
 #include "esp_phy_init.h"
 #include "hardware.h"
@@ -22,7 +21,8 @@ void ets_timer_setfn(volatile void *, void *, void *);
 void ieee80211_timer_process(uint32_t, uint32_t, void *);
 void mutex_lock_wraper(void *);
 void mutex_unlock_wraper(void *);
-extern uint32_t g_wifi_mac_time_delta;
+void hal_mac_tsf_reset();
+uint32_t g_wifi_mac_time_delta_openmac;
 extern void* g_wifi_nvs;
 extern void* g_wifi_global_lock;
 
@@ -47,12 +47,14 @@ void release_lock() {
 }
 
 // [[openmac-coverage:implemented]]
-esp_err_t _do_wifi_start_openmac(wifi_mode_t mode) {
+esp_err_t _do_wifi_start_openmac(uint8_t mode) {
     wifi_station_start_openmac();
+    hal_mac_tsf_reset(0);
     return ESP_OK;
 }
+
 void esp_wifi_internal_update_mac_time_openmac(uint32_t diff) {
-    g_wifi_mac_time_delta += diff;
+    g_wifi_mac_time_delta_openmac += diff;
 }
 static inline void phy_update_wifi_mac_time(bool en_clock_stopped, int64_t now)
 {
@@ -92,7 +94,7 @@ void ic_mac_init_openmac() {
 void hal_init();
 void esp_wifi_power_domain_on();
 
-void wifi_hw_start_openmac(wifi_mode_t mode) {
+void wifi_hw_start_openmac(uint8_t mode) {
     esp_wifi_power_domain_on();
     wifi_module_enable();
     
@@ -101,15 +103,8 @@ void wifi_hw_start_openmac(wifi_mode_t mode) {
     hal_init(); // the only needed function from ic_enable
 }
 
-void wifi_start_process_openmac() {
+void hwinit() {
 	ESP_ERROR_CHECK(adc2_wifi_acquire());
     wifi_hw_start_openmac(0);
-    // not needed: ESP_ERROR_CHECK(wifi_mode_set(WIFI_MODE_STA));
-    ESP_ERROR_CHECK(_do_wifi_start_openmac(WIFI_MODE_STA));
-}
-
-void hwinit() {
-	ESP_LOGW(TAG, "calling esp_wifi_start");
-	wifi_start_process_openmac();
-	ESP_LOGW(TAG, "done esp_wifi_start");
+    ESP_ERROR_CHECK(_do_wifi_start_openmac(0));
 }

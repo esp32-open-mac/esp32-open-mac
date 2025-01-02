@@ -1,0 +1,9 @@
+# needed to get the softap netif interface
+config ESP_WIFI_SOFTAP_SUPPORT
+    bool
+    default y
+
+# needed for wifi_bt_common_module_enable and wifi_module_enable
+config ESP32_WIFI_ENABLED
+    bool
+    default y

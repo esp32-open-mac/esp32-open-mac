@@ -1,4 +1,3 @@
-#include "esp_wifi.h" // included for the definition of the wifi_promiscuous_pkt_t struct
 #include "esp_mac.h"  // included for the MAC2STR macro
 #include "esp_log.h"
 #include "esp_timer.h"

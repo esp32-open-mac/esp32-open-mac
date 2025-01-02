@@ -9,7 +9,6 @@
 #include "soc/periph_defs.h"
 #include "esp32/rom/ets_sys.h"
 
-#include "nvs_flash.h"
 #include "string.h"
 
 #include "proprietary.h" // contains all symbols from the binary blobs we still need
@@ -201,8 +200,9 @@ bool transmit_80211_frame(rs_smart_frame_t* frame) {
 	uint32_t rate = frame->rate;  // see wifi_phy_rate_t
 	uint32_t is_ht = (rate >= 0x10);
 	uint32_t is_short_gi = (rate >= 0x18);
+	uint32_t crypto_key_slot = 0;
 
-	MAC_TX_PLCP1_BASE[MAC_TX_PLCP1_OS*slot] = 0x10000000 | (frame->payload_length & 0xfff) | ((rate & 0x1f) << 12) | ((is_ht & 0b1) << 25);
+	MAC_TX_PLCP1_BASE[MAC_TX_PLCP1_OS*slot] = 0x10000000 | (frame->payload_length & 0xfff) | ((rate & 0x1f) << 12) | ((is_ht & 0b1) << 25) | ((crypto_key_slot & 0b11111) << 17);
 	MAC_TX_PLCP2_BASE[MAC_TX_PLCP2_OS*slot] = 0x00000020;
 	MAC_TX_DURATION_BASE[MAC_TX_DURATION_OS*slot] = 0;
 
@@ -505,14 +505,6 @@ void filters_set_ap_mode(uint8_t interface, const uint8_t* bssid) {
 }
 
 void wifi_hardware_task(void* pvArguments) {
-	// Print MAC addresses
-	for (int i = 0; i < 2; i++) {
-		uint8_t mac[6] = {0};
-		if (esp_wifi_get_mac(i, mac) == ESP_OK) {
-			ESP_LOGW(TAG, "MAC %d = %02x:%02x:%02x:%02x:%02x:%02x", i, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-		}
-	}
-
 	hardware_event_queue = xQueueCreate(RX_BUFFER_AMOUNT+10, sizeof(hardware_queue_entry_t));
 	assert(hardware_event_queue);
 	rx_queue_resources = xSemaphoreCreateCounting(RX_BUFFER_AMOUNT, RX_BUFFER_AMOUNT);

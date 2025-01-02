@@ -1,0 +1,1 @@
+Placeholder component for unneeded wpa_supplicant

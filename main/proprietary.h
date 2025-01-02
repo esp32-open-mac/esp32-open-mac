@@ -1,5 +1,8 @@
 #pragma once
 #include <stdint.h>
+#include "xtensa/config/core.h"
+
+#define NUM_CORES 2
 
 // All extern function shown here are symbols in the binary blobs
 extern bool pp_post(uint32_t requestnum, uint32_t argument);
@@ -22,4 +25,4 @@ typedef struct xt_handler_table_entry {
     void * handler;
     void * arg;
 } xt_handler_table_entry;
-extern xt_handler_table_entry _xt_interrupt_table[XCHAL_NUM_INTERRUPTS*portNUM_PROCESSORS];
+extern xt_handler_table_entry _xt_interrupt_table[XCHAL_NUM_INTERRUPTS*NUM_CORES];

@@ -6,6 +6,7 @@
 #include "freertos/FreeRTOS.h"
 #include "esp_log.h"
 #include "esp_phy_init.h" // for get_phy_version_str
+#include "esp_netif.h"
 
 #include "hardware.h"
 #include "mac.h"
