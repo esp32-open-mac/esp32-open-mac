@@ -5,14 +5,14 @@
 static const char* TAG = "hwinit";
 
 #define IC_MAC_INIT_REGISTER _MMIO_DWORD(0x3ff73cb8)
-
+#define WIFI_MAC_BITMASK_084 _MMIO_DWORD(0x3ff73084)
 
 // Closed source symbols:
 void wifi_hw_start(int a);
 void wifi_module_enable();
 void ic_mac_init();
 void ic_enable();
-void chip_enable();
+void ic_enable_rx();
 void pm_noise_check_enable();
 int64_t esp_timer_get_time();
 void coex_bt_high_prio();
@@ -94,13 +94,23 @@ void ic_mac_init_openmac() {
 void hal_init();
 void esp_wifi_power_domain_on();
 
+void periph_module_reset(int a);
+
 void wifi_hw_start_openmac(uint8_t mode) {
     esp_wifi_power_domain_on();
     wifi_module_enable();
     
     esp_phy_enable_openmac();
+
+    // wifi_reset_mac();
+    periph_module_reset(0x19);
+    coex_bt_high_prio();
+    WIFI_MAC_BITMASK_084 = WIFI_MAC_BITMASK_084 & 0x7fffffff;
+
+
     ic_mac_init_openmac();
     hal_init(); // the only needed function from ic_enable
+    ic_enable_rx();
 }
 
 void hwinit() {
