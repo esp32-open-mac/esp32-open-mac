@@ -333,8 +333,8 @@ struct SequenceControlTracker {
 // holds all state for the case where we are a station
 // TODO find better name for this and for the StaMachineState
 struct GlobalState {
+    iface_0_mac: MACAddress,
     iface_1_mac: MACAddress,
-    iface_2_mac: MACAddress,
     // TODO separate this BSSID out and into the STA/AP states
     bssid: MACAddress,
     sta_state: StaMachineState,
@@ -352,7 +352,7 @@ fn transition_to_scanning(state: &mut GlobalState) {
         // TODO don't hardcode this to STA 1
         sys::rs_mark_iface_down(rs_mac_interface_type_t::STA_1_MAC_INTERFACE_TYPE)
     }
-    unsafe { sys::rs_filters_set_scanning(INTERFACE_STA, state.iface_1_mac.as_ptr()) }
+    unsafe { sys::rs_filters_set_scanning(INTERFACE_STA, state.iface_0_mac.as_ptr()) }
     state.sta_state = StaMachineState::Scanning(ScanningS {
         last_channel_change: None,
     });
@@ -361,7 +361,7 @@ fn transition_to_scanning(state: &mut GlobalState) {
 fn transition_to_authenticating(state: &mut GlobalState, bssid: MACAddress, _channel: u8) {
     println!("transitioning to authenticating");
     unsafe {
-        sys::rs_filters_set_client_with_bssid(INTERFACE_STA, state.iface_1_mac.as_ptr(), bssid.as_ptr());
+        sys::rs_filters_set_client_with_bssid(INTERFACE_STA, state.iface_0_mac.as_ptr(), bssid.as_ptr());
     }
     // TODO change to correct channel
     state.bssid = bssid;
@@ -421,8 +421,8 @@ fn handle_ap_auth(state: &mut GlobalState, auth_req: AuthenticationFrame) {
                 fcf_flags: FCFFlags::new(),
                 duration: 0, // TODO
                 receiver_address: auth_req.header.transmitter_address,
-                transmitter_address: state.iface_2_mac,
-                bssid: state.iface_2_mac,
+                transmitter_address: state.iface_1_mac,
+                bssid: state.iface_1_mac,
                 ..Default::default()
             },
             body: AuthenticationBody {
@@ -476,8 +476,8 @@ fn handle_ap_assoc_req(state: &mut GlobalState, assoc_req: AssociationRequestFra
             fcf_flags: FCFFlags::new(),
             duration: 0, // TODO
             receiver_address: assoc_req.header.transmitter_address,
-            transmitter_address: state.iface_2_mac,
-            bssid: state.iface_2_mac,
+            transmitter_address: state.iface_1_mac,
+            bssid: state.iface_1_mac,
             ..Default::default()
         },
         body: AssociationResponseBody  {
@@ -512,8 +512,8 @@ fn handle_ap_probe_req(state: &mut GlobalState, probe_req: ProbeRequestFrame) {
             fcf_flags: FCFFlags::new(),
             duration: 0, // TODO
             receiver_address: probe_req.header.transmitter_address,
-            transmitter_address: state.iface_2_mac,
-            bssid: state.iface_2_mac,
+            transmitter_address: state.iface_1_mac,
+            bssid: state.iface_1_mac,
             ..Default::default()
         },
         body: ProbeResponseBody {
@@ -676,7 +676,7 @@ fn send_authenticate(state: &mut GlobalState) {
             fcf_flags: FCFFlags::new(),
             duration: 0, // TODO
             receiver_address: state.bssid,
-            transmitter_address: state.iface_1_mac,
+            transmitter_address: state.iface_0_mac,
             bssid: state.bssid,
             ..Default::default()
         },
@@ -701,7 +701,7 @@ fn send_associate(state: &mut GlobalState) {
             fcf_flags: FCFFlags::new(),
             duration: 0, // TODO
             receiver_address: state.bssid,
-            transmitter_address: state.iface_1_mac,
+            transmitter_address: state.iface_0_mac,
             bssid: state.bssid,
             ..Default::default()
         },
@@ -727,7 +727,7 @@ fn send_sta_data_frame(state: &mut GlobalState, wrapper: &mut MacTxDataWrapper) 
             fcf_flags: fcf,
             duration: 0,                          // TODO
             address_1: state.bssid,               // RA
-            address_2: state.iface_1_mac,         // TA
+            address_2: state.iface_0_mac,         // TA
             address_3: wrapper.destination_mac(), // DA
             sequence_control: SequenceControl::new()
                 .with_fragment_number(1)
@@ -755,7 +755,7 @@ fn send_ap_data_frame(state: &mut GlobalState, wrapper: &mut MacTxDataWrapper) {
             fcf_flags: fcf,
             duration: 0,                          // TODO
             address_1: wrapper.destination_mac(), // RA
-            address_2: state.iface_2_mac,         // TA = BSSID
+            address_2: state.iface_1_mac,         // TA = BSSID
             address_3: wrapper.source_mac(),      // SA
             sequence_control: SequenceControl::new()
                 .with_fragment_number(1)
@@ -847,8 +847,8 @@ fn handle_state_ap(state: &mut GlobalState) -> u32 {
                 fcf_flags: FCFFlags::new(),
                 duration: 0, // TODO
                 receiver_address: BROADCAST,
-                transmitter_address: state.iface_2_mac,
-                bssid: state.iface_2_mac,
+                transmitter_address: state.iface_1_mac,
+                bssid: state.iface_1_mac,
                 ..Default::default()
             },
             body: BeaconBody {
@@ -894,7 +894,7 @@ fn sequence_control_accept(
     receiver: MACAddress,
 ) -> bool {
 
-    if state.iface_1_mac != receiver && state.iface_2_mac != receiver {
+    if state.iface_0_mac != receiver && state.iface_1_mac != receiver {
         println!("accepting likely broadcast frame");
         return true;
     }
@@ -1026,6 +1026,7 @@ fn handle_ap_hardware_rx(state: &mut GlobalState, wrapper: &mut HardwareRxDataWr
 
 #[no_mangle]
 pub extern "C" fn rust_mac_task() -> *const c_void {
+    let bssid = MACAddress([0xf0, 0xae, 0xa5, 0xb8, 0xfc, 0xba]);
     let mut state: GlobalState = GlobalState {
         bssid: BROADCAST,
         sta_state: StaMachineState::Scanning(ScanningS {
@@ -1035,16 +1036,21 @@ pub extern "C" fn rust_mac_task() -> *const c_void {
             clients: Default::default(),
             last_beacon_timestamp: None
         },
-        iface_1_mac: MACAddress([0x00, 0x23, 0x45, 0x67, 0x89, 0xab]), // TODO don't hardcode this
-        iface_2_mac: MACAddress([0x00, 0x20, 0x91, 0x00, 0x00, 0x00]), // TODO don't hardcode this
+        iface_0_mac: MACAddress([0x00, 0x23, 0x45, 0x67, 0x89, 0xab]), // TODO don't hardcode this
+        iface_1_mac: MACAddress([0x00, 0x20, 0x91, 0x00, 0x00, 0x00]), // TODO don't hardcode this
         current_channel: 1,
         seq_control_trackers: [SequenceControlTracker::default()]
     };
 
+    // unsafe {
+    //     rs_filters_set_ap_mode(0, state.iface_0_mac.as_ptr());
+    // }
+    // transition_to_scanning(&mut state);
+
     unsafe {
-        rs_filters_set_ap_mode(1, state.iface_2_mac.as_ptr());
+        sys::rs_filters_set_client_with_bssid(INTERFACE_STA, state.iface_0_mac.as_ptr(), bssid.as_ptr());
     }
-    transition_to_scanning(&mut state);
+    unsafe { sys::rs_change_channel(state.current_channel) };
 
     let mut wait_for: u32 = 0;
     loop {
@@ -1054,6 +1060,7 @@ pub extern "C" fn rust_mac_task() -> *const c_void {
                 wait_for = 0;
                 match event {
                     MacEvent::HardwareRx(mut wrapper) => {
+                        println!("Hardware RX");
                         let payload = wrapper.payload();
                         let generic = GenericFrame::new(payload, false);
                         let Ok(generic) = generic else {
@@ -1073,6 +1080,7 @@ pub extern "C" fn rust_mac_task() -> *const c_void {
                             }
                         }
                         let matches = wrapper.interface();
+                        println!("matches {:?}", matches);
                         if matches.0 {
                             handle_sta_hardware_rx(&mut state, &mut wrapper);
                         }
@@ -1099,9 +1107,39 @@ pub extern "C" fn rust_mac_task() -> *const c_void {
                 }
             }
             None => {
-                let wait_for_sta = handle_state_sta(&mut state);
-                let wait_for_ap = handle_state_ap(&mut state);
-                wait_for = wait_for_ap.min(wait_for_sta);
+                // let wait_for_sta = handle_state_sta(&mut state);
+                // let wait_for_ap = handle_state_ap(&mut state);
+                // wait_for = wait_for_ap.min(wait_for_sta);
+                wait_for = 1000;
+                {
+                    let frame = [
+
+                        // 0x08, 0x48, 0xc3, 0x2c, 0x0f, 0xd2, 0xe1, 0x28, 0xa5, 0x7c, 0x50, 0x30, 0xf1, 0x84, 0x44, 0x08, 0xab, 0xae, 0xa5, 0xb8, 0xfc, 0xba, 0x80, 0x33, 0x0c, 0xe7, 0x00, 0x20, 0x76, 0x97, 0x03, 0xb5, 0xf8, 0xba, 0x1a, 0x55, 0xd0, 0x2f, 0x85, 0xae, 0x96, 0x7b, 0xb6, 0x2f, 0xb6, 0xcd, 0xa8, 0xeb, 0x7e, 0x78, 0xa0, 0x50,
+                        0x08, 0x4b, 0xc3, 0x2c, 0x0f, 0xd2, 0xe1, 0x28, 0xa5, 0x7c, 0x50, 0x30, 0xf1, 0x84, 0x44, 0x08, 0xab, 0xae, 0xa5, 0xb8, 0xfc, 0xba, 0x80, 0x33, 0x00, 0x23, 0x45, 0x67, 0x89, 0xab, 0x0c, 0xe7, 0x00, 0x20, 0x76, 0x97, 0x03, 0xb5, 0xf8, 0xba, 0x1a, 0x55, 0xd0, 0x2f, 0x85, 0xae, 0x96, 0x7b, 0xb6, 0x2f, 0xb6, 0xcd, 0xa8, 0xeb, 0x7e, 0x78, 0xa0, 0x50,
+                        0,0,0,0,0,0,0,0 // padding for CCMP MIC
+                    ];
+                    let _: u8 = frame[0];
+                    let length = frame.len();
+                    let smart_frame = unsafe { rs_get_smart_frame(length) };
+
+                    if smart_frame.is_null() {
+                        continue;
+                    }
+
+                    unsafe {
+                        (*smart_frame).payload_length = length;
+                        (*smart_frame).rate = 1;
+                    }
+                    let buf = unsafe {
+                        core::slice::from_raw_parts_mut(
+                            (*smart_frame).payload,
+                            (*smart_frame).payload_size as usize,
+                        )
+                    };
+                    buf.pwrite(frame, 0).unwrap();
+
+                    unsafe { rs_tx_smart_frame(smart_frame) };
+                }
             }
         }
     }

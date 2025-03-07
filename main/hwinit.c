@@ -113,8 +113,54 @@ void wifi_hw_start_openmac(uint8_t mode) {
     ic_enable_rx();
 }
 
+extern void __real_wDev_Insert_KeyEntry(uint8_t wpa_alg,uint8_t vif_sta0_ap1,uint8_t wpa_supplicant_key_idx,uint8_t* mac_addr,
+    uint8_t hardware_key_idx, uint8_t* key,size_t key_len, bool pmf,bool spp);
+
+void __wrap_wDev_Insert_KeyEntry(uint8_t wpa_alg,uint8_t vif_sta0_ap1,uint8_t wpa_supplicant_key_idx,uint8_t* mac_addr,
+    uint8_t hardware_key_idx, uint8_t* key,size_t key_len, bool pmf,bool spp) {
+    ESP_LOGI(TAG, "intercepted insert key entry");
+    __real_wDev_Insert_KeyEntry(wpa_alg, vif_sta0_ap1, wpa_supplicant_key_idx, mac_addr,
+     hardware_key_idx, key, key_len,  pmf, spp);
+}
+
+
+void wDev_Insert_KeyEntry(uint8_t wpa_alg,uint8_t vif_sta0_ap1,uint8_t wpa_supplicant_key_idx,uint8_t* mac_addr,
+    uint8_t hardware_key_idx, uint8_t* key,size_t key_len, bool pmf,bool spp);
+ 
+
+
+uint8_t crypto_bssid[6] = {0xab, 0xae, 0xa5, 0xb8, 0xfc, 0xba};
+ 
+uint8_t ccmp_key[16] = {0xc9, 0x7c, 0x1f, 0x67, 0xce, 0x37, 0x11, 0x85, 0x51, 0x4a, 0x8a, 0x19, 0xf2, 0xbd, 0xd5, 0x2f};
+
+enum wpa_alg {
+    WIFI_WPA_ALG_NONE   = 0,
+    WIFI_WPA_ALG_WEP40  = 1,
+    WIFI_WPA_ALG_TKIP   = 2,
+    WIFI_WPA_ALG_CCMP   = 3,
+    WIFI_WAPI_ALG_SMS4  = 4,
+    WIFI_WPA_ALG_WEP104 = 5,
+    WIFI_WPA_ALG_WEP    = 6,
+    WIFI_WPA_ALG_IGTK   = 7,
+    WIFI_WPA_ALG_PMK    = 8,
+    WIFI_WPA_ALG_GCMP   = 9,
+};
+
+
 void hwinit() {
 	ESP_ERROR_CHECK(adc2_wifi_acquire());
     wifi_hw_start_openmac(0);
     ESP_ERROR_CHECK(_do_wifi_start_openmac(0));
+
+    wDev_Insert_KeyEntry(
+        WIFI_WPA_ALG_CCMP, // CCMP
+        0, // VIF 0
+        0, // WPA key index
+        crypto_bssid, // TA address to decrypt packets for
+        0, // hw key idx: important: the wDev_Insert_KeyEntry function handles hw idx < 4 differently
+        ccmp_key,
+        16,
+        true, // disable PMF (protected management frames)
+        false // Signaling and Payload Protection 
+    );
 }
