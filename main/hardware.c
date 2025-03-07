@@ -196,13 +196,18 @@ bool transmit_80211_frame(rs_smart_frame_t* frame) {
 
 	WIFI_TX_CONFIG_BASE[WIFI_TX_CONFIG_OS*slot] = WIFI_TX_CONFIG_BASE[WIFI_TX_CONFIG_OS * slot] | 0xa;
 
-	MAC_TX_PLCP0_BASE[MAC_TX_PLCP0_OS*slot] = (((uint32_t)(tx_item)) & 0xfffff) | (0x00600000);
+	// We don't entirely know what these bits do yet, but it's related to RTS/CTS
+	uint32_t bool_request_to_send_before_packet = 0;
+	uint32_t bool_clear_to_send = 0;
+
+
+	MAC_TX_PLCP0_BASE[MAC_TX_PLCP0_OS*slot] = (((uint32_t)(tx_item)) & 0xfffff) | (0x00600000) | (bool_request_to_send_before_packet << 27) | (bool_clear_to_send << 28);
 	uint32_t rate = frame->rate;  // see wifi_phy_rate_t
 	uint32_t is_ht = (rate >= 0x10);
 	uint32_t is_short_gi = (rate >= 0x18);
-	uint32_t crypto_key_slot = 0;
+	uint32_t crypto_key_slot = 2;
 
-	MAC_TX_PLCP1_BASE[MAC_TX_PLCP1_OS*slot] = 0x10000000 | (frame->payload_length & 0xfff) | ((rate & 0x1f) << 12) | ((is_ht & 0b1) << 25) | ((crypto_key_slot & 0b11111) << 17);
+	MAC_TX_PLCP1_BASE[MAC_TX_PLCP1_OS*slot] = 0x10000000 | (frame->payload_length & 0xfff) | ((rate & 0x1f) << 12) | ((crypto_key_slot & 0b11111) << 17) | ((is_ht & 0b1) << 25);
 	MAC_TX_PLCP2_BASE[MAC_TX_PLCP2_OS*slot] = 0x00000020;
 	MAC_TX_DURATION_BASE[MAC_TX_DURATION_OS*slot] = 0;
 
@@ -406,6 +411,7 @@ void handle_rx_messages() {
 		// update rx chain
 		rx_chain_begin = next;
 		current->next = NULL;
+		ESP_LOG_BUFFER_HEXDUMP("received", current->packet, current->length, ESP_LOG_INFO);
 		c_hand_rx_to_mac_stack(current);
 		
 		//TODO disable interrupt?
