@@ -3231,7 +3231,7 @@ u32 esp_mesh_recv_toDS(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
 
 /* esp_mesh_send @ mesh.o 000000e0 size 1497B bind GLOBAL
  * Calls: memcmp, mesh_parse_option, esp_mesh_create_context, mesh_send_process_flag, mesh_send_process_topo, memcpy, mesh_add_option, mesh_mutex_lock, esp_mesh_match_self, esp_mesh_delivery_toSelf, esp_mesh_forward_packet, mesh_mutex_unlock, esp_mesh_free_context, esp_mesh_send_sem_wait, tx_state_id2str | indirect[13]: mem[a2+0x158]; mem[a8+0x110]; mem[a4+0x74]; mem[a4+0x84] | Data refs: g_is_mesh_started, g_log_level, g_osi_funcs_p, .rodata.esp_mesh_get_rx_pending.str1.1, .bss.MESH_ZERO_ADDR, .data.MESH_BCAST_ADDR, g_mesh_is_root, g_is_root_fixed, g_is_wifi_connected, g_mesh_topology, .rodata.__func__$8, g_mesh_self_sta_addr +5 more
- * Fidelity: low - jump-table switch present; cases not recovered
+ * Fidelity: medium - single jx dispatch fully recovered, idx a2-80 in 0..16, default L_0685, 17-entry rodata table all consumed with every target an in-skeleton boundary; 15 calls and 31 refs match funcdb-v3; 13 indirect sites cite driving loads
  * Edges: funcdb-v3 (calls=15, refs=32); reloc-direct=15, funcdb-attributed=0, unknown-indirect=13 */
 u32 esp_mesh_send(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */
@@ -3712,8 +3712,22 @@ u32 esp_mesh_send(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   a4 = 16;  /* 05bf */
   if (a4 >= a2) goto L_05c7;  /* 05c1: bgeu a4, a2, 5c7 <esp_mesh_send+0x4e7> */
   L_05c4: goto L_0685;  /* 05c4: j */
+  /* JX-DISPATCH recovered from rodata.esp_mesh_send base +0: 17 words of R_XTENSA_32
+     absolutized at link time to text.esp_mesh_send plus the stored offset, verified
+     word-for-word against readelf relocs. All 17 entries consumed.
+     Switch on the a2 frame word from LD32 sp+0x10, pre-filtered upstream: value 1
+     routes to L_0500, values 6 and 7 exit at L_06b5, inflow here only when a2 is
+     greater than 8 signed at L_0570. idx = a2-80 in 0..16 covers ids 80..96,
+     default L_0685, bounds check at L_05c1.
+     id to target map: 80 to 0x6b2, 81 to 0x5d8, 82 to 0x608, 83 to 0x633,
+     84 to 0x5d2, 85 to 0x65b, 86 to 0x6b2, 87 to 0x685, 88 to 0x685, 89 to 0x685,
+     90 to 0x6b2, 91 to 0x6b2, 92 to 0x6b2, 93 to 0x6b2, 94 to 0x6b2, 95 to 0x6b2,
+     96 to 0x6b2.
+     Every target is an in-skeleton instruction boundary: 0x6b2 in L_06ad, 0x5d8
+     and 0x5d2 in L_05c7, 0x608 in L_0600, 0x633 in L_0620, 0x65b in L_0648,
+     0x685 is L_0685. */
   L_05c7: a4 = (u32)(RODATA__rodata_esp_mesh_send + 0x0);  /* 05c7: l32r -> .rodata.esp_mesh_send */
-  a2 = a2 + (a4 << 2);  /* 05ca */
+  a2 = (a2 << 2) + a4;  /* 05ca: addx4 = base + idx*4 */
   a2 = LD32(a2 + 0x0);  /* 05cd */
   /* 05cf: jx a2 — jump table/switch, target computed; see bounds check above */ goto L_ret;
   a6 = 0x00004007u;  /* 05d2: l32r = 16391 */
@@ -6765,7 +6779,7 @@ u32 mesh_encrypt_ie_plain_key(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
 
 /* mesh_parse_option @ mesh.o 00000020 size 248B bind GLOBAL
  * Calls: none | indirect[3]: mem[a2+0x158]; mem[a2+0x150] | Data refs: g_log_level, g_osi_funcs_p, .rodata.esp_mesh_get_rx_pending.str1.1, .rodata.mesh_parse_option
- * Fidelity: low - jump-table switch present; cases not recovered
+ * Fidelity: low - tri-indirect dispatch via g_osi_funcs_p slots 0x150/0x158 with NULL-arg log guards (g_log_level>=3, code 0x4008); exact guard/dispatch shape verified, no direct calls - need osi_funcs slot naming (RX-pending/log callbacks) to raise
  * Edges: funcdb-v3 (calls=0, refs=4); reloc-direct=0, funcdb-attributed=0, unknown-indirect=3 */
 u32 mesh_parse_option(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */

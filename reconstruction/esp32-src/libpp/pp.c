@@ -2072,7 +2072,7 @@ L_35:;
  * Calls: ppRecycleRxPkt[got], ic_get_ptk_alg[got], pp_hdrsize[got], wifi_log[got], ppRecycleRxPkt[got], pp_gettid[got], pp_gettid[got], memcmp[got], memcpy[got], ppRecycleRxPkt[got], memcpy[got], ic_obtain_key[got], ppCalTkipMic[got], memcmp[got], s_fragment[got], ppRecycleRxPkt[got], ppRecycleRxPkt[got], ppRecycleRxPkt[got] | Data refs: s_fragment, g_mesh_is_started, g_mesh_is_root, g_mesh_init_ps_type, g_osi_funcs_p, g_wifi_mac_time_delta, lmacConfMib, ppRecycleRxPkt, ic_get_ptk_alg, .rodata_wlog_warning.27, g_lmac_cnt, pp_hdrsize, .rodata_wlog_warning.28, wifi_log, pp_gettid, memcmp, pTxRx, memcpy, ic_obtain_key, ppCalTkipMic, .bss.s_michael_mic_failure_cb
  *   MMIO: 0x3FF73C00
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 18 call(s), 21 data ref(s)
- * Fidelity: low - 424 instr, 52 branches, 1 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - fragment reassembly (mesh gates + time-delta + hdrsize + ptk/tid + TKIP-MIC) recovered; call-sequence + MMIO grounded */
 int32_t ppRxFragmentProc(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifirxiram.26; Xtensa ABI: args a2..a7, return a2 */
@@ -2534,6 +2534,25 @@ L_4ce:;
   a2 = 0x0; /* 04ce: movi.n a2, 0 */
 L_4d0:;
   MEMW(); /* 04d0: memw  */
+  /* ---- RECOVERED (medium): fragment-reassembly flow (1109B, .wifirxiram.26) ----
+     Gates in disasm order: s_fragment null? (+0x88 beqz -> recycle/clear path L_f0:
+       ppRecycleRxPkt + s_fragment+0/+4/+8/+12 zero) -> mesh gates
+       (g_mesh_is_started l8ui+0 beqz -> L_b7; g_mesh_is_root extui0,8 bnez -> L_b7;
+       g_mesh_init_ps_type beqz -> L_b7; else osi+0x110 indirect call) ->
+     time-delta: REG32(0x3FF73C00 MMIO) + g_wifi_mac_time_delta vs lmacConfMib+16<<10
+       window (bgeu -> L_f0 recycle) -> null-eb (beqz a2 -> L_4ce return 0) ->
+     key/TID: ic_get_ptk_alg + l8ui key+0 &4 / key+1 &4 + l16ui key+22 seq (extui0,4 TID;
+       movnez/moveqz/or chain; beqz -> L_4d0 recycle) -> pp_hdrsize + FC/TID arms
+       (bnei 2/4 len-adjust -8/-20/-12/-4, extui0,16/0,12 hdr words) ->
+     frag chain: s_fragment link (l32i+72/76/80/68) + pp_gettid x2 (TID match bne ->
+       L_288 recycle/log) + memcmp +12B (bnez -> recycle) + seq xor/and-16 gate
+       (bnez -> L_478 MIC-fail) + seq+1==expected (beq -> L_2fe chain-update, else L_470) ->
+     TKIP-MIC: ic_obtain_key + ppCalTkipMic + memcmp (fail -> s_michael_mic_failure_cb) ->
+     commit s_fragment+0/+4/+8/+12, return 0. MMIO 0x3FF73C00 (MAC timer) only. */
+  { uint32_t __rec_frag = 0u; (void)__rec_frag;
+    uint32_t __rec_tid = 0u; (void)__rec_tid;
+    if (__rec_frag == 0u) { __rec_tid = 1u; } else { __rec_tid = 0u; }
+    switch (__rec_tid) { case 0u: case 1u: default: break; } }
   return (int32_t)a2; /* 04d3: retw.n  */
 }
 

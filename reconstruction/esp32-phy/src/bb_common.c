@@ -19,6 +19,17 @@ typedef unsigned int U32, u32, uint32, uint32_t, STATUS, CriticalType;
 typedef int S32, s32, sint32, int32;
 typedef unsigned long long U64, u64, uint64;
 typedef long long S64, s64;
+/* MMIO helpers: esp_dport_access_reg_read() in the blob disassembly is the
+ * DPORT register reader; plain s32i to 0x600xxxxx are writes. */
+static inline unsigned reg_rd(unsigned addr);
+static inline void reg_wr(unsigned addr, unsigned val);
+#define REG_READ(a) reg_rd(a)
+#define REG_WRITE(a, v) reg_wr((a), (v))
+/* Forward declarations for same-TU callees (defined later in file). */
+uint32_t fill_txdataframe(int cmd, int data_length, uint32_t addr0lo, uint32_t addr0hi, uint32_t key_word, uint32_t * rate, uint32_t * gi_bit, u32 tx_rate_in);
+void set_macrxfilter(bool mac_filter_en);
+void tx_add_pocketnum(void);
+sint16 get_rx_freq_local(void);
 
 /* ap_ack_test bb_common.c:1403 @ bb_common.o size 840B [dwarf-sig]
  * Calls: Plcp0AddrGet, Plcp1AddrGet, ConfAddrGet, HTsigAddrGet, chip_v7_set_chan, phy_printf, esp_dport_access_reg_read, set_macrxfilter, fill_txdataframe, GetStopCmd, tx_add_pocketnum | Data refs: .rodata.str1.4, ConfAddrGet, GetStopCmd, HTsigAddrGet, Plcp0AddrGet, Plcp1AddrGet, chip_v7_set_chan, esp_dport_access_reg_read, fill_txdataframe, phy_printf, set_macrxfilter, tx_add_pocketnum, tx_pocket_num | MMIO: 0x40000000, 0x60033040, 0x60033044, 0x60033080, 0x60033084, 0x60033098, 0x60033c00, 0x60033c40, 0x60033c48, 0x60033c4c, 0x60033c78, 0x60033c8c, 0x60033cac
@@ -36,18 +47,67 @@ void ap_ack_test(uint8 chan_num, u32 fb_rate, u32 fb_len)
 }
 
 /* ate_rxframe_fb bb_common.c:1255 @ bb_common.o size 1027B [dwarf-sig]
- * Calls: Plcp0AddrGet, Plcp1AddrGet, ConfAddrGet, HTsigAddrGet, chip_v7_set_chan, phy_printf, esp_dport_access_reg_read, set_macrxfilter, fill_txdataframe, GetStopCmd, tx_add_pocketnum | Data refs: .rodata.str1.4, ConfAddrGet, GetStopCmd, HTsigAddrGet, Plcp0AddrGet, Plcp1AddrGet, chip_v7_set_chan, esp_dport_access_reg_read, fill_txdataframe, phy_printf, set_macrxfilter, tx_add_pocketnum, tx_pocket_num | MMIO: 0x40000000, 0x60033040, 0x60033044, 0x60033080, 0x60033084, 0x60033098, 0x60033c00, 0x60033c40, 0x60033c48, 0x60033c4c, 0x60033c78, 0x60033c8c, 0x60033cac
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Calls: Plcp0AddrGet, Plcp1AddrGet, ConfAddrGet, HTsigAddrGet, chip_v7_set_chan, phy_printf x2, esp_dport_access_reg_read x31, set_macrxfilter, fill_txdataframe, GetStopCmd, tx_add_pocketnum | Data refs: .rodata.str1.4, ConfAddrGet, GetStopCmd, HTsigAddrGet, Plcp0AddrGet, Plcp1AddrGet, chip_v7_set_chan, esp_dport_access_reg_read, fill_txdataframe, phy_printf, set_macrxfilter, tx_add_pocketnum, tx_pocket_num | MMIO: 0x40000000, 0x60033040, 0x60033044, 0x60033080, 0x60033084, 0x60033098, 0x60033c00, 0x60033c40, 0x60033c48, 0x60033c4c, 0x60033c78, 0x60033c8c, 0x60033cac
+ * Fidelity: medium - setup RMW chain, frame-prefill constants, poll/timeout/stop structure, seq-bitmap lanes, harvest stores verified; counter/mask routing approximate */
 void ate_rxframe_fb(uint8 chan_num, u32 fb_rate, u32 fb_len)
 {
-    (void)chan_num;
-    (void)fb_rate;
-    (void)fb_len;
     /* DWARF locals: bool print_debug@l1257, uint32_t keyword@l1259, uint32_t rxaddr@l1260, uint32_t res_buf_size@l1260, uint32_t ate_frame_ctrl@l1261, uint32_t txdata_addr@l1262, uint32_t ate_num@l1263, uint32_t chip_id_lo@l1264, uint32_t[] rx_macaddr@l1265, uint32_t fb_rxseq@l1266, uint32_t fb_rxbitmap0@l1267, uint32_t fb_rxbitmap1@l1268, uint32_t fb_rxbitmap2@l1269, uint32_t fb_rxbitmap3@l1270, uint32_t fb_rxrssi@l1271, uint32_t start_time@l1272 */
-    /* TODO(ground-truth): reconstruct from librftest/bb_common.rdis
-     * function <ate_rxframe_fb> (386 insns) + DWARF line rows for bb_common.c:1255.
-     * Ordered callee relocs: Plcp0AddrGet, Plcp1AddrGet, ConfAddrGet, HTsigAddrGet, chip_v7_set_chan, phy_printf, esp_dport_access_reg_read, set_macrxfilter, fill_txdataframe, GetStopCmd, tx_add_pocketnum.
-     */
+    u32 plcp0 = Plcp0AddrGet(10), plcp1 = Plcp1AddrGet(10);
+    u32 conf = ConfAddrGet(10), htsig = HTsigAddrGet(10);
+    u32 fb_rxseq = 0, fb_rxbitmap0 = 0, fb_rxbitmap1 = 0, fb_rxbitmap2 = 0, fb_rxbitmap3 = 0;
+    u32 fb_rxrssi = 0, start_time = 0;
+    (void)plcp1; (void)htsig; (void)fb_rate;
+    chip_v7_set_chan((S8)chan_num, 0);
+    phy_printf("rx chan=%d, rate=0x%x, len=%d\n", chan_num, fb_rate, fb_len);
+    REG_WRITE(0x60033080u, REG_READ(0x60033080u) & 0xefffffffu);
+    REG_WRITE(0x60033c40u, REG_READ(0x60033c40u) | 32u);
+    REG_WRITE(0x60033c4cu, REG_READ(0x60033c4cu) | 32u);
+    REG_WRITE(0x60033c4cu, REG_READ(0x60033c4cu) | 32u);
+    REG_WRITE(0x60033084u, REG_READ(0x60033084u) & 0x1fffffffu);
+    REG_WRITE(0x60033084u, REG_READ(0x60033084u) | 0x40000000u);
+    REG_WRITE(0x60033c40u, REG_READ(0x60033c40u) | 2u);
+    REG_WRITE(0x60033c4cu, REG_READ(0x60033c4cu) | 1u);
+    set_macrxfilter(1);
+    REG_WRITE(0x60033040u, 0x60504030u);
+    REG_WRITE(0x60033044u, 0x2010u);
+    REG_WRITE(0x60033c78u, REG_READ(0x60033c78u) | 1u);
+    REG_WRITE(0x60033cacu, REG_READ(0x60033cacu) & 0xfffffff0u);
+    /* Prefill a test frame ("test"/0x5060/0x10203040 pattern; rate/gi via frame slots). */
+    {
+        uint32 rate = 0, gi_bit = 0;
+        fill_txdataframe(4, (int)fb_len, 0x10203040u, 0x5060u, 0x74657374u, &rate, &gi_bit, fb_rate);
+    }
+    REG_WRITE(conf, REG_READ(conf) & 0xffc00fffu);
+    start_time = REG_READ(0x60033c00u);
+    for (;;) {   /* main poll loop */
+        u32 v = REG_READ(0x60033c48u);
+        if ((v & 0x40000000u) == 0) {   /* frame-ready bit [approx mask] */
+            if (REG_READ(0x60033c00u) - start_time > 0x1e8480u) {   /* timeout */
+                start_time = REG_READ(0x60033c00u);
+                continue;
+            }
+        } else {
+            /* Frame received: harvest seq/rssi, update bitmaps. */
+            fb_rxseq = REG_READ(0x60033098u) & 0xffu;   /* [approx] */
+            fb_rxrssi = REG_READ(0x60033c48u);          /* [approx] */
+            if (fb_rxseq < 31)
+                fb_rxbitmap0 |= (u32)1 << fb_rxseq;
+            else if (fb_rxseq < 63)
+                fb_rxbitmap1 |= (u32)1 << (fb_rxseq - 32);
+            else if (fb_rxseq < 95)
+                fb_rxbitmap2 |= (u32)1 << (fb_rxseq - 64);
+            else
+                fb_rxbitmap3 |= (u32)1 << (fb_rxseq - 96);
+            tx_add_pocketnum();
+            REG_WRITE(plcp0, REG_READ(plcp0) | 0x40000000u);
+            start_time = REG_READ(0x60033c00u);
+            continue;   /* re-arm + repoll */
+        }
+        if (GetStopCmd() != 1) {   /* beqi 1 -> keep polling */
+            phy_printf("rx stoped!\n");
+            return;
+        }
+    }
 }
 
 /* delay_ns bb_common.c:45 @ bb_common.o size 5B [dwarf-sig]
@@ -59,16 +119,94 @@ void delay_ns(unsigned int n_ns)
 }
 
 /* do_rx_poll bb_common.c:324 @ bb_common.o size 2221B [dwarf-sig]
- * Calls: esp_dport_access_reg_read, flash_test_run, get_rx_freq_local, ets_delay_us, GetStopCmd, bb_wdt_rst_enable, phy_printf | Data refs: .rodata.str1.4, GetStopCmd, bb_wdt_rst_enable, chip7_sleep_params, esp_dport_access_reg_read, esp_rx_result, esp_rx_valid, ets_delay_us, flash_test_run, get_rx_freq_local, phy_printf, rssi_min_max_print, short_log_en | MMIO: 0x3ff5c018, 0x3ff5c06c, 0x3ff5c104, 0x3ff5cc5c, 0x60033080, 0x600330a4, 0x600330a8, 0x600330ac, 0x600330f8, 0x60033800, 0x60033c00, 0x60033c08, 0x60033c0c, 0x60033c48, 0x60033c4c
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Calls: esp_dport_access_reg_read x20, flash_test_run, get_rx_freq_local, ets_delay_us, GetStopCmd, bb_wdt_rst_enable, phy_printf x8 | Data refs: .rodata.str1.4, GetStopCmd, bb_wdt_rst_enable, chip7_sleep_params, esp_dport_access_reg_read, esp_rx_result, esp_rx_valid, ets_delay_us, flash_test_run, get_rx_freq_local, phy_printf, rssi_min_max_print, short_log_en | MMIO: 0x3ff5c018, 0x3ff5c06c, 0x3ff5cc5c, 0x60033080, 0x600330a4, 0x600330a8, 0x600330ac, 0x600330f8, 0x60033800, 0x60033c00, 0x60033c08, 0x60033c0c, 0x60033c48, 0x60033c4c
+ * Fidelity: medium - prologue zero/setup chain, desired_count law, flash/bany gates, poll loop call order, min/max ladder shape, tail print set/gates verified; counter/iteration-bound routing approximate */
 void do_rx_poll(unsigned int rx_rate_in)
 {
-    (void)rx_rate_in;
     /* DWARF locals: int gain@l326, int rssi@l327, int noise@l328, int reg_rx_gain@l329, int reg_noiseflorr@l329, int reg_rssi@l329, unsigned int state@l330, unsigned int err_type@l330, unsigned int rx_para@l330, unsigned int rx_para2@l330, int desired_count@l331, int gooddata_count@l332, unsigned int correct_count@l333, unsigned int err_count@l334, unsigned int err_a1_count@l335, unsigned int err_fcs_count@l336 */
-    /* TODO(ground-truth): reconstruct from librftest/bb_common.rdis
-     * function <do_rx_poll> (884 insns) + DWARF line rows for bb_common.c:324.
-     * Ordered callee relocs: esp_dport_access_reg_read, flash_test_run, get_rx_freq_local, ets_delay_us, GetStopCmd, bb_wdt_rst_enable, phy_printf.
-     */
+    extern U8 short_log_en;          /* l8ui gate */
+    extern U8 rssi_min_max_print;    /* 1-byte OBJECT flag; l8ui gate */
+    int gain = 0, rssi = 0, noise = 0;
+    int desired_count, gooddata_count = 0;
+    unsigned int correct_count = 0, err_count = 0, err_a1_count = 0, err_fcs_count = 0;
+    unsigned int rx_para = 0, rx_para2 = 0;
+    int rssi_min = 0x7fffffff, rssi_max = -0x7fffffff;
+    int rssi_min1 = 0x7fffffff, rssi_max1 = -0x7fffffff;
+    int rssi_min2 = 0x7fffffff, rssi_max2 = -0x7fffffff;
+    int rssi_base[11];
+    int i;
+    U8 rate_hi = (U8)((rx_rate_in >> 24) & 0xffu);   /* frame[0x684] lane */
+    for (i = 0; i < 11; i++)
+        rssi_base[i] = 0;
+    /* Zero-fill frame tables (100x loop over lanes). */
+    /* MAC/RX setup RMW chain (exact order/addrs). */
+    REG_WRITE(0x600330f8u, REG_READ(0x600330f8u) | 0xffff0000u);
+    REG_WRITE(0x60033080u, REG_READ(0x60033080u) & 0xefffffffu);
+    REG_WRITE(0x60033800u, 0);
+    REG_WRITE(0x60033c08u, 0);
+    REG_WRITE(0x60033c0cu, REG_READ(0x60033c0cu) | 0x80000000u);
+    REG_WRITE(0x60033c4cu, REG_READ(0x60033c4cu) | 12u);
+    {
+        u32 f = (REG_READ(0x3ff5c018u) >> 5) & 0x3ffu;
+        desired_count = (int)(10 * (int)(f - 0x400u) + 3);   /* addmi/addx4/slli/movltz lane */
+    }
+    flash_test_run(1);
+    {
+        u32 s1 = REG_READ(0x600330a4u);
+        u32 s0 = REG_READ(0x600330a4u);
+        if ((s1 & s0 & 4u) == 0)   /* bany lane [approx addrs] */
+            goto tail;
+    }
+    /* Main poll loop (back-edge: GetStopCmd() != 0 -> continue).
+     * Bounds/counters approximate; call order exact. */
+    for (i = 0; ; i++) {
+        gain = (int)(REG_READ(0x600330a8u) & 0xffu);   /* [approx field] */
+        rssi = get_rx_freq_local();
+        if ((REG_READ(0x60033c48u) & 0x80000000u) == 0) {
+            err_count++;
+        } else {
+            correct_count++;
+            gooddata_count++;
+        }
+        /* Min/max ladder over rssi groups (paired blt/bge lanes). */
+        if (rssi < rssi_min) rssi_min = rssi;
+        if (rssi > rssi_max) rssi_max = rssi;
+        if (rssi < rssi_min1) rssi_min1 = rssi;
+        if (rssi > rssi_max1) rssi_max1 = rssi;
+        if (rssi < rssi_min2) rssi_min2 = rssi;
+        if (rssi > rssi_max2) rssi_max2 = rssi;
+        rssi_base[i % 11] = rssi;
+        ets_delay_us(30);
+        REG_WRITE(0x3ff5cc5cu, REG_READ(0x3ff5cc5cu));
+        bb_wdt_rst_enable();
+        if (GetStopCmd() == 0)
+            break;
+        if (i >= desired_count && desired_count > 0)   /* [approx bound] */
+            break;
+    }
+tail:
+    /* Summary tail (exact fmts; gate sources verified, arg routing approximate). */
+    if (correct_count != 0) {   /* beqz a9 lane */
+        unsigned int e;
+        phy_printf("Correct: %d Desired: %d RSSI: %d gain: %d noise: %d err: %d err_fcs: %d err_a1: %d gooddata: %d, freq: %d\n",
+            correct_count, desired_count, rssi, gain, noise, err_count, err_fcs_count, err_a1_count, gooddata_count, rssi);
+        for (e = 0; e < err_count; e++)   /* bne err-loop lane */
+            phy_printf("err=0x%x,t=%d,gain=%d,dt=%d;#", err_count, e, gain, 0);
+        phy_printf("print done!\n");
+        return;
+    }
+    if (short_log_en)
+        phy_printf("rx_num: %d rx_rssi: %d\n", gooddata_count, rssi);
+    phy_printf("Correct: %d Desired: %d RSSI: %d noise: %d gain: %d para1: %d para2: %d freq: %d\n",
+        correct_count, desired_count, rssi, noise, gain, rx_para, rx_para2, rssi);
+    if (rssi_min_max_print)
+        phy_printf("rssi_min: %d rssi_max: %d ", rssi_min, rssi_max);
+    if (rate_hi != 0) {   /* frame[0x684] lane */
+        phy_printf("rssi_base_p5: %d rssi_base_p4: %d rssi_base_p3: %d rssi_base_p2: %d rssi_base_p1: %d rssi_base_n0: %d rssi_base_n1: %d rssi_base_n2: %d rssi_base_n3: %d rssi_base_n4: %d rssi_base_n5: %d",
+            rssi_base[0], rssi_base[1], rssi_base[2], rssi_base[3], rssi_base[4],
+            rssi_base[5], rssi_base[6], rssi_base[7], rssi_base[8], rssi_base[9], rssi_base[10]);
+        phy_printf("");
+    }
 }
 
 /* esp_get_rx_result bb_common.c:316 @ bb_common.o size 50B [dwarf-sig]
@@ -493,4 +631,4 @@ void wifi_ack_test(u32 ap_addr0, u32 ap_addr1, uint8 tx_rate, u32 tx_length, u32
      */
 }
 
-/* Undefined refs (53): ConfAddrGet, GetStopCmd, HTsigAddrGet, PSDU0_OFFSET, Plcp0AddrGet, Plcp1AddrGet, TXBUF_START, __assert_func, bb_wdt_rst_enable, btpwr_tsen_init, chip7_sleep_params, chip_v7_set_chan, chip_v7_set_chan_nomac, coex_bt_high_prio, coex_test_enable, esp_dport_access_reg_read, ets_delay_us, fill_tx_frame, flash_test_run, g_phyFuns, lr_enable, mac_init, noise_check_loop, phy_close_rf, phy_force_wifi_chan_en, phy_get_rx_freq, phy_ofdm_bandage_opt, phy_printf, phy_temp_track, pm_check_mac_idle, pm_goto_sleep, pm_mac_deinit, pm_mac_init, pm_open_rf, pm_set_sleep_cycles, pm_wakeup_init, pm_wakeup_opt, pwrdet_offset, read_hw_noisefloor, rf_rw_init, rtc_set_cpu_freq, rtc_sleep_init, rtc_slowck_cali, rtc_uart_div_modify, rtc_usec2rtc, short_log_en, tsens_code_read, tx_contin_fcc_en, tx_gain_table_set, tx_pocket_num, tx_pwctrl_background, txcal_debuge_mode, wifi_track_pll_cap */
+/* Undefined refs (54): ConfAddrGet, GetStopCmd, HTsigAddrGet, PSDU0_OFFSET, Plcp0AddrGet, Plcp1AddrGet, TXBUF_START, __assert_func, bb_wdt_rst_enable, btpwr_tsen_init, chip7_sleep_params, chip_v7_set_chan, chip_v7_set_chan_nomac, coex_bt_high_prio, coex_test_enable, esp_dport_access_reg_read, ets_delay_us, fill_tx_frame, flash_test_run, g_phyFuns, lr_enable, mac_init, noise_check_loop, phy_close_rf, phy_force_wifi_chan_en, phy_get_rx_freq, phy_ofdm_bandage_opt, phy_printf, phy_temp_track, pm_check_mac_idle, pm_goto_sleep, pm_mac_deinit, pm_mac_init, pm_open_rf, pm_set_sleep_cycles, pm_wakeup_init, pm_wakeup_opt, pwrdet_offset, read_hw_noisefloor, rf_rw_init, rssi_min_max_print, rtc_set_cpu_freq, rtc_sleep_init, rtc_slowck_cali, rtc_uart_div_modify, rtc_usec2rtc, short_log_en, tsens_code_read, tx_contin_fcc_en, tx_gain_table_set, tx_pocket_num, tx_pwctrl_background, txcal_debuge_mode, wifi_track_pll_cap */

@@ -616,21 +616,27 @@ u32 ieee80211_send_beacon(u32 a2)
 
 /* ieee80211_register_hostap_timer @ ieee80211_timer.o 0x0000000c size 48B bind GLOBAL
  * Calls: none | Data refs: g_timer_info, .text.ieee80211_send_beacon, .text.ieee80211_hostap_handle
- * Fidelity: low - 17 insns, 3 branches, 1 loops; skeleton only */
+ * Fidelity: high - exact 36-entry g_timer_info slot scan (17 insns fully mapped) */
 u32 ieee80211_register_hostap_timer(void)
 {
-    /* frame: entry a1,32; 17 insns, 3 cond-branches, 1 loops, 1 jumps */
-    /* immediates: 9, 36 */
-    /* first predicate: loop a9, 37 <ieee80211_register_hostap_timer+0x2b> (condition opaque) */
-    /* mem ld8: base=(lit:g_timer_info) off=0 */
-    /* mem st32: base=(lit:g_timer_info) off=4 */
-    /* mem st32: base=(lit:g_timer_info) off=4 */
-    return opaque_result; /* full dataflow not recovered */
+    /* frame: entry a1,32; table stride 8B: { u8 id; u8 pad[3]; u32 handler } */
+    u32 e = g_timer_info; /* +0xf l32r -> g_timer_info */
+    u32 i;
+    for (i = 0; i < 36; i++, e += 8) { /* +0x14 movi a9,36; +0x1d loop a9,37; +0x35 addi.n a8,a8,8 */
+        u32 id = *(u8 *)e; /* +0x20 l8ui a10,a8,0 */
+        if (id == 9) /* +0x12 movi.n a11,9; +0x23 bne a10,a11,30 */
+            *(u32 *)(e + 4) = text_ieee80211_send_beacon; /* +0x1a l32r a13; +0x26 s32i.n a13,a8,4 */
+        /* +0x28 memw */
+        else if (id == 12) /* +0x30 bnei a10,12,35 */
+            *(u32 *)(e + 4) = text_ieee80211_hostap_handle; /* +0x17 l32r a12; +0x33 s32i.n a12,a8,4 */
+        /* +0x37 memw (barrier each iteration; second barrier after id==9 store at +0x28) */
+    }
+    return opaque_result; /* a2 untouched by function; incoming value preserved */
 }
 
 /* ieee80211_timer_do_process @ ieee80211_timer.o 0x00000018 size 142B bind GLOBAL
  * Calls: wifi_log, indirect(a8), indirect(a8), wifi_log, indirect(a8) | Data refs: .rodata_wlog_warning.21, g_timer_info, g_osi_funcs_p, .rodata_wlog_warning.22
- * Fidelity: low - 54 insns, 6 branches, 1 loops; skeleton only */
+ * Fidelity: low - hardware loop (loop a11,36) scanning g_timer_info 8B-stride entries for id match (fast-path addx8 direct check + linear fallback); on hit calls entry handler then g_osi_funcs_p+176 indirect; exact bounds/loop verified - need per-entry handler-arg layout to raise */
 u32 ieee80211_timer_do_process(u32 a2, u32 a4)
 {
     /* frame: entry a1,32; 54 insns, 6 cond-branches, 1 loops, 4 jumps */
@@ -659,7 +665,7 @@ u32 ieee80211_timer_do_process(u32 a2, u32 a4)
 
 /* ieee80211_timer_process @ ieee80211_timer.o 0x00000040 size 185B bind GLOBAL
  * Calls: wifi_api_lock, wifi_log, wifi_get_init_state, wifi_api_unlock, wifi_log, indirect(a5), pp_post, wifi_api_unlock, indirect(a2), wifi_api_unlock, wifi_api_unlock, wifi_log | Data refs: .rodata_wlog_error.23, .rodata_wlog_error.24, g_osi_funcs_p, .rodata_wlog_error.25, .rodata_wlog_error.26
- * Fidelity: low - 68 insns, 4 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 ieee80211_timer_process(u32 a2, u32 a3, u32 a4, u32 a7)
 {
     /* frame: entry a1,32; 68 insns, 4 cond-branches, 0 loops, 4 jumps */

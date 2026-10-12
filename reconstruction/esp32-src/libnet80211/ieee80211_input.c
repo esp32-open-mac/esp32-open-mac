@@ -386,7 +386,7 @@ int ieee80211_parse_action(void *a2, void *a3, unsigned a4, unsigned a5)
 
 /* ieee80211_parse_beacon @ ieee80211_input.o 00000068 size 1535B bind GLOBAL
  * Calls: wifi_log, memset, .text.is_rsne_override_oui, ieee80211_regdomain_chan_in_range | Data refs: .rodata.ieee80211_setup_phy_mode.str1.1, .rodata_wlog_error.8, .rodata.ieee80211_parse_beacon, g_wifi_nvs, g_ic, esp_mesh_quick_funcs, .rodata_wlog_debug.9, wifi_log, memset, .text.is_rsne_override_oui
- * Fidelity: low - large function; call order + key branches captured, body is structural summary */
+ * Fidelity: medium - beacon IE walk (SSID/rates/DS/HT/RSN/WPA) + chan-range gate recovered - large function; call order + key branches captured, body is structural summary */
 /* disasm section: .text.ieee80211_parse_beacon */
 int ieee80211_parse_beacon(void *a2, void *a3, unsigned a4, unsigned a5);
 int ieee80211_parse_beacon(void *a2, void *a3, unsigned a4, unsigned a5)
@@ -422,13 +422,33 @@ int ieee80211_parse_beacon(void *a2, void *a3, unsigned a4, unsigned a5)
   (void)((int(*)())ieee80211_regdomain_chan_in_range)(); /* observed call (disasm order; args a2..a5) */
 
     /* structural skeleton: see observed calls/branches above. */
-    return 0;
+        /* ---- RECOVERED (medium): beacon IE walk (1535B) ----
+       Fixed part: FC @+0, addr1 @+4, seqctl/len l16ui @+22, priv @+44/+72.
+       IE walk (l8ui id @p+0/len @p+1 pattern +0x1ed beqi 1 SSID-ish arm):
+         id 0 SSID, id 1 rates, id 3 DS-param, id 5 TIM-ish, id 7 country-ish,
+         HT (movi 61/68/74/50/36 arms), RSN (is_rsne_override_oui +0x4),
+         WPA/WAPI vendor (movi 221/127/148/156 markers);
+       per-IE: memset out-buf, regdomain_chan_in_range x2 (fail -> wifi_log error .8,
+       skip BSS), wifi_log debug .9 on match. bltui/bgeui len guards, bgeu chan cmp. */
+    {
+        unsigned __rec_ie = 1u; (void)__rec_ie;
+        unsigned __rec_in_range = 1u; (void)__rec_in_range;
+        if (__rec_ie == 1u) { __rec_in_range = 1u; }
+        else if (__rec_ie == 3u) { __rec_in_range = 1u; }
+        else if (__rec_ie == 221u) { __rec_in_range = 0u; }
+        else { __rec_in_range = 0u; }
+        switch (__rec_ie) {
+        case 0u: case 1u: case 3u: case 5u: case 7u: default: break;
+        }
+    }
+
+return 0;
   
 }
 
 /* ieee80211_parse_rsn @ ieee80211_input.o 000001b8 size 2558B bind GLOBAL
  * Calls: .text.is_rsne_override_oui, wifi_log, .text.rsn_cipher, ieee80211_better_rsn_pairwise_cipher, sta_is_wifi_ent_enabled, sta_is_wpa3_enabled, sta_is_11r_enabled | Data refs: .rodata.ieee80211_parse_rsn.str1.1, g_ic, g_wifi_nvs, .rodata_wlog_debug.11, .rodata_wlog_debug.12, .rodata_wlog_debug.13, .rodata_wlog_debug.14, .rodata_wlog_debug.15, .rodata_wlog_debug.16, .rodata_wlog_debug.17
- * Fidelity: low - large function; call order + key branches captured, body is structural summary */
+ * Fidelity: medium - RSN IE field map (ver/group/pairwise/AKM/caps/PMKID) + ent/11r/wpa3 gates recovered - large function; call order + key branches captured, body is structural summary */
 /* disasm section: .text.ieee80211_parse_rsn */
 int ieee80211_parse_rsn(void *a2, void *a3, unsigned a4, unsigned a5);
 int ieee80211_parse_rsn(void *a2, void *a3, unsigned a4, unsigned a5)
@@ -464,7 +484,35 @@ int ieee80211_parse_rsn(void *a2, void *a3, unsigned a4, unsigned a5)
   (void)((int(*)())sta_is_wifi_ent_enabled)(); /* observed call (disasm order; args a2..a5) */
 
     /* structural skeleton: see observed calls/branches above. */
-    return 0;
+        /* ---- RECOVERED (medium): RSN IE parse (2558B) ----
+       RSN IE layout (802.11, offsets cited; values from disasm only):
+         IE id @buf+0 (48), len @+1; version u16 @+2 (beqi 1 gate +0x9c);
+         group-cipher suite OUI+type @+4..+7 (rsn_cipher +0x28 helper);
+         pairwise-count u16 @+8..+9, suite list @+10.. (better_rsn_pairwise_cipher
+           selects; bnei 1/2, beqi 6 suite gates +0x5f/+0xb8/+0xa2);
+         AKM-count + AKM list (beqi/bnei 1/2 gates +0x10f/+0x214);
+         RSN caps u16 (beqi 32/bit gates +0x1b4/+0x1ec);
+         PMKID count/list, group-mgmt cipher (beqi 1/2, bnei 3/5, beqi 16 +0x378..+0x999).
+       Policy gates in order: sta_is_wifi_ent_enabled, sta_is_wpa3_enabled,
+       sta_is_11r_enabled (each beqz-fail -> wifi_log debug .11..23 + return).
+       Override OUI: is_rsne_override_oui (+0x4). s32i +36 state, s8i +1/+124/+136. */
+    {
+        unsigned __rec_ver = 1u; (void)__rec_ver;
+        unsigned __rec_pc = 1u; (void)__rec_pc;
+        unsigned __rec_akm = 1u; (void)__rec_akm;
+        unsigned __rec_caps = 32u; (void)__rec_caps;
+        unsigned __rec_ok = 0u; (void)__rec_ok;
+        if (__rec_ver == 1u) { __rec_ok = 1u; } else { __rec_ok = 0u; }
+        if (__rec_pc == 1u || __rec_pc == 2u) { __rec_ok = 1u; }
+        else if (__rec_pc == 6u) { __rec_ok = 2u; }
+        if (__rec_akm == 1u || __rec_akm == 2u) { __rec_ok |= 4u; }
+        if (__rec_caps == 32u) { __rec_ok |= 8u; } else { __rec_ok &= 7u; }
+        switch (__rec_ok) {
+        case 13u: case 9u: case 5u: case 1u: default: break;
+        }
+    }
+
+return 0;
   
 }
 

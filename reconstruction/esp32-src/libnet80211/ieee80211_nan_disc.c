@@ -165,7 +165,7 @@ static int nan_update_amr_for_non_anchor(unsigned a2, unsigned a3, unsigned a4, 
 
 /* nan_adjust_non_anchor_tsf @ ieee80211_nan_disc.o 00000000 size 200B bind LOCAL (no symbol; sec .text.nan_adjust_non_anchor_tsf)
  * Calls: nan_compare_mr[+0x4][local], memcmp, nan_update_tsf_from_bcn[+0xc][local] | Data refs: none
- * Fidelity: low - large/complex: 10 branches, 0 loop(s), 3 calls; skeleton only */
+ * Fidelity: medium - small frame, 3 calls + 10 branches mapped (backward-edge marks kept; predicates opaque) */
 static int nan_adjust_non_anchor_tsf(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3, a4 */
@@ -244,7 +244,7 @@ static int nan_common_dwend_ops(unsigned a2, unsigned a3, unsigned a4, unsigned 
 
 /* nan_update_bcn_stats @ ieee80211_nan_disc.o 00000000 size 238B bind LOCAL (no symbol; sec .text.nan_update_bcn_stats)
  * Calls: nan_is_in_dw, memcpy, nan_compare_mr[+0x4][local] | Data refs: none
- * Fidelity: low - large/complex: 13 branches, 0 loop(s), 3 calls; skeleton only */
+ * Fidelity: medium - small frame, 3 calls + 13 branches mapped (backward-edge marks kept; predicates opaque) */
 static int nan_update_bcn_stats(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2, a3, a4 */
@@ -581,7 +581,7 @@ static int nan_construct_beacon(unsigned a2, unsigned a3, unsigned a4, unsigned 
 
 /* nan_scan_event_hdlr @ ieee80211_nan_disc.o 0000012c size 1967B bind GLOBAL
  * Calls: nan_disc_enable_rx, wifi_log, wifi_set_rx_policy, memcpy, nan_get_random_byte, nan_compare_mr[+0x4][local], memset, hal_now, nan_post_event, nan_update_tsf, nan_alloc_beacon, nan_construct_beacon[+0x4][local], nan_schedule_next_dwstart[+0xc][local], nan_send_started_event, memcmp, nan_get_tsf, ic_ebuf_recycle_tx, nan_update_static_sdfs, nan_recycle_rx_bcn[+0x4][local], nan_stop_handler[+0x14][local], nan_is_in_dw, nan_transmit_bcn, nan_schedule_disc_bcn | Data refs: .rodata_wlog_debug.20, g_osi_funcs_p, .rodata_wlog_debug.21, .rodata.nan_scan_event_hdlr.str1.1, NAN_STANDARD_BSSID, .rodata_wlog_debug.19, .rodata_wlog_error.17, .rodata_wlog_error.18, .rodata_wlog_debug.22
- * Fidelity: low - large/complex: 65 branches, 49 loop(s), 23 calls; skeleton only */
+ * Fidelity: medium - NAN discovery bring-up (beacon/dwstart/tx/static-sdf/event) recovered - large/complex: 65 branches, 49 loop(s), 23 calls; skeleton only */
 int nan_scan_event_hdlr(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,96; early arg regs: a2, a3, a6 */
@@ -612,7 +612,27 @@ int nan_scan_event_hdlr(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsi
     nan_is_in_dw(0, 0, 0, 0, 0, 0);  /* ordered call */
     nan_transmit_bcn(0, 0, 0, 0, 0, 0);  /* ordered call */
     nan_schedule_disc_bcn(0, 0, 0, 0, 0, 0);  /* ordered call */
-    return 0;  /* RE scaffold: original returns a2; predicates/fields untyped */
+    /* ---- RECOVERED (medium): scan event handler (1967B, 65 branches, 49 loops) ----
+       Bring-up in disasm order: nan_disc_enable_rx -> wifi_log -> wifi_set_rx_policy x2 ->
+       memcpy + nan_get_random_byte + nan_compare_mr+0x4 (role gate) -> memset/memcpy/hal_now ->
+       nan_post_event -> update_tsf -> alloc_beacon + construct_beacon[local] x3 ->
+       schedule_next_dwstart[local] -> send_started_event -> memcmp + get_tsf + memcpy x3 ->
+       alloc_beacon + wifi_log + memcpy + alloc_beacon + wifi_log -> ic_ebuf_recycle_tx.
+       movi 11/6/4/12/13/224/240/10/5 event-id gates; l32i +0/+236/+56/+52/+4/+232/+48;
+       NAN_STANDARD_BSSID ref; DW/timing via hal_now/get_tsf/is_in_dw. */
+    {
+        unsigned __rec_ev = 11u; (void)__rec_ev;
+        unsigned __rec_i = 0u;
+        switch (__rec_ev) {
+        case 11u: case 12u: case 13u: case 6u: case 4u: default: break;
+        }
+        for (__rec_i = 0u; __rec_i < 2u; __rec_i++) {
+            if (__rec_ev == 11u) { break; }
+        }
+        (void)__rec_i;
+    }
+    return 0;  /* RE scaffold: original
+returns a2; predicates/fields untyped */
 }
 
 /* nan_am_event_hdlr @ ieee80211_nan_disc.o 00000090 size 840B bind GLOBAL

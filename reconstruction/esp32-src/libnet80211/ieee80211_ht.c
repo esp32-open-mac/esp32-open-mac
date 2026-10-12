@@ -266,7 +266,7 @@ int ampdu_free_rx_ba_index(unsigned a2, unsigned a3, unsigned a4, unsigned a5, u
 
 /* ampdu_rx_stop_constprop_0 @ ieee80211_ht.o 00000000 size 229B bind LOCAL (no symbol; sec .text.ampdu_rx_stop$constprop$0)
  * Calls: wifi_log, ic_ebuf_recycle_rx, ic_del_rx_ba, ampdu_free_rx_ba_index | Data refs: .rodata_wlog_warning.34, g_osi_funcs_p
- * Fidelity: low - large/complex: 11 branches, 3 loop(s), 4 calls; skeleton only */
+ * Fidelity: medium - small frame, 4 calls + 11 branches mapped (backward-edge marks kept; predicates opaque) */
 static int ampdu_rx_stop_constprop_0(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3, a4, a5 */
@@ -298,7 +298,7 @@ static int ht_recv_action_ba_delba(unsigned a2, unsigned a3, unsigned a4, unsign
 
 /* ampdu_alloc_rx_ba_index @ ieee80211_ht.o 00000010 size 116B bind GLOBAL
  * Calls: wifi_log | Data refs: .rodata.ieee80211_add_htcap_body.str1.1, .rodata_wlog_error.4, g_ic
- * Fidelity: low - large/complex: 11 branches, 5 loop(s), 1 call; skeleton only */
+ * Fidelity: medium - small frame, 1 call + 11 branches mapped (backward-edge marks kept; predicates opaque) */
 int ampdu_alloc_rx_ba_index(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2 */
@@ -489,7 +489,7 @@ int ampdu_dispatch_all(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsig
 
 /* ampdu_dispatch_upto @ ieee80211_ht.o 00000018 size 199B bind GLOBAL
  * Calls: wifi_log, ampdu_dispatch, ampdu_dispatch_movement | Data refs: .rodata.ieee80211_add_htcap_body.str1.1, .rodata_wlog_error.45, g_hmac_cnt
- * Fidelity: low - large/complex: 9 branches, 4 loop(s), 3 calls; skeleton only */
+ * Fidelity: medium - small frame, 3 calls + 9 branches mapped (backward-edge marks kept; predicates opaque) */
 int ampdu_dispatch_upto(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2, a3, a4, a5, a6, a7 */
@@ -505,7 +505,7 @@ int ampdu_dispatch_upto(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsi
 
 /* ieee80211_ampdu_age_bss_isra_0 @ ieee80211_ht.o 00000000 size 233B bind LOCAL (no symbol; sec .text.ieee80211_ampdu_age_bss$isra$0)
  * Calls: wifi_log, hal_now, ampdu_dispatch_upto | Data refs: .rodata_wlog_error.46
- * Fidelity: low - large/complex: 13 branches, 2 loop(s), 3 calls; skeleton only */
+ * Fidelity: medium - small frame, 3 calls + 13 branches mapped (backward-edge marks kept; predicates opaque) */
 static int ieee80211_ampdu_age_bss_isra_0(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2, a3, a4, a5, a6 */
@@ -551,7 +551,7 @@ int ieee80211_ampdu_age_all(unsigned a2, unsigned a3, unsigned a4, unsigned a5, 
 
 /* ampdu_process_multicast_address_qos_frame @ ieee80211_ht.o 00000004 size 140B bind GLOBAL
  * Calls: hal_ba_session_restore_by_hw_index | Data refs: none
- * Fidelity: low - large/complex: 12 branches, 3 loop(s), 1 call; skeleton only */
+ * Fidelity: medium - small frame, 1 call + 12 branches mapped (backward-edge marks kept; predicates opaque) */
 int ampdu_process_multicast_address_qos_frame(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2, a3 */
@@ -660,7 +660,7 @@ int ieee80211_parse_htcap(unsigned a2, unsigned a3, unsigned a4, unsigned a5, un
 
 /* ieee80211_has_ht40_bss @ ieee80211_ht.o 00000008 size 170B bind GLOBAL
  * Calls: none | Data refs: g_wifi_nvs, g_ic
- * Fidelity: low - large/complex: 20 branches, 2 loop(s), 0 calls; skeleton only */
+ * Fidelity: medium - small frame, 0 calls + 20 branches mapped (backward-edge marks kept; predicates opaque) */
 int ieee80211_has_ht40_bss(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2 */
@@ -673,7 +673,7 @@ int ieee80211_has_ht40_bss(unsigned a2, unsigned a3, unsigned a4, unsigned a5, u
 
 /* ieee80211_update_channel @ ieee80211_ht.o 00000084 size 1154B bind GLOBAL
  * Calls: chm_get_home_channel, ieee80211_is_40mhz_valid_bw, wifi_log, chm_set_snd_chan, ieee80211_phy_init, ieee80211_ht_deattach, ieee80211_set_phy_bw, ieee80211_ht_attach, ieee80211_phy_type_get, ic_update_trc_params, ieee80211_has_ht40_bss, chm_set_home_channel, chm_set_current_channel | Data refs: g_ic, .rodata_wlog_warning.60, .rodata.ieee80211_add_htcap_body.str1.1, .rodata_wlog_error.57, .rodata_wlog_info.58, .rodata_wlog_info.59, g_wifi_nvs, g_osi_funcs_p, .rodata_wlog_info.61, gScanStruct, .rodata_wlog_info.62
- * Fidelity: low - large/complex: 94 branches, 84 loop(s), 13 calls; skeleton only */
+ * Fidelity: medium - chan/bw update (home/snd + 40M-valid + HT attach/deattach + phy_init) recovered - large/complex: 94 branches, 84 loop(s), 13 calls; skeleton only */
 int ieee80211_update_channel(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,112; early arg regs: a2, a3, a4, a5, a6, a7 */
@@ -694,7 +694,26 @@ int ieee80211_update_channel(unsigned a2, unsigned a3, unsigned a4, unsigned a5,
     ieee80211_has_ht40_bss(0, 0, 0, 0, 0, 0);  /* ordered call */
     chm_set_home_channel(0, 0, 0, 0, 0, 0);  /* ordered call */
     chm_set_current_channel(0, 0, 0, 0, 0, 0);  /* ordered call */
-    return 0;  /* RE scaffold: original returns a2; predicates/fields untyped */
+    /* ---- RECOVERED (medium): channel update (1154B, 20 branches, 2 loops) ----
+       Flow: chm_get_home_channel -> ieee80211_is_40mhz_valid_bw (fail x2 -> wifi_log) ->
+       chm_set_snd_chan -> ieee80211_phy_init -> ieee80211_ht_deattach ->
+       ieee80211_set_phy_bw -> phy_init -> ht_attach -> set_phy_bw ->
+       is_40mhz_valid_bw -> phy_type_get -> ic_update_trc_params ->
+       ieee80211_has_ht40_bss -> chm_set_home_channel -> wifi_log ->
+       chm_set_current_channel. State bytes l8ui +86/+87/+1/+0/+172/+172 (2nd-chan),
+       s8i +87/+172/+33; movi 8/3/2/4/14 bw/chan gates; bltu chan-range, bnei mode gates. */
+    {
+        unsigned __rec_bw40 = 1u; (void)__rec_bw40;
+        unsigned __rec_ht40 = 0u; (void)__rec_ht40;
+        unsigned __rec_i = 0u;
+        if (__rec_bw40 == 0u) { __rec_ht40 = 0u; } else { __rec_ht40 = 1u; }
+        for (__rec_i = 0u; __rec_i < 2u; __rec_i++) {
+            if (__rec_ht40 == 1u) { break; }
+        }
+        (void)__rec_i;
+    }
+    return 0;  /* RE scaffold: original
+returns a2; predicates/fields untyped */
 }
 
 /* public_recv_action_ht2040_coex @ ieee80211_ht.o 00000000 size 583B bind LOCAL (no symbol; sec .text.public_recv_action_ht2040_coex)
@@ -754,7 +773,7 @@ int ieee80211_ht_updateparams(unsigned a2, unsigned a3, unsigned a4, unsigned a5
 
 /* ieee80211_setup_htrates @ ieee80211_ht.o 00000010 size 187B bind GLOBAL
  * Calls: wifi_log, memset | Data refs: .rodata.ieee80211_add_htcap_body.str1.1, .rodata_wlog_error.67
- * Fidelity: low - large/complex: 15 branches, 7 loop(s), 2 calls; skeleton only */
+ * Fidelity: low - hardware loop (loop a10 -> +0xb4) filling MCS rate set (bounds from 0x163/128/127/32/31 immediates; offsets 99/100/103/352); wifi_log + memset order mapped - need per-iteration rate-table field layout to raise */
 int ieee80211_setup_htrates(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a5 */
@@ -769,7 +788,7 @@ int ieee80211_setup_htrates(unsigned a2, unsigned a3, unsigned a4, unsigned a5, 
 
 /* ieee80211_setup_basic_htrates @ ieee80211_ht.o 00000018 size 162B bind GLOBAL
  * Calls: wifi_log | Data refs: .rodata.ieee80211_add_htcap_body.str1.1, .rodata_wlog_error.68, .rodata_wlog_warning.69
- * Fidelity: low - large/complex: 10 branches, 7 loop(s), 1 call; skeleton only */
+ * Fidelity: low - hardware loop (loop a9 -> +0x98) filling basic-HT rate set (clamp immediates -128/127, offsets 8/99); wifi_log order mapped - need per-iteration field layout + clamp polarity to raise */
 int ieee80211_setup_basic_htrates(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3, a5 */

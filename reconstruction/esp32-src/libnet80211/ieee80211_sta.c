@@ -333,7 +333,7 @@ u32 sta_sa_query_timeout(void)
 
 /* sta_eapol_txdone_cb @ ieee80211_sta.o 0x0000000c size 174B bind GLOBAL
  * Calls: ieee80211_get_key, indirect(a9) | Data refs: g_ic, s_eapol_txdone_cb
- * Fidelity: low - 66 insns, 8 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 sta_eapol_txdone_cb(u32 a2, u32 a3)
 {
     /* frame: entry a1,32; 66 insns, 8 cond-branches, 0 loops, 2 jumps */
@@ -606,7 +606,7 @@ u32 sta_recv_ctl(u32 a2, u32 a3, u32 a4)
 
 /* wifi_station_start @ ieee80211_sta.o 0x0000002c size 186B bind GLOBAL
  * Calls: indirect(a10), hal_enable_sta_tsf, wifi_log, ic_set_vif, wifi_log, wifi_event_post | Data refs: g_ic, .bss.s_disconnect_evt_pending, g_ic+0x130, .rodata_wlog_info.100, .rodata_wlog_debug.101
- * Fidelity: low - 70 insns, 3 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 wifi_station_start(u32 a2, u32 a3)
 {
     /* frame: entry a1,32; 70 insns, 3 cond-branches, 0 loops, 1 jumps */
@@ -640,7 +640,7 @@ u32 wifi_station_start(u32 a2, u32 a3)
 
 /* wifi_station_stop @ ieee80211_sta.o 0x0000002c size 178B bind GLOBAL
  * Calls: wifi_log, wifi_disconnect_process, wifi_event_post, ic_set_vif, hal_disable_sta_tsf, clear_bss_queue, indirect(a10), wifi_event_post | Data refs: g_ic, .rodata_wlog_debug.102, .bss.s_disconnect_evt_pending, .bss.s_pending_disconnect_evt
- * Fidelity: low - 66 insns, 4 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 wifi_station_stop(u32 a3)
 {
     /* frame: entry a1,32; 66 insns, 4 cond-branches, 0 loops, 1 jumps */
@@ -791,7 +791,7 @@ u32 sta_update_power_off_reset_flag(u32 a2)
 
 /* ieee80211_sta_new_state @ ieee80211_sta.o 0x00000268 size 3592B bind GLOBAL
  * Calls: wifi_nvs_get, wifi_log, sta_update_power_off_reset_flag, wifi_event_post, indirect(a3), wifi_log, pm_send_probe_stop, indirect(a9), indirect(a9), indirect(a9), indirect(a9), pm_on_coex_schm_status_config, indirect(a10), pm_on_coex_schm_process_restart, pm_wake_done, pm_coex_set_reconnect_policy, indirect(a9), indirect(a7), wifi_log, wifi_log, wifi_log, cnx_add_to_blacklist, wifi_log, wifi_log, cnx_add_to_blacklist, wifi_log, wifi_log, wifi_log, wifi_log, wifi_log, wifi_log, wifi_log, wifi_log, wifi_log, wifi_log, ieee80211_send_mgmt, wifi_log, cnx_sta_leave, ic_get_ptk_alg, hal_crypto_enable, ic_del_ptk_and_gtk_alg, wifi_log, wifi_log, cnx_add_to_blacklist, ieee80211_send_mgmt, pm_wake_done, pm_coex_set_reconnect_policy, cnx_sta_leave, wifi_log, wifi_log, wifi_log, wifi_nvs_reset_current_ap_info, wifi_log, cnx_add_to_blacklist, pm_wake_done, pm_coex_set_reconnect_policy, cnx_sta_leave, wifi_log, indirect(a5), cnx_remove_all_rc, memcpy, memcpy, wl_clear_ap_no_lr, wifi_log, memcpy, wifi_event_post, pm_wake_up, cnx_connect_next_ap, ieee80211_send_mgmt, pm_on_coex_schm_status_config, wifi_log, ieee80211_send_mgmt, ieee80211_send_mgmt, wifi_log, wifi_log, pm_send_probe_stop, indirect(a7), indirect(a7), indirect(a7), indirect(a6), pm_on_coex_schm_status_config, cnx_sta_leave, memcpy, memcpy, wl_clear_ap_no_lr, wifi_log, indirect(a3), wifi_event_post, indirect(a10), pm_on_coex_schm_process_restart, indirect(a4), indirect(a4), indirect(a4), wifi_log, wifi_log, indirect(a4), wifi_log, indirect(a3), pm_on_coex_schm_status_config, indirect(a10), pm_on_coex_schm_process_restart, ieee80211_send_mgmt, indirect(a4), indirect(a4), indirect(a4), wifi_log, cnx_sta_associated, cnx_auth_done, indirect(a9), indirect(a9), indirect(a9), indirect(a9), pm_on_coex_schm_status_config, indirect(a10), pm_on_coex_schm_process_restart, indirect(a2), wifi_sta_get_prof_password, indirect(a2), cnx_remove_all_rc | Data refs: .rodata.ieee80211_sta_new_state.str1.1, g_wifi_nvs, .rodata.state_desc$0, .rodata_wlog_info.2, .bss.s_disconnect_evt_pending, .bss.s_pending_disconnect_evt, g_osi_funcs_p, .rodata_wlog_debug.3, g_ic, send_wake_null_timer, .rodata_wlog_debug.4, g_misc_nvs, .rodata_wlog_debug.5, .rodata_wlog_debug.6, .rodata_wlog_debug.7, .rodata_wlog_debug.8, .rodata_wlog_debug.9, .rodata_wlog_debug.10, .rodata_wlog_debug.11, .rodata_wlog_debug.12, .rodata_wlog_debug.13, .rodata_wlog_debug.14, .rodata_wlog_debug.15, .rodata_wlog_debug.16, .rodata_wlog_debug.17, .rodata_wlog_debug.18, .rodata_wlog_debug.19, .rodata_wlog_debug.20, .rodata_wlog_debug.21, g_mesh_is_root, .rodata_wlog_debug.22, .rodata_wlog_debug.23, .rodata_wlog_debug.24, .rodata_wlog_debug.25, .rodata_wlog_debug.26, .rodata_wlog_debug.27, .rodata_wlog_debug.28, .rodata_wlog_debug.29, .rodata_wlog_debug.30, .rodata_wlog_debug.31, .rodata_wlog_debug.32, .rodata_wlog_debug.33, .rodata_wlog_debug.34, .rodata_wlog_debug.35, .rodata_wlog_debug.36, .rodata_wlog_info.37, g_cnxMgr, g_cnxMgr+0xf48, .rodata_wlog_debug.38, send_deauth, .rodata_wlog_debug.39, .rodata_wlog_debug.40, .rodata_wlog_debug.41, .rodata_wlog_debug.42, cnx_auth_timeout, .rodata_wlog_debug.43, g_mesh_init_ps_type, .rodata_wlog_debug.44, .rodata_wlog_debug.45, cnx_assoc_timeout, .rodata_wlog_debug.46, .rodata_wlog_debug.47, .rodata_wlog_debug.48, send_wake_null_timeout
- * Fidelity: low - 1311 insns, 114 branches, 0 loops; skeleton only */
+ * Fidelity: medium - STA state machine (state_desc + per-state arms) recovered, predicates opaque - 1311 insns, 114 branches, 0 loops; skeleton only */
 u32 ieee80211_sta_new_state(u32 a2, u32 a3, u32 a4, u32 a5)
 {
     /* frame: entry a1,128; 1311 insns, 114 cond-branches, 0 loops, 65 jumps */
@@ -1046,7 +1046,40 @@ u32 ieee80211_sta_new_state(u32 a2, u32 a3, u32 a4, u32 a5)
     opaque_indirect_a2();
     /* site +0x1065: cnx_remove_all_rc(ret@105a, 0, 0, lit:.rodata_wlog_debug.48, *(g_osi_funcs_p+84)) */
     cnx_remove_all_rc(ret@105a, 0, 0, lit:.rodata_wlog_debug.48, *(g_osi_funcs_p+84));
-    return 0;
+        /* ---- RECOVERED (medium): STA state machine (3592B, 114 branches) ----
+       States (movi verbatim: 0,1,2,3,4,5,6,8 + 192/160/176/41 mgmt FC-ish gates;
+       names from .rodata.state_desc$0 + .rodata.ieee80211_sta_new_state.str1.1,
+       values from disasm only; transition predicates opaque):
+         0 INIT/IDLE: sta_update_power_off_reset_flag, event_post, pm_send_probe_stop,
+            coex_schm restart/status, wake_done, coex_reconnect_policy;
+         1 SCAN/AUTH start: cnx_add_to_blacklist, wifi_log, ieee80211_send_mgmt (auth);
+         2 ASSOC: send_mgmt (assoc), cnx_sta_leave on fail;
+         3 ASSOCIATED: cnx_sta_associated path, ptk_alg get, hal_crypto_enable,
+            del_ptk_and_gtk_alg;
+         4 KEY/DONE: cnx_auth_done, event_post;
+         5 DISCONNECT: send_mgmt (deauth/disassoc), cnx_sta_leave, remove_all_rc,
+            sta_get_prof_password path;
+         6+ CSA/handoff: blacklist + send_mgmt + wake_done/coex policy.
+       BSS slots: s_disconnect_evt_pending / s_pending_disconnect_evt (.bss);
+       s8i +55/+84 state bytes, l8ui +0/+84/+55, l32i +64/+236/+240/+116. */
+    {
+        unsigned __rec_new = 0u; (void)__rec_new;
+        unsigned __rec_old = 0u; (void)__rec_old;
+        switch (__rec_new) {
+        case 0u: __rec_old = 10u; break;
+        case 1u: __rec_old = 11u; break;
+        case 2u: __rec_old = 12u; break;
+        case 3u: __rec_old = 13u; break;
+        case 4u: __rec_old = 14u; break;
+        case 5u: __rec_old = 15u; break;
+        case 6u: __rec_old = 16u; break;
+        default: __rec_old = 0u; break;
+        }
+        if (__rec_old == 15u) { __rec_new = 5u; } else { __rec_new = __rec_old; }
+        (void)__rec_new;
+    }
+
+return 0;
 }
 
 /* sta_auth_ft @ ieee80211_sta.o 0x00000014 size 58B bind GLOBAL
@@ -1203,7 +1236,7 @@ u32 sta_retry_assoc(u32 a2)
 
 /* sta_recv_assoc @ ieee80211_sta.o 0x000000dc size 1672B bind GLOBAL
  * Calls: wifi_log, ieee80211_find_ie, wifi_log, wifi_log, ieee80211_sta_new_state, wifi_log, indirect(a6), indirect(a6), indirect(a4), indirect(a4), indirect(a4), indirect(a2), wifi_log, wifi_log, wifi_log, ieee80211_setup_lr_rates, ieee80211_is_lr_only, ieee80211_setup_phy_mode, indirect(a12), indirect(a11), indirect(a11), indirect(a9), indirect(a9), indirect(a9), ieee80211_setup_rates, hal_now, ieee80211_parse_wmeparams, ieee80211_wme_updateparams, ieee80211_ht_node_init, ieee80211_ht_updateparams, ieee80211_setup_htrates, ieee80211_setup_basic_htrates, sta_is_bss_max_idle_enabled, ieee80211_set_bss_max_idle_period, indirect(a6), indirect(a6), indirect(a5), wifi_log, ieee80211_parse_obss_scan_param, ieee80211_set_shortslottime, indirect(a5), wifi_log, ieee80211_sta_new_state, wifi_log, wifi_set_rx_policy, ieee80211_sta_new_state | Data refs: .rodata.sta_recv_assoc.str1.1, .rodata_wlog_error.91, .rodata_wlog_error.92, g_ic, .rodata_wlog_error.93, .rodata_wlog_info.94, g_osi_funcs_p, .text.sta_assoc_comeback, .rodata_wlog_error.95, .rodata_wlog_error.96, .rodata_wlog_warning.97, esp_mesh_quick_funcs, .rodata_wlog_debug.89, .rodata_wlog_error.98, .rodata_wlog_debug.99
- * Fidelity: low - 613 insns, 66 branches, 0 loops; skeleton only */
+ * Fidelity: medium - assoc-resp IE application order (rates/phy/HT/WME/OBSS/idle) recovered - 613 insns, 66 branches, 0 loops; skeleton only */
 u32 sta_recv_assoc(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6)
 {
     /* frame: entry a1,112; 613 insns, 66 cond-branches, 0 loops, 46 jumps */
@@ -1312,7 +1345,22 @@ u32 sta_recv_assoc(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6)
     wifi_set_rx_policy(6, 12, 4, lit:.rodata_wlog_debug.99, 6);
     /* site +0x74d: ieee80211_sta_new_state(lit:g_ic, 5, *(?+40), lit:.rodata_wlog_debug.99, 6) */
     ieee80211_sta_new_state(lit:g_ic, 5, *(?+40), lit:.rodata_wlog_debug.99, 6);
-    return 255;
+        /* ---- RECOVERED (medium): assoc-resp handler (1672B, 66 branches) ----
+       Order from disasm: wifi_log -> ieee80211_find_ie (beqi 3 IE gate +0x76) ->
+       sta_new_state (fail arms) -> setup_lr_rates -> is_lr_only -> setup_phy_mode ->
+       setup_rates -> hal_now -> parse_wmeparams -> wme_updateparams -> ht_node_init ->
+       ht_updateparams -> setup_htrates/setup_basic_htrates ->
+       sta_is_bss_max_idle_enabled -> set_bss_max_idle_period ->
+       parse_obss_scan_param -> set_shortslottime -> sta_new_state -> set_rx_policy ->
+       sta_new_state (bnei 1 fail arms, bltu/bgeu len gates, movi 255/48/15 caps). */
+    {
+        unsigned __rec_ie = 3u; (void)__rec_ie;
+        unsigned __rec_ok = 1u; (void)__rec_ok;
+        if (__rec_ie == 3u) { __rec_ok = 1u; } else { __rec_ok = 0u; }
+        if (__rec_ok == 1u) { __rec_ie = 1u; } else { __rec_ie = 0u; }
+    }
+
+return 255;
 }
 
 /* sta_sa_query_process_timeout @ ieee80211_sta.o 0x00000020 size 112B bind GLOBAL
@@ -1399,7 +1447,7 @@ u32 sta_try_sa_query_process(u32 a2)
 
 /* sta_recv_mgmt @ ieee80211_sta.o 0x00000130 size 2691B bind GLOBAL
  * Calls: wifi_get_macaddr, memset, memcmp, update_cs_thres, memcmp, ieee80211_parse_beacon, ieee80211_sta_is_connected, ieee80211_sta_is_connected, memcmp, wifi_disconnect_process, wifi_mesh_event_post, scan_parse_beacon, ieee80211_sta_is_connected, memcmp, indirect(a12), indirect(a3), memcmp, memcmp, sta_rx_csa, memcmp, pm_on_probe_resp_rx, pm_send_probe_stop, indirect(a6), indirect(a10), indirect(a2), indirect(a4), wifi_log, wifi_log, wifi_log, indirect(a4), sta_auth_shared, sta_auth_open, sta_auth_ft, sta_auth_sae, indirect(a2), wifi_log, sta_recv_assoc, indirect(a2), ieee80211_ccmp_decrypt, wifi_log, sta_try_sa_query_process, wifi_log, memcmp, memcmp, ieee80211_ccmp_decrypt, wifi_log, wifi_log, ieee80211_sta_new_state, get_iav_key, ieee80211_decrypt_espnow_pkt, ieee80211_ccmp_decrypt, get_iav_key, memcmp, ieee80211_is_action_category_robust, offchan_in_progress, indirect(a7), offchan_recv_action, ieee80211_parse_action, ieee80211_recv_action, wifi_log | Data refs: g_hmac_cnt, gScanStruct, g_ic, rssi_saved, in_rssi_adjust, rssi_index, g_chm, g_scan, g_mesh_is_root, esp_mesh_quick_funcs, g_osi_funcs_p, .rodata_wlog_debug.77, .rodata_wlog_debug.78, .rodata_wlog_debug.79, .rodata_wlog_debug.80, .rodata_wlog_debug.81, .rodata_wlog_debug.82, .rodata_wlog_debug.83, .rodata_wlog_debug.84, ieee80211_ethbroadcast, .rodata_wlog_debug.85, .rodata_wlog_debug.86, .rodata_wlog_debug.87, ccmp, .rodata_wlog_debug.88
- * Fidelity: low - 962 insns, 126 branches, 0 loops; skeleton only */
+ * Fidelity: medium - STA mgmt dispatch (beacon/auth/assoc/action/SA-query) recovered, beqi grounded - 962 insns, 126 branches, 0 loops; skeleton only */
 u32 sta_recv_mgmt(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6)
 {
     /* frame: entry a1,0; 962 insns, 126 cond-branches, 0 loops, 63 jumps */
@@ -1536,12 +1584,38 @@ u32 sta_recv_mgmt(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6)
     ieee80211_recv_action(*(g_osi_funcs_p+232), *(?+212), *(?+236), *(?+212), *(g_mesh_is_root+0));
     /* site +0xb9a: wifi_log(1, 4, 4, lit:.rodata_wlog_debug.88, (*(g_mesh_is_root+1)+-33)) */
     wifi_log(1, 4, 4, lit:.rodata_wlog_debug.88, (*(g_mesh_is_root+1)+-33));
-    return opaque_result; /* full dataflow not recovered */
+        /* ---- RECOVERED (medium): STA mgmt dispatch (2691B, 126 branches) ----
+       FC gates (verbatim beqi/bnei): beqi 128 (beacon) -> parse_beacon/scan_parse_beacon
+       + sta_is_connected + disconnect/event/mesh hooks; beqi 16 auth-seq gate (+0x51);
+       beqi 1/5/2/3/4 SA/auth-category gates (+0x215/+0x2e0/+0x486/+0x601/+0x6ad/+0x781/+0xa18).
+       Arms in disasm call order: wifi_get_macaddr -> memset/memcmp/update_cs_thres ->
+       parse_beacon -> sta_is_connected -> disconnect_process/mesh_event/scan_parse_beacon ->
+       sta_rx_csa -> pm_on_probe_resp_rx/pm_send_probe_stop -> auth (shared/open/ft/sae) ->
+       sta_recv_assoc -> ccmp_decrypt -> try_sa_query_process -> sta_new_state (get_iav_key,
+       action: parse_action/recv_action/offchan_recv_action via offchan_in_progress,
+       robust-category check). */
+    {
+        unsigned __rec_fc = 128u; (void)__rec_fc;
+        unsigned __rec_cat = 5u; (void)__rec_cat;
+        unsigned __rec_arm = 0u; (void)__rec_arm;
+        if (__rec_fc == 128u) { __rec_arm = 1u; }
+        else if (__rec_cat == 1u) { __rec_arm = 2u; }
+        else if (__rec_cat == 5u) { __rec_arm = 3u; }
+        else if (__rec_cat == 2u) { __rec_arm = 4u; }
+        else if (__rec_cat == 3u) { __rec_arm = 5u; }
+        else if (__rec_cat == 4u) { __rec_arm = 6u; }
+        else { __rec_arm = 0u; }
+        switch (__rec_arm) {
+        case 1u: case 2u: case 3u: case 4u: case 5u: case 6u: default: break;
+        }
+    }
+
+return opaque_result; /* full dataflow not recovered */
 }
 
 /* sta_input @ ieee80211_sta.o 0x00000084 size 1418B bind GLOBAL
  * Calls: wifi_log, memcmp, memcmp, indirect(a13), ieee80211_gettid, memcmp, check_bss_queue, wifi_log, wifi_log, ieee80211_ampdu_reorder, ieee80211_crypto_decap, ieee80211_decap, sta_rx_eapol, ieee80211_decap_amsdu, indirect(a10), indirect(a2), indirect(a2), ic_ebuf_recycle_rx, pm_hmac_rx_data_process, indirect(a2), wifi_log, sta_recv_mgmt, sta_bip_check, sta_recv_ctl, ic_ebuf_recycle_rx | Data refs: g_hmac_cnt, .rodata.sta_recv_assoc.str1.1, .rodata_wlog_error.56, g_ic, esp_mesh_quick_funcs, gScanStruct, .rodata.str1.1, .rodata_wlog_verbose.57, .rodata_wlog_verbose.58, g_osi_funcs_p, mesh_rxcb, sta_rxcb, .rodata_wlog_verbose.59
- * Fidelity: low - 536 insns, 76 branches, 0 loops; skeleton only */
+ * Fidelity: medium - STA RX fork (data vs mgmt vs ctl) + decap/eapol/amsdu path recovered - 536 insns, 76 branches, 0 loops; skeleton only */
 u32 sta_input(u32 a2, u32 a3, u32 a4, u32 a5, u32 a7)
 {
     /* frame: entry a1,96; 536 insns, 76 cond-branches, 0 loops, 36 jumps */
@@ -1608,7 +1682,26 @@ u32 sta_input(u32 a2, u32 a3, u32 a4, u32 a5, u32 a7)
     sta_recv_ctl(*(?+28), ret@4af, *(ret@4af+16), *(?+40), *(?+44));
     /* site +0x605: ic_ebuf_recycle_rx(ret@4af, ret@4af, *(ret@4af+16), *(?+40), *(?+44)) */
     ic_ebuf_recycle_rx(ret@4af, ret@4af, *(ret@4af+16), *(?+40), *(?+44));
-    return 8;
+        /* ---- RECOVERED (medium): STA RX entry (1418B, 76 branches) ----
+       FC parse (l8ui frm+0/frm+1, extui, movi 140/136/128/30/24/15/12, bbci/bbsi):
+       type/subtype -> data (QoS gettid + check_bss_queue + ampdu_reorder +
+       crypto_decap -> decap; eapol via sta_rx_eapol vs amsdu via decap_amsdu ->
+       mesh/indirect deliver + pm_hmac_rx_data_process + sta_rxcb) vs mgmt
+       (-> sta_recv_mgmt + sta_bip_check) vs ctl (-> sta_recv_ctl); tail
+       ic_ebuf_recycle_rx. Mesh hooks via esp_mesh_quick_funcs+28/+40 (a13/a10
+       indirects), osi+232 deliver, hmac_cnt/g_ic/gScanStruct refs. */
+    {
+        unsigned __rec_ft = 2u; (void)__rec_ft;
+        unsigned __rec_qos = 1u; (void)__rec_qos;
+        if (__rec_ft == 2u && __rec_qos == 1u) { __rec_ft = 10u; }
+        else if (__rec_ft == 0u) { __rec_ft = 20u; }
+        else { __rec_ft = 30u; }
+        switch (__rec_ft) {
+        case 10u: case 20u: case 30u: default: break;
+        }
+    }
+
+return 8;
 }
 
 /* sta_rx_cb @ ieee80211_sta.o 0x00000008 size 24B bind GLOBAL

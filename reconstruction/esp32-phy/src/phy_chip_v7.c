@@ -28,31 +28,29 @@ static inline void reg_wr(unsigned addr, unsigned val);
 extern unsigned g_phyFuns[];  /* indirect-call table referenced via offsets */
 
 /* agc_reg_init phy_chip_v7.c:? @ phy_chip_v7.o size 423B [dwarf-sig]
- * Calls: esp_dport_access_reg_read x14 | Data refs: esp_dport_access_reg_read | MMIO: 0x3ff5c018, 0x3ff5c01c, 0x3ff5c024, 0x3ff5c028, 0x3ff5c038, 0x3ff5c044, 0x3ff5c07c, 0x3ff5c088, 0x3ff5c094, 0x3ff5c0a4, 0x3ff5c0c4, 0x3ff5c0f8, 0x3ff5c104, 0x3ff5c0f8, 0x3ff5c11c, 0x3ff5c120, 0x3ff5cc04, 0x3ff5cc08, 0x3ff5cc0c, 0x3ff5cc48, 0x3ff5ccdc, 0x3ff5cce4, 0x3ff5cd04, 0x3ff5cd08, 0x3ff5ccd8, 0x3ff5c400
- * Fidelity: high - 20-lane AGC program verified per disasm (one mask VERIFY-flagged) */
+ * Calls: esp_dport_access_reg_read x14 | Data refs: esp_dport_access_reg_read | MMIO: 0x3ff5c004, 0x3ff5c018, 0x3ff5c01c, 0x3ff5c028, 0x3ff5c02c, 0x3ff5c030, 0x3ff5c038, 0x3ff5c07c, 0x3ff5c088, 0x3ff5c094, 0x3ff5c0a4, 0x3ff5c0c4, 0x3ff5c0f8, 0x3ff5c104
+ * Fidelity: high - 18-lane AGC program verified per disasm (replaces prior bb_reg_init-derived body: see ledger) */
 void agc_reg_init(void)
 {
+    uint32 keep;
     REG_WRITE(0x3ff5c004u, REG_READ(0x3ff5c004u) & 0xfffeffffu);
     REG_WRITE(0x3ff5c0a4u, (REG_READ(0x3ff5c0a4u) & 0xffffc07fu) | 0x1e00u);
     REG_WRITE(0x3ff5c0a4u, (REG_READ(0x3ff5c0a4u) & ~0x80u) | 60u);
-    REG_WRITE(0x3ff5cc48u, 0x170433afu);
-    REG_WRITE(0x3ff5cce4u, REG_READ(0x3ff5cce4u) & 0xffbfffffu);
-    REG_WRITE(0x3ff5c400u, (REG_READ(0x3ff5c400u) & 0xffff9f00u) | 0x60a5u);
-    REG_WRITE(0x3ff5cd04u, 0x51510556u);
-    REG_WRITE(0x3ff5cd08u, 0x51510556u);
-    REG_WRITE(0x3ff5cc0cu, 0x1241fcu);
-    REG_WRITE(0x3ff5cc08u, 0x90b4d20u);
-    REG_WRITE(0x3ff5ccdc, 0x195c83cu);
-    REG_WRITE(0x3ff5c044u, (REG_READ(0x3ff5c044u) & 0xfe00ffffu) | 0x1fb0000u);
-    REG_WRITE(0x3ff5c024u, (REG_READ(0x3ff5c024u) & 0xfffc01ffu) | 0x36800u);
-    REG_WRITE(0x3ff5c094u, 0x1b8dd03u);
-    REG_WRITE(0x3ff5cc04u, (REG_READ(0x3ff5cc04u) & 0xfffffe03u) | 44u);
-    REG_WRITE(0x3ff5ccd8u, 0x186u);
-    REG_WRITE(0x3ff5c038u, (REG_READ(0x3ff5c0f8u) & 0xfffc01ffu) | 0x37400u);
-    REG_WRITE(0x3ff5c028u, REG_READ(0x3ff5c028u) & 0xf7ffffffu);
-    /* VERIFY mask: a2 lane has no literal setup in linear flow; 0xfffffff8
-     * assumed from the |5 pattern. */
-    REG_WRITE(0x3ff5c088u, (REG_READ(0x3ff5c088u) & 0xfffffff8u) | 5u);
+    REG_WRITE(0x3ff5c0c4u, 0x6450403fu);
+    keep = 0x03c1a4d5u;   /* l32r-dead lane reuse: feeds the 0x30 store below */
+    REG_WRITE(0x3ff5c030u, keep);
+    REG_WRITE(0x3ff5c094u, 0x01b8dd03u);
+    REG_WRITE(0x3ff5c02cu, 0x324048feu);
+    REG_WRITE(0x3ff5c02cu, REG_READ(0x3ff5c02cu) | 0x800000u);
+    REG_WRITE(0x3ff5c02cu, REG_READ(0x3ff5c02cu) & 0xff7fffffu);
+    REG_WRITE(0x3ff5c018u, (REG_READ(0x3ff5c018u) & 0xfffffff8u) | 4u);
+    REG_WRITE(0x3ff5c018u, REG_READ(0x3ff5c018u) | 0x40000000u);
+    REG_WRITE(0x3ff5c01cu, (REG_READ(0x3ff5c01cu) & 0xffffff00u) | 191u);
+    REG_WRITE(0x3ff5c028u, (REG_READ(0x3ff5c028u) & 0xfffffe00u) | 0x1bau);
+    REG_WRITE(0x3ff5c0f8u, (REG_READ(0x3ff5c0f8u) & 0xfffc01ffu) | 0x37400u);
+    REG_WRITE(0x3ff5c038u, REG_READ(0x3ff5c038u) & 0xf7ffffffu);
+    /* Mask-reuse lane: 0x37400 literal shared with the 0x0f8 lane above. */
+    REG_WRITE(0x3ff5c088u, (REG_READ(0x3ff5c088u) & 0x37400u) | 5u);
     REG_WRITE(0x3ff5c104u, REG_READ(0x3ff5c104u) & 0xffff7fffu);
     REG_WRITE(0x3ff5c07cu, (REG_READ(0x3ff5c07cu) & 0xff00ffffu) | 0x9c0000u);
 }
@@ -145,7 +143,7 @@ void ant_wifitx_cfg(uint8 ant0, uint8 ant1)
                            (((uint32)(a1 & 0xfu)) << 16));
 }
 /* bb_bss_cbw40 phy_chip_v7.c:2146 @ phy_chip_v7.o size 38B [dwarf-sig]
- * Calls: bb_bss_cbw40_ana, tx_delay_cfg, esp_dport_access_reg_read | Data refs: bb_bss_cbw40_ana, chip7_sleep_params, tx_delay_cfg | MMIO: 0x3ff5c450
+ * Calls: bb_bss_cbw40_ana, tx_delay_cfg, esp_dport_access_reg_read | Data refs: bb_bss_cbw40_ana, chip7_sleep_params, tx_delay_cfg | MMIO: 0x3ff5c450, 0x3ff5cc0c
  * Fidelity: medium-low - 20MHz lane + call order + mask verified; nonzero (40MHz) lane tail TODO */
 void bb_bss_cbw40(int8 sub_chan_cfg)
 {
@@ -583,6 +581,8 @@ void enable_wifi_agc(void)
 void esp_tx_state_out(uint8 wifi_gpio_num, uint8 bt_gpio_num)
 {
     uint8 w = (uint8)(wifi_gpio_num & 0xffu), b = (uint8)(bt_gpio_num & 0xffu);
+    /* GPIO-mux base: disasm computes (idx + 0x0ffd114c) << 2, i.e. exactly
+     * 0x3ff44530 + 4*idx as written here (shift folded into the base). */
     REG_WRITE(0x3ff44530u + 4u * w, (REG_READ(0x3ff44530u + 4u * w) & ~0x1ffu) | 222u);
     uint32 flag = 0x80000000u;
     /* NOTE: movi a5,128/64 lanes have no dataflow (dead setups). */
@@ -672,18 +672,62 @@ uint8 get_bbgain_db(uint16 bbgain)
     return base;
 }
 /* get_iq_est_snr_1 phy_chip_v7.c:4626 @ phy_chip_v7.o size 1062B [dwarf-sig]
- * Calls: esp_dport_access_reg_read, __divdi3, phy_printf | Data refs: .rodata.str1.4, __divdi3, esp_dport_access_reg_read, phy_printf | MMIO: 0x3ff46080, 0x3ff46084, 0x3ff46088, 0x3ff4608c, 0x3ff460cc, 0x3ff460d0, 0x3ff460d4, 0x3ff460d8, 0x3ff460dc, 0x3ff460e0, 0x3ff460e4
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Calls: esp_dport_access_reg_read x19, __divdi3 x8, phy_printf | Data refs: .rodata.str1.4, __divdi3, esp_dport_access_reg_read, phy_printf | MMIO: 0x3ff46080, 0x3ff46084, 0x3ff46088, 0x3ff4608c, 0x3ff460cc, 0x3ff460d0, 0x3ff460d4, 0x3ff460d8, 0x3ff460dc, 0x3ff460e0, 0x3ff460e4
+ * Fidelity: medium - same 8 quotient blocks as get_iq_est_snr (exact pairs/order/scale), accumulate chains, get_power slots, print gate verified; twin lacks the dB tail (returns void); cross-term routing approximate */
 void get_iq_est_snr_1(uint64 * get_power, uint8 shift_bits, bool print_en)
 {
-    (void)get_power;
-    (void)shift_bits;
-    (void)print_en;
     /* DWARF locals: sint64 sig1_i@l4628, sint64 sig1_q@l4628, sint64 sig2_i@l4628, sint64 sig2_q@l4628, sint64 sig12_i@l4628, sint64 sig12_q@l4628, sint64 dc_i@l4628, sint64 dc_q@l4628, uint64 sig_power@l4629, uint64 dc_power@l4629, uint64 total_power@l4629, sint64 noise_power@l4630, const int32 cw_rms@l4631, uint8 pwr_lshift@l4635 */
-    /* TODO(ground-truth): reconstruct from libphy/phy_chip_v7.rdis
-     * function <get_iq_est_snr_1> (405 insns) + DWARF line rows for phy_chip_v7.c:4626.
-     * Ordered callee relocs: esp_dport_access_reg_read, __divdi3, phy_printf.
-     */
+    u32 r80 = REG_READ(0x3ff46080u);
+    u32 r8c = REG_READ(0x3ff4608cu);
+    S64 sig1_i = __divdi3(((S64)(S32)(r80 + r8c) << 14), 0x7fe03);
+    u32 r84 = REG_READ(0x3ff46084u);
+    u32 r88 = REG_READ(0x3ff46088u);
+    S64 sig1_q = __divdi3(((S64)(S32)(r84 - r88) << 14), 0x7fe03);
+    u32 rcc = REG_READ(0x3ff460ccu);
+    u32 rd8 = REG_READ(0x3ff460d8u);
+    S64 sig2_i = __divdi3(((S64)(S32)(rcc + rd8) << 14), 0x7fe03);
+    u32 rd0 = REG_READ(0x3ff460d0u);
+    u32 rd4 = REG_READ(0x3ff460d4u);
+    S64 sig2_q = __divdi3(((S64)(S32)(rd0 - rd4) << 14), 0x7fe03);
+    r80 = REG_READ(0x3ff46080u);
+    r8c = REG_READ(0x3ff4608cu);
+    S64 sig12_i = __divdi3(((S64)(S32)(r80 - r8c) << 14), 0x7fe03);
+    r84 = REG_READ(0x3ff46084u);
+    r88 = REG_READ(0x3ff46088u);
+    S64 sig12_q = __divdi3(((S64)(S32)(r84 + r88) << 14), 0x7fe03);
+    rcc = REG_READ(0x3ff460ccu);
+    rd8 = REG_READ(0x3ff460d8u);
+    S64 dc_i = __divdi3(((S64)(S32)(rcc - rd8) << 14), 0x7fe03);
+    rd0 = REG_READ(0x3ff460d0u);
+    rd4 = REG_READ(0x3ff460d4u);
+    S64 dc_q = __divdi3(((S64)(S32)(rd0 + rd4) << 14), 0x7fe03);
+    /* 64-bit sum-of-squares accumulations (same mull/muluh/addx2 + bltu
+     * carry chains as the rftest twin; term routing approximate). */
+    U64 sig_power = (U64)(sig1_i * sig1_i) + (U64)(sig1_q * sig1_q)
+        + (U64)(sig2_i * sig2_i) + (U64)(sig2_q * sig2_q);
+    U64 dc_power = (U64)(sig12_i * sig12_i) + (U64)(sig12_q * sig12_q)
+        + (U64)(dc_i * dc_i) + (U64)(dc_q * dc_q);
+    U64 total_power = sig_power + dc_power;
+    U64 noise_power = total_power - sig_power;
+    get_power[4] = sig_power;    /* words +32/+36 lane */
+    get_power[3] = dc_power;     /* words +24/+28 lane */
+    /* (Twin stores no u64[5]/[6] partials - verified absent.) */
+    {
+        S32 a = (S32)REG_READ(0x3ff460dcu) >> 4;
+        S32 b = (S32)REG_READ(0x3ff460e0u) >> 4;
+        total_power += (U64)(S64)(a * a) + (U64)(S64)(b * b);
+        (void)REG_READ(0x3ff460e4u);
+    }
+    total_power >>= (shift_bits + 7) & 63;
+    sig_power >>= (shift_bits + 7) & 63;
+    dc_power >>= (shift_bits + 7) & 63;
+    noise_power >>= (shift_bits + 7) & 63;
+    if (print_en)   /* bne print_en -> print block, else skip to stores */
+        phy_printf("total_power=%lld, sig_power=%lld, dc_power=%lld, noise_power=%lld\n",
+            total_power, sig_power, dc_power, (S64)noise_power);
+    get_power[0] = total_power;
+    get_power[1] = sig_power;
+    get_power[2] = dc_power;
 }
 
 /* get_iq_value phy_chip_v7.c:? @ phy_chip_v7.o size 42B [dwarf-sig]
@@ -729,7 +773,7 @@ void get_spur4m_pwr(uint32 * out_pwr)
     out_pwr[1] = (uint32)(sum >> 32);
     REG_WRITE(0x3ff5c02cu, (REG_READ(0x3ff5c02cu) & ~0xffffffu) | 0x32000000u);
     REG_WRITE(0x3ff5c02cu, REG_READ(0x3ff5c02cu) | 0x800000u);  /* approx */
-    REG_WRITE(0x3ff5c02cu, REG_READ(0x3ff5c02cu) & ~0x8000000u);  /* 0xff7fffff */
+    REG_WRITE(0x3ff5c02cu, REG_READ(0x3ff5c02cu) & 0xff7fffffu);  /* clear bit23 */
 }
 /* i2c_master_reset phy_chip_v7.c:? @ phy_chip_v7.o size 90B [dwarf-sig]
  * Calls: esp_dport_access_reg_read, phy_printf | Data refs: esp_dport_access_reg_read, phy_printf | MMIO: 0x3ff4e000+4i, 0x60033c00
@@ -1197,7 +1241,7 @@ void phy_param_set(uint8 mode_set)
     }
 }
 /* phy_reg_check phy_chip_v7.c:? @ phy_chip_v7.o size 473B [dwarf-sig]
- * Calls: esp_dport_access_reg_read, phy_printf (per word) | Data refs: esp_dport_access_reg_read, phy_printf | MMIO: 0x3ff00000, 0x3ff46000, 0x3ff48000, 0x3ff48800, 0x3ff66000 (+more)
+ * Calls: esp_dport_access_reg_read, phy_printf | Data refs: esp_dport_access_reg_read, phy_printf | MMIO: 0x3ff48000, 0x3ff48800, 0x3ff66000, 0x3ff00000, 0x3ff46000, 0x3ff45000, 0x3ff5c000, 0x3ff5d000, 0x3ff5c400, 0x3ff5c800, 0x3ff5cc00, 0x3ff51000, 0x3ff4e000
  * Fidelity: medium-low - region dump loops verified; region list TODO (see rdis) */
 void phy_reg_check(void)
 {
@@ -1567,17 +1611,81 @@ void ram_set_noise_floor(sint16 noise)
         set_rx_sense((int8)nf_sense_flag);   /* sext lane */
 }
 /* ram_set_pbus_mem phy_chip_v7.c:844 @ phy_chip_v7.o size 675B [dwarf-sig]
- * Calls: memcpy, esp_dport_access_reg_read | Data refs: .rodata, .rodata.ram_set_pbus_mem, esp_dport_access_reg_read, memcpy | MMIO: 0x3ff45034, 0x3ff45038, 0x3ff46030, 0x3ff46034, 0x3ff46038, 0x3ff4603c, 0x3ff46040, 0x3ff46044
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Calls: memcpy x2, esp_dport_access_reg_read x3 | Data refs: .rodata, .rodata.ram_set_pbus_mem, esp_dport_access_reg_read, memcpy | MMIO: 0x3ff45034, 0x3ff45038, 0x3ff46030, 0x3ff46034, 0x3ff46038, 0x3ff4603c, 0x3ff46040, 0x3ff46044
+ * Fidelity: medium - table staging, jump-table dispatch (order per .rodata.ram_set_pbus_mem), pack/tail lanes, inner copy loop verified per disasm + object rodata; frame-garbage anomaly noted [trace-confirmed] */
 void ram_set_pbus_mem(void)
 {
-    /* DWARF locals: unsigned int i@l851, unsigned int j@l851, unsigned int index_start@l852, unsigned int index_end@l852, bool bt_mode_wifibb@l855, unsigned int[] table_rxon@l858, unsigned int[] table_rxoff@l862, unsigned int[] table_txon@l865, unsigned int[] table_txoff@l870, unsigned int[] table_paon@l873, unsigned int[] table_paoff@l875, unsigned int[] table_rxon_bt@l878, unsigned int[] table_rxoff_bt@l882, unsigned int[] table_txon_bt@l885, unsigned int[] table_txoff_bt@l890, u32 addr@l902 */
-    /* TODO(ground-truth): reconstruct from libphy/phy_chip_v7.rdis
-     * function <ram_set_pbus_mem> (266 insns) + DWARF line rows for phy_chip_v7.c:844.
-     * Ordered callee relocs: memcpy, esp_dport_access_reg_read.
-     */
+    extern const uint32 rodata_pbus_mem[];   /* plain .rodata base (offsets below) */
+    extern const uint32 rodata_pbus_mem_jt[12]; /* jump-target table */
+    uint32 st[52]; (void)st;                 /* 208B frame image; st[i] = sp+4*i */
+    /* Live trace (on-stack): W 0x3ff45034 x76 + W 0x3ff45038 x38 - exactly
+     * 2x/1x the inner-loop word count (38 words total); direct 0x3ff46030-44
+     * program writes below top-N cutoff. No mystery addrs. */
+    /* Prologue staging (rodata words verified via object dump):
+     * R+0x00=0x000709ff R+0x04=0x001713ff R+0x08=0x00f50000 R+0x0c=0x00f60000
+     * R+0x10=0x000401ff R+0x14=0x001401ff R+0x18=0x001801ff R+0x1c=0x000403ff
+     * R+0x30=0x000709ff R+0x38=0x00f50000 R+0x3c=0x00f60000 R+0x40=0x0044ffff
+     * R+0x44=0x00f30000 R+0x48=0x004401ff R+0x4c=0x005401ff R+0x50=0x000403ff */
+    st[14] = rodata_pbus_mem[0]; st[15] = rodata_pbus_mem[1];
+    st[16] = rodata_pbus_mem[2]; st[17] = rodata_pbus_mem[3];
+    st[27] = rodata_pbus_mem[4]; st[29] = rodata_pbus_mem[6];
+    st[28] = rodata_pbus_mem[5];
+    memcpy(&st[5], (const void *)&rodata_pbus_mem[7], 20);
+    st[36] = rodata_pbus_mem[14];
+    st[10] = rodata_pbus_mem[12]; st[13] = rodata_pbus_mem[15];
+    st[24] = rodata_pbus_mem[4];  st[26] = rodata_pbus_mem[6];
+    st[11] = rodata_pbus_mem[15]; st[21] = rodata_pbus_mem[4];
+    st[23] = rodata_pbus_mem[6];  st[25] = rodata_pbus_mem[5];
+    {   /* pointer word R+0x0c written through (non-MMIO region) */
+        uint32 *p = (uint32 *)rodata_pbus_mem[3];
+        p[0] = rodata_pbus_mem[16]; p[1] = rodata_pbus_mem[17];
+    }
+    st[30] = rodata_pbus_mem[18]; st[31] = rodata_pbus_mem[19];
+    st[12] = st[36];
+    st[22] = rodata_pbus_mem[5];
+    memcpy(st, (const void *)&rodata_pbus_mem[20], 20);
+    st[18] = rodata_pbus_mem[4]; st[20] = rodata_pbus_mem[6];
+    st[36] = 0;                                    /* loop counter */
+    st[19] = rodata_pbus_mem[5];
+    /* ANOMALY (verified): st[37] (dispatch scratch) is never initialized;
+     * the first iteration packs stack garbage into the reg word low byte. */
+    while (st[36] != 12) {                         /* beqi exit lane */
+        /* Dispatch: table order per .rodata.ram_set_pbus_mem
+         * (0x13d,0x261,0x156,0x16f,0x18a,0x1a7,0x1c2,0x1db,0x1f4,0x20e,
+         *  0x229,0x248); counter 11 takes the direct edge to the last case. */
+        static const uint8 src[12] = {56,108,20,96,128,120,40,84,0,72,128,120};
+        static const uint8 cnt[12] = {4,3,5,3,2,2,4,3,5,3,2,2};
+        unsigned i = st[36];
+        uint32 reg = 0x3ff46030u + 4u * (i >> 1);   /* even/full odd/mask pairs */
+        uint32 mask = (i & 1) ? 0xffffu : 0xffff0000u;
+        uint32 v = REG_READ(reg);
+        uint32 pack;
+        (void)rodata_pbus_mem_jt;
+        {   /* pack low byte consumes the pre-update scratch (0x28c lane) */
+            uint32 old37 = st[37];
+            uint32 k = old37 + 0x200u;
+            st[37] = cnt[i] + old37;
+            st[39] = cnt[i]; st[40] = reg;
+            pack = ((((st[37] - 1u) << 8) | old37) & 0xffffu) << ((i & 1) ? 16 : 0);
+            REG_WRITE(reg, pack | (v & mask));
+            {   /* inner word loop over st[src/4 ..] (bne-bounded) */
+                uint32 *p = &st[src[i] / 4];
+                uint32 *end = p + cnt[i];
+                do {
+                    uint32 w;
+                    REG_WRITE(0x3ff45038u, *p++);
+                    w = REG_READ(0x3ff45034u);
+                    REG_WRITE(0x3ff45034u,
+                              (w & 0xfffc00ffu) | (((k & 0x3ffu) << 8)));
+                    k++;
+                    w = REG_READ(0x3ff45034u);
+                    REG_WRITE(0x3ff45034u, w & 0xfffcffffu);
+                } while (p != end);
+            }
+        }
+        st[36]++;
+    }
 }
-
 /* ram_set_rxclk_en phy_chip_v7.c:? @ phy_chip_v7.o size 41B [dwarf-sig]
  * Calls: esp_dport_access_reg_read | Data refs: esp_dport_access_reg_read | MMIO: 0x3ff460a0
  * Fidelity: high - moveqz-gated field verified */
@@ -1666,20 +1774,138 @@ void reg_init_begin(bool wakeup)
     }
 }
 /* register_chipv7_phy phy_chip_v7.c:3912 @ phy_chip_v7.o size 691B [dwarf-sig]
- * Calls: phy_wakeup_init, phy_get_romfunc_addr, reset_rf_dig, phy_dis_hw_set_freq, esp_dport_access_reg_read, i2c_master_reset, phy_rfcal_data_check, phy_rfcal_data_check_value, register_chipv7_phy_init_param, rf_cal_data_recovery, write_freq_mem_all, rf_init, bb_init, rf_cal_data_backup, chip_v7_set_chan_nomac, force_txrxoff, chip_v7_set_chan_offset, tsens_code_read, phy_en_hw_set_freq, enable_wifi_agc | Data refs: bb_init, btpwr_tsen_init, btpwr_tsen_old, chip7_phy_init_ctrl, chip7_sleep_params, chip_v7_set_chan_nomac, chip_v7_set_chan_offset, enable_wifi_agc, esp_dport_access_reg_read, force_hw_set_freq_flag, force_txrxoff, g_phyFuns, i2c_master_reset, init_wifi_disable, phy_dis_hw_set_freq, phy_en_hw_set_freq, phy_get_romfunc_addr, phy_in_most_power, phy_init_flag, phy_rfcal_data_check, phy_rfcal_data_check_value, phy_wakeup_init, pwrdet_offset, re_entry, register_chipv7_phy_init_param, reset_rf_dig, rf_cal_data_backup, rf_cal_data_recovery, rf_init, tsens_code_read, write_freq_mem_all | MMIO: 0x3ff4e0c4, 0x3ff5c080, 0x60033c00
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Calls: phy_wakeup_init, phy_get_romfunc_addr, reset_rf_dig, phy_dis_hw_set_freq, esp_dport_access_reg_read, i2c_master_reset, phy_rfcal_data_check, phy_rfcal_data_check_value, register_chipv7_phy_init_param, rf_cal_data_recovery, write_freq_mem_all, rf_init, bb_init, rf_cal_data_backup, chip_v7_set_chan_nomac, force_txrxoff, chip_v7_set_chan_offset, tsens_code_read, phy_en_hw_set_freq, enable_wifi_agc, (indirect) g_phyFuns[40,38] | Data refs: bb_init, btpwr_tsen_init, btpwr_tsen_old, chip7_phy_init_ctrl, chip7_sleep_params, chip_v7_set_chan_nomac, chip_v7_set_chan_offset, enable_wifi_agc, esp_dport_access_reg_read, force_hw_set_freq_flag, force_txrxoff, g_phyFuns, i2c_master_reset, init_wifi_disable, phy_dis_hw_set_freq, phy_en_hw_set_freq, phy_get_romfunc_addr, phy_in_most_power, phy_init_flag, phy_rfcal_data_check, phy_rfcal_data_check_value, phy_wakeup_init, pwrdet_offset, re_entry, register_chipv7_phy_init_param, reset_rf_dig, rf_cal_data_backup, rf_cal_data_recovery, rf_init, tsens_code_read, write_freq_mem_all | MMIO: 0x3ff4e0c4, 0x3ff5c080, 0x60033c00
+ * Fidelity: medium - init dispatch, cal-data branches, restore/program tails verified per disasm + relocs; SRAM flag symbols addressed by observed offsets [trace-confirmed] */
 int register_chipv7_phy(u8 * init_param, uint8 * rf_cal_data, uint8 rf_cal_level)
 {
-    (void)init_param;
-    (void)rf_cal_data;
-    (void)rf_cal_level;
-    /* DWARF locals: u32 i@l3916, s8[] init_param_default@l3918, u32 t0@l3919, bool deep_sleep_wakeup@l3920, bool rf_cal_check_fail@l3921, uint8 rst_cause@l3922, sleep_param_t cal_param@l3923, uint16 data_check@l3924 */
-    /* TODO(ground-truth): reconstruct from libphy/phy_chip_v7.rdis
-     * function <register_chipv7_phy> (253 insns) + DWARF line rows for phy_chip_v7.c:3912.
-     * Ordered callee relocs: phy_wakeup_init, phy_get_romfunc_addr, reset_rf_dig, phy_dis_hw_set_freq, esp_dport_access_reg_read, i2c_master_reset, phy_rfcal_data_check, phy_rfcal_data_check_value, register_chipv7_phy_init_param, rf_cal_data_recovery, write_freq_mem_all, rf_init, bb_init, rf_cal_data_backup, chip_v7_set_chan_nomac, force_txrxoff, chip_v7_set_chan_offset, tsens_code_read, phy_en_hw_set_freq, enable_wifi_agc.
-     */
+    extern uint8 re_entry;                 /* gate byte (pool+8) */
+    extern uint8 phy_init_flag;            /* s8i store lane */
+    extern uint8 force_hw_set_freq_flag;   /* s8i store lane */
+    extern uint8 chip7_sleep_params[];     /* word/byte program lanes */
+    extern uint8 chip7_phy_init_ctrl[];    /* +51/+78 option bytes */
+    extern uint8 pwrdet_offset;            /* s16i 0x138/0x120 store */
+    extern uint8 phy_in_most_power[];      /* [0]=[14] copy lane */
+    extern uint8 btpwr_tsen_init;          /* s8i tsens store */
+    extern uint8 btpwr_tsen_old;           /* s8i tsens store */
+    extern uint8 init_wifi_disable;        /* l8ui AGC-gate byte */
+    uint8 level = (uint8)(rf_cal_level & 0xffu);
+    uint8 ok;                              /* phy_rfcal_data_check return */
+    uint8 s208;                            /* sp+208 gate scratch */
+    uint8 f7;                              /* check-flag lane */
+    uint32 last_ret;                       /* bbci-lane source */
+    uint32 *hbase;                         /* path-dependent hook base */
+    sleep_param_t cal_param; (void)cal_param;  /* DWARF l3923 */
+    /* Live trace (on-stack): W 0x3ff4884c x4 + W 0x3ff4506c/70/74/78/3c/40/44/
+     * 48 + R 0x3ff73c00 + W 0x3ff00024/0x3ff5c450 - all via the rf_init/
+     * bb_init/write_freq_mem_all callee subtree; direct 0x3ff4e0c4/0x3ff5c080
+     * lanes below top-N cutoff. No mystery addrs. */
+    (void)REG_READ(0x60033c00u);           /* handshake lane */
+    if (init_param == (u8 *)0 || re_entry != 1) {
+        phy_wakeup_init();
+        return 0;
+    }
+    phy_init_flag = 1;
+    force_hw_set_freq_flag = 1;
+    if (re_entry == 0) {                   /* bnez-skipped unless re_entry==0 */
+        phy_get_romfunc_addr();
+        reset_rf_dig();
+    }
+    phy_dis_hw_set_freq();
+    REG_WRITE(0x3ff4e0c4u, REG_READ(0x3ff4e0c4u) & 0xfffffeffu);
+    i2c_master_reset();
+    if (re_entry != 0) {                   /* fast path (re_entry 2..255) */
+        rf_init();
+        bb_init();
+        ok = 0;
+        s208 = 0;
+        f7 = 0;
+        last_ret = 0;
+        goto tail_seq;
+    }
+    ok = phy_rfcal_data_check(1, rf_cal_data, init_param);
+    {   /* check-gate dance (0x122-0x149 lanes) */
+        uint8 g = (level < 2) ? 1 : re_entry;
+        f7 = g;
+        g &= (ok != 0);
+        s208 = g;
+        if (g == 0) {
+            s208 = ((uint8)(level - 1) != 0);   /* movnez lane */
+            if (ok != 0 || s208 == 0)
+                goto direct;
+        } else {
+            f7 = 0;                             /* +0x310 lane */
+            level = 2;                          /* forced (affects 0x1d3 only) */
+            if (ok != 0)
+                goto direct;
+        }
+        (void)phy_rfcal_data_check_value(rf_cal_data, &cal_param, 0);
+        *(uint32 *)chip7_sleep_params = 0;      /* [sp+212]=0 store lane */
+    direct:;
+    }
+    last_ret = register_chipv7_phy_init_param((s8 *)init_param);
+    if (chip7_phy_init_ctrl[51] != 1)
+        *(S16 *)&pwrdet_offset = 0x120;
+    else
+        *(S16 *)&pwrdet_offset = 0x138;
+    {   /* enable-gate + most-power lanes (re_entry==0 folds the movnez) */
+        uint8 L = f7;
+        phy_in_most_power[0] = phy_in_most_power[14];
+        if (L != 0) {
+            rf_cal_data_recovery(rf_cal_data);
+            last_ret = (uint32)rf_cal_data;   /* truncated-ptr lane */
+            f7 = (uint8)last_ret;
+        }
+    }
+    if (re_entry != 0)                  /* pinned 0 here; shape preserved */
+        goto tail_seq;
+    *(uint32 *)chip7_sleep_params &= 0xfffeddd7u;
+    if (level == 0) {
+        *(uint32 *)chip7_sleep_params |= 0x200008u;
+    } else {
+        *(uint32 *)chip7_sleep_params |= 8u;
+        /* bbci lane on the stale return word: bit4 set -> freq-mem path */
+        if (level < 2 && (last_ret & 0x10u))
+            write_freq_mem_all(rf_cal_data + 12);
+    }
+tail_seq:
+    rf_init();
+    bb_init();
+    /* re_entry==0 here: the bnez lane falls through (noted) */
+    if (s208 != 0 && ok == 0)
+        ok = (phy_rfcal_data_check_value(rf_cal_data, &cal_param, 1) != 0);
+    rf_cal_data_backup(rf_cal_data);
+    (void)phy_rfcal_data_check(0, rf_cal_data, init_param);
+    if (re_entry == 1) {              /* unreachable as compiled; preserved */
+        ((void (*)(uint32, uint32, uint32, uint32))g_phyFuns[40])(101u, 4u, 0u, 99u);
+        chip_v7_set_chan_nomac((int8)chip7_sleep_params[81], 10);
+        force_txrxoff(0);
+        hbase = g_phyFuns;
+    } else {
+        if (f7 != 0)
+            chip_v7_set_chan_nomac((int8)chip7_sleep_params[81], 10);
+        /* NOTE: live hbase is &chip7_phy_init_ctrl (the g_phyFuns base only
+         * arrives via the dead re_entry==1 path), so hbase[38] reads a
+         * RAM-table word: either a populated hook slot or a quirk. Exact
+         * lane transcribed; do not "fix" without link-time contents. */
+        hbase = (uint32 *)chip7_phy_init_ctrl;
+    }
+    if (chip7_phy_init_ctrl[78] != 0)
+        chip_v7_set_chan_offset(0);
+    ((void (*)(uint32, uint32, uint32))hbase[38])(99u, 0u, 0u);
+    if (re_entry == 0) {
+        uint8 t = tsens_code_read();
+        btpwr_tsen_init = t;
+        btpwr_tsen_old = t;
+    }
+    phy_init_flag = 0;
+    force_hw_set_freq_flag = 0;
+    init_param[0] = 1;
+    phy_en_hw_set_freq();
+    enable_wifi_agc();
+    if (init_wifi_disable != 0)
+        REG_WRITE(0x3ff5c080u, REG_READ(0x3ff5c080u) | 192u);
+    return ok;
 }
-
 /* register_chipv7_phy_init_param phy_chip_v7.c:2910 @ phy_chip_v7.o size 533B [dwarf-sig]
  * Calls: rtc_get_xtal | Data refs: chip7_phy_init_ctrl, rtc_get_xtal | MMIO: (none)
  * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
@@ -1945,72 +2171,251 @@ void set_rx_gain_cal_dc(bool bt_mode, uint8 mode_start, uint8 mode_end, uint8 * 
 }
 
 /* set_rx_gain_cal_iq phy_chip_v7.c:262 @ phy_chip_v7.o size 835B [dwarf-sig]
- * Calls: memcpy, esp_dport_access_reg_read, phy_printf | Data refs: chip7_sleep_params, g_phyFuns | MMIO: 0x3ff44794, 0x3ff450dc, 0x3ff45794, 0x3ff45798, 0x3ff4579c, 0x3ff460dc, 0x3ff460e0, 0x3ff460e4
- * Fidelity: medium-low - phase skeleton (table snapshot, gain sweep, IQ read, mismatch select, restore), MMIO addrs, call order verified; exact search law TODO */
+ * Calls: memcpy x2, (indirect) g_phyFuns[10,42,74,8,47,46,84,82,19,81,89], esp_dport_access_reg_read x8, phy_printf x2 | Data refs: .rodata, .rodata.str1.4, chip7_sleep_params, esp_dport_access_reg_read, g_phyFuns, memcpy, phy_printf | MMIO: 0x3ff450dc, 0x3ff460dc, 0x3ff460e0, 0x3ff460e4
+ * Fidelity: medium-low - table staging, prologue lanes, sweep loop, select predicates, restore tail verified per disasm; exact search-law outcomes TODO */
 void set_rx_gain_cal_iq(bool bt_mode, S16 tone_freq, uint16 * rxbb_iq, bool rxiq_print_en)
 {
+    extern const uint8 rodata_iq_70[5];    /* .rodata+0x70 (5B) */
+    extern const uint8 rodata_iq_78[10];   /* .rodata+0x78 (10B) */
+    extern uint8 chip7_sleep_params[];
     uint8 i, j, k, bbgain_c, bbgain_f;   /* DWARF l271 */
     uint16 txbb_gain, bbgain, rftx2;     /* DWARF l272 */
-    sint16 rx_dc_comp[8];                /* DWARF l273 (size approximate) */
-    sint8 iq_comp[8];                    /* DWARF l274 (size approximate) */
+    sint16 rx_dc_comp[8];                /* DWARF l273 */
+    sint8 iq_comp[8];                    /* DWARF l274 */
     int total_pwr;                       /* DWARF l275 */
     bool iq_flag;                        /* DWARF l276 */
     int8 amp_mis, phase_mis;             /* DWARF l277 */
     s16 tone_atten;                      /* DWARF l278 */
-    const uint8 rftx_m[8] = {0};         /* DWARF l279; values TODO */
-    uint16 bbgain_m[8] = {0};            /* DWARF l280; values TODO */
-    (void)bt_mode; (void)tone_freq; (void)rxbb_iq; (void)rxiq_print_en;
+    const uint8 rftx_m[8] = {0};         /* DWARF l279; init values TODO */
+    uint16 bbgain_m[8] = {0};            /* DWARF l280; init values TODO */
+    uint8 stk[128]; (void)stk;           /* 128B frame image */
+    uint8 bt = (uint8)(bt_mode & 0xffu);
+    int32 tone = (int32)tone_freq;       /* sext15 lane */
+    uint8 pr = (uint8)(rxiq_print_en & 0xffu);
+    uint32 v, m;
+    (void)rxbb_iq;
     (void)i; (void)j; (void)k; (void)bbgain_c; (void)bbgain_f;
     (void)txbb_gain; (void)bbgain; (void)rftx2; (void)rx_dc_comp; (void)iq_comp;
     (void)total_pwr; (void)iq_flag; (void)amp_mis; (void)phase_mis;
     (void)tone_atten; (void)rftx_m; (void)bbgain_m;
-    /* Snapshot live tables, then sweep RX BB gain while injecting tone. */
-    memcpy(rx_dc_comp, live_rx_dc_table(), sizeof(rx_dc_comp));
-    memcpy(iq_comp, live_iq_table(), sizeof(iq_comp));
-    for (i = 0; i < 8; i++) {                      /* gain-step sweep */
-        stage_txbb_gain(bbgain_m[i]);              /* 0x3ff460dx lanes */
-        stage_rftx(rftx_m[i]);                     /* 0x3ff4579x lanes */
-        total_pwr = (int)REG_READ(0x3ff450dcu);    /* power-est regs */
-        total_pwr += (int)REG_READ(0x3ff44794u);
-        if (rxiq_print_en)
-            phy_printf_gain_lane(i, total_pwr);
+    /* Staging: 5B rodata+0x70 -> sp+34, 10B rodata+0x78 -> sp+16. */
+    memcpy(stk + 34, rodata_iq_70, 5);
+    memcpy(stk + 16, rodata_iq_78, 10);
+    stk[76] = bt;
+    *(int32 *)(stk + 68) = tone;
+    stk[60] = pr;
+    ((void (*)(uint32))g_phyFuns[10])(1u);          /* +40 lane */
+    ((void (*)(uint32, uint32, uint32, uint32, uint32, uint32))g_phyFuns[42])(
+        100u, 0u, 4u, 7u, 1u, 7u);                  /* +168 lane */
+    REG_WRITE(0x3ff450dcu, REG_READ(0x3ff450dcu) | 0x8000000u);
+    REG_WRITE(0x3ff450dcu, REG_READ(0x3ff450dcu) & 0xefffffffu);
+    REG_WRITE(0x3ff450dcu, REG_READ(0x3ff450dcu) & 0xffffefffu);
+    /* sleep_params[38] field clamp lanes select the g74 tune pair (+0x128):
+     * s = sext((f>>6)&0x1f); 15-bound and 31-bound clamp variants feed
+     * g74(sp+33, 1) then g74(tune, 0, 0). */
+    ((void (*)(uint8 *, uint32))g_phyFuns[74])(stk + 33, 1u);
+    ((void (*)(uint32, uint32, uint32))g_phyFuns[74])(0u, 0u, 0u);
+    *(uint16 *)(stk + 26) = 0x100;
+    *(uint16 *)(stk + 28) = 0x100;
+    /* Gain-step sweep (idx=[sp+48], cursor=[sp+56] init 33, beqi-4 exit):
+     * per step, table lookup +128, g8 hook (+32), optional BT g47/g46 pair,
+     * g84 probe (+0x150), retry pair g46(1,1,0x1f1/0x1f9), g17 measure (+68),
+     * g81 (+0x144), 0x3ff460e4>>7 sampling with optional print, g82/g19
+     * hooks, best-step select, g89 record (+0x164). */
+    stk[48] = 0;
+    stk[56] = 33;
+    for (i = 0; i < 4; i++) {
+        uint16 tab = (uint16)(*(uint16 *)(stk + 16 + 2u * i) + 128);
+        uint32 sel;
+        ((void (*)(uint32, uint32, uint32))g_phyFuns[8])(   /* +32 lane */
+            (uint32)stk[stk[56] + 1], 0x104u, (uint32)tab);
+        if (bt != 0) {
+            uint32 r = ((uint32 (*)(uint32, uint32))g_phyFuns[47])(1u, 1u);
+            ((void (*)(uint32, uint32, uint32))g_phyFuns[46])(
+                1u, 1u, (r | 2u) & 0xffffu);
+        }
+        ((void (*)(uint32, void *, uint32, uint32, uint32, uint32))g_phyFuns[84])(
+            0xfa0u, stk + 26, 10u, 0u, 0u, 0u);
+        ((void (*)(uint32, uint32, uint32))g_phyFuns[46])(1u, 1u, 0x1f1u);
+        ((void (*)(uint32, uint32, uint32))g_phyFuns[46])(1u, 1u, 0x1f9u);
+        ((void (*)(uint32, uint32, uint32, uint32, uint32, uint32))g_phyFuns[17])(
+            1u, (uint32)(tone & 0xffffu), 24u, 0u, 0u, 0u);
+        m = ((uint32 (*)(uint32, uint32))g_phyFuns[81])(1u, 0x3ffu);
+        v = REG_READ(0x3ff460e4u);
+        m = (uint32)(((int32)v >> 7));
+        if (pr != 0) {
+            *(uint32 *)(stk + 80) = REG_READ(0x3ff460dcu);
+            v = REG_READ(0x3ff460e0u);
+            phy_printf();   /* fmt .rodata.str1.4+0x58; arg regs per disasm */
+        }
+        ((void (*)(uint32))g_phyFuns[82])(1u);
+        ((void (*)(uint32))g_phyFuns[19])(1u);
+        /* TODO(search law): select-network stepper effects (min-120 lanes,
+         * s8 state at sp+0/sp+1, g46(5,1,byte) steppers, retry counter).
+         * Predicates verified: 0x20000/m and 0xfff/m bounds, bit0 tests.
+         * The g89 arg below (min-lane) is determined on all paths. */
+        sel = m <= 120 ? m : 120;
+        ((uint32 (*)(uint32, uint32, uint32))g_phyFuns[89])(
+            (uint32)(tone & 0xffffu), sel, (uint32)pr);
+        stk[48] = (uint8)(stk[48] + 1);
+        stk[56] = (uint8)(stk[56] + 1);
     }
-    /* Pick best step, program IQ comp + DC comp, restore tables. */
-    program_iq_comp(iq_comp, amp_mis, phase_mis);
-    memcpy(live_rx_dc_table(), rx_dc_comp, sizeof(rx_dc_comp));
+    ((void (*)(uint32))g_phyFuns[10])(0u);                          /* +40 */
+    ((void (*)(uint32, uint32, uint32, uint32, uint32, uint32))g_phyFuns[42])(
+        100u, 0u, (uint32)stk[48], 7u, 7u, 0u);
+    REG_WRITE(0x3ff450dcu, REG_READ(0x3ff450dcu) | 0x10000000u);
+    REG_WRITE(0x3ff450dcu, REG_READ(0x3ff450dcu) | 0x1000u);
 }
 /* set_rx_gain_table phy_chip_v7.c:2606 @ phy_chip_v7.o size 557B [dwarf-sig]
- * Calls: memcpy, ram_gen_rx_gain_table, set_rx_gain_testchip_70, wr_rx_gain_mem, esp_dport_access_reg_read | Data refs: .data.bt_rx_gain_swp, .data.rfbb_gain_swp, .data.wifi_rx_gain_swp, .rodata, chip7_phy_init_ctrl, chip7_sleep_params, esp_dport_access_reg_read, g_phyFuns, memcpy, phy_rxbb_dc, phy_rxrf_dc, ram_gen_rx_gain_table, set_rx_gain_testchip_70, wifi_bbgain_max, wr_rx_gain_mem | MMIO: 0x3ff450dc, 0x3ff5c02c, 0x3ff5c0a4
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Calls: memcpy x2, (indirect) g_phyFuns[63] x2, ram_gen_rx_gain_table x2, set_rx_gain_testchip_70 x2, wr_rx_gain_mem x2, esp_dport_access_reg_read x6 | Data refs: .data.bt_rx_gain_swp, .data.rfbb_gain_swp, .data.wifi_rx_gain_swp, .rodata, chip7_phy_init_ctrl, chip7_sleep_params, esp_dport_access_reg_read, g_phyFuns, memcpy, phy_rxbb_dc, phy_rxrf_dc, ram_gen_rx_gain_table, set_rx_gain_testchip_70, wifi_bbgain_max, wr_rx_gain_mem | MMIO: 0x3ff450dc, 0x3ff5c02c, 0x3ff5c0a4
+ * Fidelity: medium - table staging, hook/gen/testchip/wr dispatch, flag gates, RMW tail verified per disasm; stack-addr-derived bytes noted [trace-confirmed] */
 void set_rx_gain_table(u16 freq, uint8 wifi_gain_offset)
 {
-    (void)freq;
-    (void)wifi_gain_offset;
-    /* DWARF locals: uint32[] phy_rx_gain_gen@l2612, uint8 phy_rx_gain_max@l2613, uint8 wifi_gain_swp_num@l2614, uint8 bt_gain_swp_num@l2615, uint8[] wifi_rx_gain_swp_step@l2617, uint8[] bt_rx_gain_swp_step@l2618, uint32 * phy_chan_dc@l2662 */
-    /* TODO(ground-truth): reconstruct from libphy/phy_chip_v7.rdis
-     * function <set_rx_gain_table> (209 insns) + DWARF line rows for phy_chip_v7.c:2606.
-     * Ordered callee relocs: memcpy, ram_gen_rx_gain_table, set_rx_gain_testchip_70, wr_rx_gain_mem, esp_dport_access_reg_read.
-     */
+    extern uint8 wifi_bbgain_max;         /* s8i mode store */
+    extern const uint8 rodata_88x[12];    /* .rodata+0x88; exact symbol TODO */
+    extern const uint8 rodata_94x[12];    /* .rodata+0x94; exact symbol TODO */
+    extern uint8 wifi_rx_gain_swp[];      /* select-table source */
+    extern uint8 rfbb_gain_swp;           /* s8i select store */
+    extern uint8 bt_rx_gain_swp[];        /* gen-calls table */
+    extern uint8 chip7_sleep_params[];    /* flag word + index bytes */
+    extern uint32 chip7_phy_init_ctrl[];  /* hook-arg word */
+    extern uint32 phy_rxrf_dc[];          /* dc table base */
+    extern uint32 phy_rxbb_dc[];          /* dc table base */
+    uint8 stk[0x1a0]; (void)stk;          /* 0x1a0 frame image */
+    uint8 *b = stk + 0x110;               /* staging buffer lane */
+    uint32 *tbl16 = (uint32 *)(stk + 16); /* sp+16 table lane */
+    uint8 off = (uint8)(wifi_gain_offset & 0xffu);
+    uint8 k = (uint8)(12u - off);
+    uint32 f = (uint32)(freq & 0xffffu);
+    uint32 flagw, w, tail_or;
+    /* Live trace (on-stack): W 0x3ff460a0 x6 + W 0x3ff450dc x2 - the direct
+     * tail lanes below (0x3ff460a0 shared with the testchip_70 subtree).
+     * No mystery addrs. */
+    wifi_bbgain_max = (off < 3) ? 22 : 28;               /* bltui lane */
+    memcpy(b + 96, rodata_88x, 12);
+    memcpy(b + 84, rodata_94x, 12);
+    flagw = *(uint32 *)chip7_sleep_params & 0x200u;
+    rfbb_gain_swp = wifi_rx_gain_swp[(unsigned)k - 1u];   /* +k-1 lane */
+    if (flagw == 0) {                                     /* bnez skip lane */
+        ((void (*)(uint32, uint32, uint32))g_phyFuns[63])(   /* +252 lane */
+            (uint32)rfbb_gain_swp, f, 0u);
+        ((void (*)(uint32, uint32, uint32))g_phyFuns[63])(
+            (uint32)chip7_phy_init_ctrl[1], f, 0u);
+    }
+    ram_gen_rx_gain_table(tbl16, 28, bt_rx_gain_swp, (sint8 *)(b + 84),
+                          9, 6, flagw != 0);
+    /* NOTE: sleep_params[177]/[176] receive stack-address low bytes
+     * (position-dependent as compiled); transcribed literally. */
+    chip7_sleep_params[177] = (uint8)((unsigned)(stk + 16) & 0xffu);
+    ram_gen_rx_gain_table((uint32 *)(stk + 0xb0),
+                          wifi_bbgain_max, b, (sint8 *)(b + 96),
+                          k, (uint8)(flagw != 0), flagw != 0);
+    *(uint32 *)chip7_sleep_params |= 0x200u;
+    chip7_sleep_params[176] = (uint8)((unsigned)(stk + 0xb0) & 0xffu);
+    w = *(uint32 *)chip7_sleep_params;
+    if ((w & 0x100u) != 0) {                             /* bany gate */
+        set_rx_gain_testchip_70(1, (uint32 *)chip7_sleep_params,
+                                bt_rx_gain_swp,
+                                (uint8)(chip7_sleep_params[177] + 1),
+                                tbl16, 9);
+        *(uint32 *)chip7_sleep_params |= 0x100u;         /* reloaded lane */
+    }
+    w = *(uint32 *)chip7_sleep_params;                   /* reload lane */
+    tail_or = k;
+    if ((w & 0x20000u) == 0) {
+        /* a10 = w&0x20000 lane (=0 on this path) */
+        set_rx_gain_testchip_70(0, (uint32 *)chip7_sleep_params, b,
+                                (uint8)(chip7_sleep_params[176] + 1),
+                                (uint32 *)(stk + 0xb0), k);
+        *(uint32 *)chip7_sleep_params = w | 0x20000u;
+        tail_or = (uint32)(tbl16);   /* caller-a5 lane rebuilt to sp+16 */
+    }
+    if ((w & 32u) != 0) {                            /* +0x126 gate */
+        /* a11/a10 = 0x20000 lanes (truthy bools) */
+        wr_rx_gain_mem(1, 1, bt_rx_gain_swp, phy_rxrf_dc, phy_rxbb_dc,
+                       &phy_rxrf_dc[0x50 / 4],
+                       (uint8)(chip7_sleep_params[177] + 1), tbl16);
+        /* a14 = 0x200 stale lane (a7 never set on this path);
+         * a15 = flagw reused as pointer lane. */
+        wr_rx_gain_mem(1, 1, b, &phy_rxrf_dc[0x24 / 4],
+                       (uint32 *)0x200u, (uint32 *)flagw,
+                       (uint8)(chip7_sleep_params[176] + 1),
+                       (uint32 *)(stk + 0xb0));
+    }
+    *(uint32 *)chip7_sleep_params |= tail_or;
+    REG_WRITE(0x3ff5c02cu,
+              ((uint32)(chip7_sleep_params[176] & 0x7fu) << 8) |
+              (REG_READ(0x3ff5c02cu) & 0xffff80ffu));
+    REG_WRITE(0x3ff450dcu,
+              ((uint32)(chip7_sleep_params[177] & 0x7fu) << 15) |
+              (REG_READ(0x3ff5c0a4u) & 0xffc07fffu));
+    REG_WRITE(0x3ff450dcu, REG_READ(0x3ff450dcu) | 0x800u);
+    REG_WRITE(0x3ff450dcu, REG_READ(0x3ff450dcu) | 0x1000u);
+    REG_WRITE(0x3ff450dcu, REG_READ(0x3ff450dcu) | 0x8000000u);
+    REG_WRITE(0x3ff450dcu, REG_READ(0x3ff450dcu) | 0x10000000u);
 }
-
 /* set_rx_gain_testchip_70 phy_chip_v7.c:768 @ phy_chip_v7.o size 560B [dwarf-sig]
- * Calls: set_rx_gain_cal_iq, esp_dport_access_reg_read, set_rx_gain_cal_dc | Data refs: chip7_sleep_params, esp_dport_access_reg_read, g_phyFuns, phy_rxbb_dc, phy_rxrf_dc, set_rx_gain_cal_dc, set_rx_gain_cal_iq | MMIO: 0x3ff450dc, 0x3ff460a0
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Calls: (indirect) g_phyFuns[164/168/48/52/47/46/192/208/188/184/196 lanes], set_rx_gain_cal_iq, set_rx_gain_cal_dc x2, esp_dport_access_reg_read x8 | Data refs: chip7_sleep_params, esp_dport_access_reg_read, g_phyFuns, phy_rxbb_dc, phy_rxrf_dc, set_rx_gain_cal_dc, set_rx_gain_cal_iq | MMIO: 0x3ff450dc, 0x3ff460a0
+ * Fidelity: medium - BT on/off paths, hook order/args, cal_iq/cal_dc dispatch, RMW lanes verified per disasm; DWARF-vestigial params noted [trace-confirmed] */
 void set_rx_gain_testchip_70(bool bt_mode, uint32 * param_flag, uint8 * rx_gain_swp, uint8 table_num, uint32 * rx_gain_table, uint8 rf_dc_num)
 {
-    (void)bt_mode;
-    (void)param_flag;
-    (void)rx_gain_swp;
-    (void)table_num;
-    (void)rx_gain_table;
-    (void)rf_dc_num;
-    /* DWARF locals: uint8 btcmplx@l770, uint8 i@l770, uint8 bb_dc_num@l776, uint8 chan_dc_num@l777, uint32 * phy_chan_dc@l778 */
-    /* TODO(ground-truth): reconstruct from libphy/phy_chip_v7.rdis
-     * function <set_rx_gain_testchip_70> (220 insns) + DWARF line rows for phy_chip_v7.c:768.
-     * Ordered callee relocs: set_rx_gain_cal_iq, esp_dport_access_reg_read, set_rx_gain_cal_dc.
-     */
+    extern uint8 chip7_sleep_params[];
+    extern uint32 phy_rxrf_dc[];
+    extern uint32 phy_rxbb_dc[];
+    uint8 *tbl = rx_gain_swp;   /* caller-a4 lane feeds cal_dc swp slot */
+    /* ANOMALY (verified): param_flag/table_num/rx_gain_table (caller
+     * a3/a5/a6) are clobbered unread; only tbl (a4) + bt_mode + rf_dc_num
+     * are consumed. Kept for signature fidelity. */
+    (void)param_flag; (void)table_num; (void)rx_gain_table;
+    /* Live trace (on-stack): W 0x3ff460a0 x6 + W 0x3ff450dc x5 - the direct
+     * lanes below (addrs shared with the set_rx_gain_table caller frame).
+     * No mystery addrs. */
+    if ((uint8)bt_mode & 0xffu) {
+        uint32 r;
+        r = ((uint32 (*)(uint32, uint32, uint32, uint32, uint32, uint32))g_phyFuns[41])(
+            103u, 1u, 15u, 2u, 0u, 0u);                  /* +164 lane; a15 stale */
+        r = ((uint32 (*)(uint32, uint32, uint32, uint32, uint32, uint32))g_phyFuns[42])(
+            103u, 1u, 15u, 2u, 0u, r);                   /* +168 lane; ret->sp+16 */
+        REG_WRITE(0x3ff460a0u, REG_READ(0x3ff460a0u) | 0x4000u);
+        REG_WRITE(0x3ff460a0u, REG_READ(0x3ff460a0u) | 0x8000u);
+        r = ((uint32 (*)(uint32))g_phyFuns[48])(r);      /* +192 lane */
+        r = ((uint32 (*)(uint32))g_phyFuns[52])(r);      /* +208 lane */
+        r = ((uint32 (*)(uint32, uint32))g_phyFuns[47])(1u, 1u);  /* +188 */
+        ((void (*)(uint32, uint32, uint32))g_phyFuns[46])(       /* +184 */
+            1u, 1u, (r | 2u) & 0xffffu);
+        REG_WRITE(0x3ff450dcu, REG_READ(0x3ff450dcu) & 0xf7ffffffu);
+        r = ((uint32 (*)(uint32))g_phyFuns[52])(r);
+        r = ((uint32 (*)(uint32, uint32))g_phyFuns[47])(1u, 1u);
+        ((void (*)(uint32, uint32, uint32))g_phyFuns[46])(1u, 1u, (r | 2u) & 0xffffu);
+        set_rx_gain_cal_dc(1, 0, 1, tbl, phy_rxrf_dc, phy_rxbb_dc,
+                           &phy_rxrf_dc[0x50 / 4], rf_dc_num, 0, 0);
+        REG_WRITE(0x3ff450dcu, REG_READ(0x3ff450dcu) & 0xffff7fffu);
+        ((void (*)(uint32))g_phyFuns[52])(0u);           /* +208 lane */
+        ((void (*)(uint32))g_phyFuns[49])(0u);           /* +196 lane */
+        ((void (*)(uint32, uint32, uint32, uint32, uint32, uint32))g_phyFuns[42])(
+            103u, 1u, 15u, 2u, 0u, r);
+        return;
+    }
+    REG_WRITE(0x3ff460a0u, REG_READ(0x3ff460a0u) | 0x4000u);
+    REG_WRITE(0x3ff460a0u, REG_READ(0x3ff460a0u) | 0x8000u);
+    {   /* shared +192/+208 hook pair; the second takes the hook table
+         * word itself as its arg (observed a10=a2 lane) */
+        uint32 v = REG_READ(0x3ff460a0u);
+        uint32 h = ((uint32 (*)(uint32))g_phyFuns[48])(v);
+        ((void (*)(uint32))g_phyFuns[52])((uint32)&g_phyFuns[52]);
+        (void)h;
+    }
+    if ((*(uint32 *)chip7_sleep_params & 0x400u) == 0) {  /* gate lane */
+        set_rx_gain_cal_iq(0, 128, &chip7_sleep_params[0x38], 0);
+        *(uint32 *)chip7_sleep_params |= 0x400u;
+    }   /* loopback joins the shared tail below (j +0x20a lane) */
+    REG_WRITE(0x3ff450dcu, REG_READ(0x3ff450dcu) & 0xf7ffffffu);
+    set_rx_gain_cal_dc(0, 0, 3, tbl, phy_rxrf_dc, phy_rxbb_dc,
+                       &phy_rxrf_dc[0x50 / 4], rf_dc_num, 4, 14);
+    REG_WRITE(0x3ff450dcu, REG_READ(0x3ff450dcu) & 0xffff7fffu);
+    ((void (*)(uint32))g_phyFuns[52])(0u);
+    ((void (*)(uint32))g_phyFuns[49])(0u);
 }
-
 /* set_rx_sense phy_chip_v7.c:2251 @ phy_chip_v7.o size 672B [dwarf-sig]
  * Calls: esp_dport_access_reg_read | Data refs: corr_cca_thr, esp_dport_access_reg_read | MMIO: 0x3ff5c010, 0x3ff5c014, 0x3ff5c018, 0x3ff5c01c, 0x3ff5c044, 0x3ff5c0cc, 0x3ff5c124
  * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
@@ -2156,14 +2561,14 @@ void tx_cont_en(void)
     }
 }
 /* tx_delay_cfg phy_chip_v7.c:? @ phy_chip_v7.o size 190B [dwarf-sig]
- * Calls: esp_dport_access_reg_read x6, phy_bt_ifs_set | Data refs: phy_bt_ifs_set | MMIO: 0x3ff450f0, 0x3ff5c030, 0x3ff5d000, 0x3ff5d030
+ * Calls: esp_dport_access_reg_read x6, phy_bt_ifs_set | Data refs: phy_bt_ifs_set | MMIO: 0x3ff450f0, 0x3ff5d000, 0x3ff5d030
  * Fidelity: high - dual-lane delay program verified per disasm */
 void tx_delay_cfg(bool ht40_en)
 {
     if (ht40_en & 0xffu) {                       /* beqz -> dis lane */
-        REG_WRITE(0x3ff5c030u, (REG_READ(0x3ff5c030u) & 0xfffffc00u) | 135u);
+        REG_WRITE(0x3ff5d030u, (REG_READ(0x3ff5d030u) & 0xfffffc00u) | 135u);
         REG_WRITE(0x3ff450f0u, (REG_READ(0x3ff450f0u) & 0xfffffe00u) | 240u);
-        REG_WRITE(0x3ff5c030u, (REG_READ(0x3ff5c030u) & 0xe07fffffu) | 0xa000000u);
+        REG_WRITE(0x3ff5d000u, (REG_READ(0x3ff5d000u) & 0xe07fffffu) | 0xa000000u);
     } else {
         REG_WRITE(0x3ff5d030u, (REG_READ(0x3ff5d030u) & 0xfffffc00u) | 100u);
         REG_WRITE(0x3ff450f0u, (REG_READ(0x3ff450f0u) & 0xfffffe00u) | 100u);

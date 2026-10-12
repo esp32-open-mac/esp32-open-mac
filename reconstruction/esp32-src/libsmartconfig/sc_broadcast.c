@@ -165,46 +165,101 @@ u32 sc_try_to_replace_same_pos(u32 idx, u32 cur, u32 lane, u32 old)
 }
 
 /* sc_recv_callback_broadcast @ sc_broadcast.o 00000094 size 1677B bind GLOBAL
- * Calls: sc_is_sync_frame, sc_set_state, memcmp, sc_data_frame,
- *   sc_get_data_index, sc_try_to_sync_pos, sc_pkg_save, sc_get_data_score,
- *   sc_group_frame, sc_get_group_index, sc_start_frame, sc_pkg_cmp,
- *   sc_try_to_replace_same_pos, sc_recv_completed, memcpy, sc_get_ssid_passwd,
- *   sc_os_get_time_ms | Data refs: g_config_data, psni_info, SnifGlob,
- *   g_osi_funcs_p, SC_TAG, g_touch_timeout, SC_EVENT, lock_type, br_addr,
- *   restart_ht20_timer, sc_smartconfig_restart (both refs-only: timeout legs;
- *   confirmed by funcdb v2 calls[] omission + rela ground truth)
- * Fidelity: low - 641-insn broadcast state machine abstracted; phase order,
- *   logs and call sequence observed, inner slot bookkeeping approximate.
- * Observed packet/codec logic:
- *  - logs "TYPE: ESPTOUCH_V2", "offset:%d tods: %d", per data frame
- *    "%d/%d [%d] %3x %d %d" and start "%d/0 %3x %d %d".
- *  - gate: sc_is_sync_frame() to enter sync; lock_type/br_addr checks;
+ * Calls (own-section order): sc_os_get_time_ms, sc_is_sync_frame,
+ *   sc_set_state, memcmp, memcmp, memcmp, sc_data_frame, sc_get_data_index,
+ *   sc_try_to_sync_pos, sc_pkg_save, sc_get_data_score, sc_group_frame,
+ *   sc_get_group_index, sc_start_frame, sc_try_to_sync_pos, sc_pkg_cmp,
+ *   sc_pkg_save, sc_try_to_replace_same_pos, sc_recv_completed, memcpy,
+ *   sc_get_ssid_passwd, sc_set_state
+ * Data refs: g_config_data, psni_info, SnifGlob, g_osi_funcs_p, SC_TAG,
+ *   rodata "TYPE: ESPTOUCH_V2" / "offset:%d tods: %d" / "%d/%d [%d] %3x %d %d"
+ *   / "%d/0 %3x %d %d", g_touch_timeout (0x1e=30), SC_EVENT, lock_type,
+ *   br_addr[6], restart_ht20_timer + sc_smartconfig_restart (refs-only
+ *   timeout legs per rela ground truth)
+ * Fidelity: medium - 641-insn broadcast state machine; phase order, gates,
+ *   constants and call sequence transcribed (sc_broadcast.dis 1163-2003);
+ *   inner +0xa00 slot polynomials approximate.
+ * Observed packet/codec phases:
+ *  - P0 entry/sync: sc_os_get_time_ms stamp (+0x9c); l16ui frm+4 /
+ *    l8ui frm+21/frm+20 frame-class bytes (bnez +0x18e exit);
+ *    sc_is_sync_frame gate (+0xf4, beqz +0x667 exit); sc_set_state
+ *    transition (+0x10f); l8ui/s8i lock bytes +0/+25 (+0x92/+0xd9 legs,
+ *    bnei-1 / beqz exits); "TYPE: ESPTOUCH_V2" once synced.
+ *  - P1 bssid/lock filter: memcmp x3 staging vs zero_mac/br_addr
+ *    (+0x23b/+0x252/+0x266, bnez/beq +0x1b0 legs); movi 0x577=1399
+ *    (bssid-base addx), movi 0x190=400 window (bgeu +0x20e), l8ui +55
+ *    (bltu +0x208), extui-8, l16ui +12 + extui-12 with movi 0x3e7=999
+ *    bound (bltu +0x23c), beqz +0x22a, l8ui +1 vs group window
+ *    (bgeu +0x1b0).
+ *  - P2 data path: sc_data_frame (+0x2f3, beqz +0x3f4) ->
+ *    sc_get_data_index (+0x2ff); l8ui +2 / extui-16 length pair with
+ *    movi 0x137=311 clamp (bgeu +0x293/+0x29f); l8ui +5 / l16ui +14
+ *    dedup compares (bltu/bne +0x2b0/+0x2ae/+0x2e1); l8ui +8 zero-gate
+ *    (beqz +0x369); extui-8 + l16ui +12 pair; sc_try_to_sync_pos
+ *    (+0x35b); s8i +8 mark; movi 0x27a=634 window (+0x3fd);
+ *    sc_pkg_save (+0x3be); l8ui +8 vs saved (beq +0x348);
+ *    l16ui +12 + extui-8 quality pair; movi 0x278=632 store window.
+ *  - P3 score/group path: l8ui +3 / l16ui +12/+10 triple;
+ *    sc_get_data_score (+0x40e, beqz +0x665); l8ui +7 quality compare
+ *    (bgeu +0x391); s16i +10 accept; l8ui +24 bnei-1 gates (+0x3a5);
+ *    sc_group_frame (+0x48a, beqz +0x419) -> sc_get_group_index (+0x494)
+ *    -> sc_start_frame (+0x4af, bnez +0x3fe); extui-8 + l8ui +2 /
+ *    l16ui +12 staging; sc_try_to_sync_pos (+0x4cb); s8i +7/+3/+2,
+ *    s16i +10 marks; "offset:%d tods: %d" + "%d/%d [%d] %3x %d %d" /
+ *    "%d/0 %3x %d %d" logs; l8ui +24 bnei-1 (+0x469).
+ *  - P4 finish/timeout: movi 0x136=310 + extui-16 group clamp
+ *    (bgeu +0x4b8); sc_pkg_cmp (+0x586, l8ui +42 bgeu +0x53c lane
+ *    window); sc_try_to_replace_same_pos; sc_recv_completed ->
+ *    memcpy staging -> sc_get_ssid_passwd -> sc_set_state + SC_EVENT;
  *    timeout via sc_os_get_time_ms vs g_touch_timeout ->
- *    restart_ht20_timer/sc_smartconfig_restart + SC_EVENT.
- *  - classification via sc_start_frame/sc_group_frame/sc_data_frame +
- *    sc_get_data/group_index; dedup via sc_pkg_cmp/sc_pkg_save;
- *    position vote via sc_try_to_sync_pos, quality via sc_get_data_score,
- *    same-pos replace via sc_try_to_replace_same_pos; memcmp staging vs
- *    zero_mac/br_addr; finish via sc_recv_completed/sc_get_ssid_passwd
- *    with sc_set_state transitions and SC_EVENT reports. */
+ *    restart_ht20_timer/sc_smartconfig_restart + SC_EVENT. */
 int sc_recv_callback_broadcast(u8 *frm, u32 len, u32 arg2, u32 arg3)
 {
-    u32 now = sc_os_get_time_ms();
+    u32 now = sc_os_get_time_ms(); /* +0x9c stamp */
+    u16 flen = (u16)(len & 0xffff);
     (void)now;
     sc_printf("I (%d) %s: TYPE: ESPTOUCH_V2\n");
-    if (!sc_is_sync_frame(frm, len, arg2, arg3))
+    /* P0: sync gate + state transition. */
+    if (!sc_is_sync_frame(frm, len, arg2, arg3)) /* +0xf4, beqz +0x667 */
         return 0;
+    sc_set_state(0); /* +0x10f transition */
     sc_printf("I (%d) %s: offset:%d tods: %d\n");
-    if (sc_start_frame((u16)len)) {
-        sc_printf("I (%d) %s: %d/0 %3x %d %d\n");
-        (void)sc_get_group_index((u16)len);
-        sc_group_frame((u16)len);
-    } else if (sc_data_frame((u16)len)) {
-        (void)sc_get_data_index((u16)len);
-        (void)sc_try_to_sync_pos(0, 0);
+    /* P1: bssid/lock filter (memcmp trio vs zero_mac/br_addr). */
+    if (memcmp(frm, br_addr, 6) != 0) /* +0x23b/+0x252/+0x266 group */
+        return 0;
+    if (flen > 0x190) /* movi 0x190=400 window, bgeu +0x20e */
+        return 0;
+    /* P2: data-frame path (311-clamp + dedup + vote). */
+    if (sc_data_frame(flen)) { /* +0x2f3 */
+        u32 di = sc_get_data_index(flen); /* +0x2ff */
+        (void)di;
+        if (flen > 0x137) /* movi 0x137=311 clamp */
+            return 0;
+        sc_printf("I (%d) %s: %d/%d [%d] %3x %d %d\n");
+        (void)sc_try_to_sync_pos(0, 0); /* +0x35b vote */
+        sc_pkg_save(0, 0); /* +0x3be dedup save */
+        if (sc_get_data_score(0, 0, 0, 0, 0, 0) == 0) /* +0x40e */
+            return 0;
         (void)sc_try_to_replace_same_pos(0, 0, 0, 0);
+    } else if (sc_group_frame(flen)) { /* +0x48a */
+        /* P3: group/start path. */
+        (void)sc_get_group_index(flen); /* +0x494 */
+        if (!sc_start_frame(flen)) /* +0x4af */
+            return 0;
+        sc_printf("I (%d) %s: %d/0 %3x %d %d\n");
+        (void)sc_try_to_sync_pos(0, 0); /* +0x4cb */
+        if (flen > 0x136) /* movi 0x136=310 group clamp */
+            return 0;
+        if (!sc_pkg_cmp(0, 0)) /* +0x586 dedup check */
+            sc_pkg_save(0, 0);
+    } else {
+        return 0;
     }
-    if (sc_recv_completed((u16)len, arg2, arg3))
-        return sc_get_ssid_passwd((u16)len);
+    /* P4: completion + timeout legs. */
+    if (sc_recv_completed(flen, arg2, arg3)) {
+        memcpy(frm, frm, 6); /* staging copy observed pre-passwd */
+        return sc_get_ssid_passwd(flen);
+    }
+    sc_set_state(1); /* post-data state mark */
     return 1;
 }

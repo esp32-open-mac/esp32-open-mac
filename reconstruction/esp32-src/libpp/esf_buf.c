@@ -486,7 +486,7 @@ L_8:;
  * Calls: .rodata[tail], memset[got], g_wifi_menuconfig[got], g_wifi_menuconfig[got], g_osi_funcs_p[got], g_lmac_cnt[got], esf_buf_recycle_default_handler[got] | Data refs: .rodata, g_wifi_menuconfig, memset, g_osi_funcs_p, g_wifi_global_lock, g_eb_list_desc, g_lmac_cnt, esf_buf_recycle_default_handler
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 7 call(s), 8 data ref(s)
- * Fidelity: low - 89 instr, 12 branches, 0 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: low - 89 instr, 12 branches, jx tail dispatch on eb-type (bounds-checked, rodata table + (idx<<4) load at +0x39); GOT-indirect free paths mapped - need per-type rodata case decode to raise */
 int32_t esf_buf_recycle(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifirxiram.8; Xtensa ABI: args a2..a7, return a2 */
@@ -669,7 +669,7 @@ L_61:;
  * Calls: memset, g_osi_funcs_p[got] | Data refs: g_eb_list_desc, g_osi_funcs_p, g_wifi_global_lock, memset
  *   MMIO: none
  *   funcdb v3: 1 call(s), 4 ref(s); disasm: 3 call(s), 4 data ref(s)
- * Fidelity: low - 59 instr, 7 branches, 3 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 59 instr, 7 branches, 3 indirect; flow + direct calls mapped, GOT-indirects enumerated */
 int32_t esf_buf_free_static(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.esf_buf_free_static; Xtensa ABI: args a2..a7, return a2 */

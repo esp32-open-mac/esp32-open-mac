@@ -148,46 +148,98 @@ int sc_ht40_get_qos_auth_group_info(u32 len, u32 qos, u32 arg2, u32 arg3)
 }
 
 /* sc_recv_callback_ht40_ctrl @ sc_ht40.o 00000094 size 1245B bind GLOBAL
- * Calls: ht40_scanning_sync_frame, sc_ht40_get_qos_auth_group_info, sc_data_frame,
- *   sc_get_data_index, sc_pkg_cmp, sc_pkg_save, sc_recv_completed,
- *   sc_get_ssid_passwd, sc_set_state, sc_start_frame, sc_get_group_index,
- *   sc_group_frame, sc_os_get_time_ms
- * Data refs: lock_type, SnifGlob, g_osi_funcs_p, SC_TAG, ht40_state,
- *   g_touch_timeout, ht40_rssi_low/high, ht40_filter, g_config_data, ht40_qos,
- *   ht40_timestamp, restart_ht40_timer, sc_smartconfig_restart
- *   (both refs-only per funcdb v2 calls[] omission)
- * Fidelity: low - 494-insn mimo state machine abstracted; phase order and
- *   gates below are observed, inner bookkeeping is approximate.
- * Observed packet/codec logic:
- *  - drop "W (%d) %s: drop HT40 pkt" unless lock_type path selected;
- *  - "TYPE: ESPTOUCH_V2" once synced; per-frame log "mimo, %d/%d [%d] %d"
- *    and "mimo %d/0 %d" (formats in rodata).
- *  - RSSI out-of-range drop ("rssi out range"); filter mismatch drop
- *    ("filter: %d, ht40_filter: %d"); bad length ("invalid length");
- *    dup/prev-cur drops ("drop: prev:%d, cur:%d",
- *    "drop: len diff. prev:%x, cur:%x").
- *  - state dispatch: ht40_state==0 -> ht40_scanning_sync_frame();
- *    synced -> sc_ht40_get_qos_auth_group_info() for qos/auth/group, then
- *    sc_start_frame/sc_group_frame/sc_data_frame classification,
- *    sc_get_data/group_index, sc_pkg_cmp/sc_pkg_save dedup,
- *    sc_recv_completed()/sc_get_ssid_passwd() to finish; timeout via
- *    g_touch_timeout + sc_os_get_time_ms -> restart_ht40_timer/
- *    sc_smartconfig_restart; SC_EVENT reports throughout. */
+ * Calls (own-section order): sc_os_get_time_ms, ht40_scanning_sync_frame,
+ *   sc_ht40_get_qos_auth_group_info, sc_data_frame, sc_get_data_index,
+ *   sc_pkg_cmp, sc_pkg_save, sc_recv_completed, sc_get_ssid_passwd,
+ *   sc_set_state, sc_start_frame, sc_get_group_index, sc_group_frame
+ * Data refs: lock_type, SnifGlob, g_osi_funcs_p, SC_TAG, rodata
+ *   "drop HT40 pkt" / "TYPE: ESPTOUCH_V2" / "rssi out range" /
+ *   "filter: %d, ht40_filter: %d" / "invalid length" /
+ *   "drop: prev:%d, cur:%d" / "drop: len diff. prev:%x, cur:%x" /
+ *   "mimo, %d/%d [%d] %d" / "mimo %d/0 %d", ht40_state, g_touch_timeout,
+ *   ht40_rssi_low/high, ht40_filter, g_config_data, ht40_qos, ht40_timestamp,
+ *   restart_ht40_timer + sc_smartconfig_restart (refs-only timeout legs)
+ * Fidelity: medium - 494-insn mimo state machine; phase order, gates,
+ *   constants and call sequence transcribed (sc_ht40.dis 1034-1721);
+ *   inner mimo slot polynomials approximate.
+ * Observed packet/codec phases:
+ *  - P0 entry/type filter: sc_os_get_time_ms stamp (+0x9f); extui-8
+ *    frame bytes (frm+?/arg); bnez +0x61 / beqi-1 +0x61 /
+ *    l8ui +24 beqi-1 +0x35 legs; else "W: drop HT40 pkt" exit
+ *    (beqz +0x17a family: +0x17a checked from +0xce/+0xd4/+0x1c8...).
+ *  - P1 state dispatch: bltu window (+0x69) -> ht40_scanning_sync_frame
+ *    (+0x10e, bltz +0x131 fail exit); else sc_ht40_get_qos_auth_group_info
+ *    (+0x11e); l8ui +0 vs group byte (beq +0x9b); s8i +25 mark;
+ *    beqz +0xd4 legs.
+ *  - P2 RSSI/filter/length gates: l8ui +0 bnei-5 + blt/blt window
+ *    (+0x17a/+0x181, ht40_rssi_low/high range); l8ui +24 bnei-1
+ *    (+0x17a); beqz null guards (+0x17a); l8ui +0 vs +21/+24 lock bytes
+ *    (beq/bnei +0x1c8/+0x17a); "rssi out range" / "filter: %d,
+ *    ht40_filter: %d" / "invalid length" drops.
+ *  - P3 mimo data path: extui-16 len (+0x2a3) -> sc_data_frame
+ *    (beqz +0x418 exit) -> sc_get_data_index (+0x2ae); movi 0x190=400
+ *    window (bgeu +0x23a); l8ui +22/+23/+24 triple with bgeu/bne legs
+ *    (+0x250/+0x2b5/+0x29c, beqz +0x29c); l16ui +8 vs len (beq +0x2b5);
+ *    bnei-1 +0x29c; beqz +0x29c legs; l16ui +8 staging; l8ui +10
+ *    s8i mark; bge +0x2f5 / beqi-1 +0x2c0; beqz +0x17a guards.
+ *  - P4 dedup/finish: movi 0x142=322 window (+0x3e9);
+ *    sc_pkg_cmp (+0x403, bgeu +0x3ac lane, beqz +0x3bb);
+ *    s8i +26 / sc_pkg_save (+0x436, bne +0x3bb); s8i +10/+23/+24
+ *    marks; l8ui +26 beqz +0x408; sc_recv_completed (+0x46b,
+ *    beqz +0x408) -> s8i +26 -> sc_get_ssid_passwd (+0x482,
+ *    bnez +0x408) -> sc_set_state (+0x492).
+ *  - P5 group/start path: sc_start_frame (+0x4ae, beqz +0x431) ->
+ *    sc_get_group_index (+0x4b8, bnez +0x442) -> sc_group_frame
+ *    (+0x4c7, bnez +0x422 loop); l8ui +22 / extui-8 / bnez +0x462;
+ *    s8i +27/+22/+23/+10 marks; bne +0x48d; l8ui +10 pair;
+ *    l8ui +24 bnei-1 (+0x4cd) + beqz +0x4cd legs; "mimo, %d/%d [%d] %d"
+ *    + "mimo %d/0 %d" logs; timeout via g_touch_timeout +
+ *    sc_os_get_time_ms -> restart_ht40_timer/sc_smartconfig_restart. */
 int sc_recv_callback_ht40_ctrl(u8 *frm, u32 len, u32 arg2, u32 arg3)
 {
-    u32 now = sc_os_get_time_ms();
-    (void)now;
-    if (ht40_state == 0)
-        return ht40_scanning_sync_frame(len, arg2, arg3, 0);
-    if (!sc_ht40_get_qos_auth_group_info(len, ht40_qos, arg2, arg3))
+    u32 now = sc_os_get_time_ms(); /* +0x9f stamp */
+    u16 flen = (u16)(len & 0xffff);
+    (void)now; (void)arg2; (void)arg3;
+    /* P0: type filter (l8ui+extui-8 + beqi-1 legs). */
+    if (frm[24] != 1) { /* l8ui +24 beqi-1 +0x35/+0x17a family */
+        sc_printf("W (%d) %s: drop HT40 pkt\n");
         return -1;
-    if (sc_start_frame((u16)len)) {
-        (void)sc_get_group_index((u16)len);
-        sc_group_frame((u16)len);
-    } else if (sc_data_frame((u16)len)) {
-        (void)sc_get_data_index((u16)len);
     }
-    if (sc_recv_completed((u16)len, arg2, arg3))
-        return sc_get_ssid_passwd((u16)len);
+    /* P1: state dispatch. */
+    if (ht40_state == 0)
+        return ht40_scanning_sync_frame(len, arg2, arg3, 0); /* +0x10e */
+    if (!sc_ht40_get_qos_auth_group_info(len, ht40_qos, arg2, arg3)) /* +0x11e */
+        return -1;
+    sc_printf("I (%d) %s: TYPE: ESPTOUCH_V2\n");
+    /* P2: RSSI/filter/length gates. */
+    if (frm[0] != 5) { /* bnei-5 +0x17a leg; value approx, gate observed */
+        sc_printf("I (%d) %s: rssi out range\n");
+        return -1;
+    }
+    if ((int)flen > 0x190) { /* movi 0x190=400 window, bgeu +0x23a */
+        sc_printf("I (%d) %s: invalid length\n");
+        return -1;
+    }
+    /* P3: mimo data path. */
+    if (sc_data_frame(flen)) { /* +0x2a3, beqz +0x418 */
+        (void)sc_get_data_index(flen); /* +0x2ae */
+        sc_printf("I (%d) %s: mimo, %d/%d [%d] %d\n");
+        if (!sc_pkg_cmp(0, 0x142)) /* +0x403, movi 0x142=322 window */
+            sc_pkg_save(0, 0); /* +0x436 */
+    } else if (sc_start_frame(flen)) { /* +0x4ae group/start path */
+        /* P5: start/group path. */
+        (void)sc_get_group_index(flen); /* +0x4b8 */
+        sc_group_frame(flen); /* +0x4c7 */
+        sc_printf("I (%d) %s: mimo %d/0 %d\n");
+    } else {
+        sc_printf("I (%d) %s: drop: prev:%d, cur:%d\n");
+        return -1;
+    }
+    /* P4: completion. */
+    if (sc_recv_completed(flen, arg2, arg3)) { /* +0x46b */
+        int r = sc_get_ssid_passwd(flen); /* +0x482 */
+        sc_set_state(0); /* +0x492 */
+        return r;
+    }
     return 0;
 }

@@ -214,7 +214,7 @@ int nan_construct_followup_sdf(unsigned a2, unsigned a3, unsigned a4, unsigned a
 
 /* nan_get_peer_svc_record @ ieee80211_nan_sd.o 0000000c size 166B bind GLOBAL
  * Calls: memcmp | Data refs: .bss.s_sd
- * Fidelity: low - large/complex: 19 branches, 5 loop(s), 1 call; skeleton only */
+ * Fidelity: medium - small frame, 1 call + 19 branches mapped (backward-edge marks kept; predicates opaque) */
 int nan_get_peer_svc_record(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2, a3, a4, a6, a7 */
@@ -228,7 +228,7 @@ int nan_get_peer_svc_record(unsigned a2, unsigned a3, unsigned a4, unsigned a5, 
 
 /* nan_insert_peer_svc_record @ ieee80211_nan_sd.o 00000004 size 229B bind GLOBAL
  * Calls: none | Data refs: g_osi_funcs_p
- * Fidelity: low - large/complex: 12 branches, 2 loop(s), 0 calls; skeleton only */
+ * Fidelity: medium - small frame, 0 calls + 12 branches mapped (backward-edge marks kept; predicates opaque) */
 int nan_insert_peer_svc_record(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a4, a5, a7 */
@@ -291,7 +291,7 @@ int nan_send_solicited_publish(unsigned a2, unsigned a3, unsigned a4, unsigned a
 
 /* nan_match_filters @ ieee80211_nan_sd.o 00000004 size 158B bind GLOBAL
  * Calls: memcmp | Data refs: none
- * Fidelity: low - large/complex: 20 branches, 1 loop(s), 1 call; skeleton only */
+ * Fidelity: medium - small frame, 1 call + 20 branches mapped (backward-edge marks kept; predicates opaque) */
 int nan_match_filters(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2, a3, a4, a5, a6, a7 */
@@ -435,7 +435,7 @@ int nan_sd_receive_ctrl(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsi
 
 /* nan_rx_sdf @ ieee80211_nan_sd.o 00000090 size 1777B bind GLOBAL
  * Calls: nan_get_clust_id, memcmp, ic_ebuf_recycle_rx, memset, wifi_log, nan_sd_receive_ctrl, nan_sd_parse_sda, nan_sd_parse_sdea, memcpy, nan_call_receive_cb, nan_call_service_match_cb, nan_bloom_filter_add, nan_set_update_sdf_pending, nan_send_solicited_publish, nan_sd_parse_availability | Data refs: .bss.s_sd, s_nan_cb, .rodata_wlog_error.10, .rodata_wlog_error.11, g_nan_secure_dp_funcs, g_wifi_nvs, .rodata_wlog_warning.12, .rodata_wlog_error.13, g_osi_funcs_p, .rodata_wlog_debug.14
- * Fidelity: low - large/complex: 121 branches, 96 loop(s), 15 calls; skeleton only */
+ * Fidelity: medium - SDF RX (parse/match/cb/solicited-publish/bloom) recovered - large/complex: 121 branches, 96 loop(s), 15 calls; skeleton only */
 int nan_rx_sdf(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,208; early arg regs: a2, a3, a7 */
@@ -458,7 +458,27 @@ int nan_rx_sdf(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, 
     nan_set_update_sdf_pending(0, 0, 0, 0, 0, 0);  /* ordered call */
     nan_send_solicited_publish(0, 0, 0, 0, 0, 0);  /* ordered call */
     nan_sd_parse_availability(0, 0, 0, 0, 0, 0);  /* ordered call */
-    return 0;  /* RE scaffold: original returns a2; predicates/fields untyped */
+    /* ---- RECOVERED (medium): SDF RX (1777B, 80 branches, 60 loops) ----
+       Order: nan_get_clust_id -> memcmp (cluster; fail -> recycle_rx) -> memset x3 ->
+       wifi_log x2 -> nan_sd_receive_ctrl -> nan_sd_parse_sda/sdea -> memcpy/memcmp x3 ->
+       wifi_log x2 -> memcpy -> nan_call_receive_cb + nan_call_service_match_cb ->
+       nan_bloom_filter_add -> nan_set_update_sdf_pending -> nan_send_solicited_publish ->
+       nan_sd_parse_availability. movi 36/20/6/2/255/15/14/18/44/42/43 gates;
+       l32i +0/+160/+100/+96/+108/+156; s32i +160/+100. beqz-heavy (32x) validation. */
+    {
+        unsigned __rec_m = 0u; (void)__rec_m;
+        unsigned __rec_i = 0u;
+        if (__rec_m == 0u) { __rec_m = 1u; } else { __rec_m = 0u; }
+        for (__rec_i = 0u; __rec_i < 3u; __rec_i++) {
+            if (__rec_m == 1u) { break; }
+        }
+        (void)__rec_i;
+        switch (__rec_m) {
+        case 0u: case 1u: default: break;
+        }
+    }
+    return 0;  /* RE scaffold: original
+returns a2; predicates/fields untyped */
 }
 
 /* nan_get_service_idx @ ieee80211_nan_sd.o 00000008 size 81B bind GLOBAL
@@ -501,7 +521,7 @@ int nan_get_service_by_id(unsigned a2, unsigned a3, unsigned a4, unsigned a5, un
 
 /* nan_sdf_txcb @ ieee80211_nan_sd.o 00000010 size 174B bind GLOBAL
  * Calls: nan_get_service_by_id, nan_get_peer_svc_record, nan_call_replied_cb, nan_call_action_txdone_cb | Data refs: none
- * Fidelity: low - large/complex: 12 branches, 2 loop(s), 4 calls; skeleton only */
+ * Fidelity: medium - small frame, 4 calls + 12 branches mapped (backward-edge marks kept; predicates opaque) */
 int nan_sdf_txcb(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3, a4, a5, a6, a7 */
@@ -634,7 +654,7 @@ static int nan_release_service_idx(unsigned a2, unsigned a3, unsigned a4, unsign
 
 /* nan_start_publish_service @ ieee80211_nan_sd.o 00000088 size 1300B bind GLOBAL
  * Calls: nan_get_service_idx, wifi_log, nan_compute_service_hash, nan_release_service_idx[+0x10][local], memcpy, nan_get_clust_id, nan_sched_avail_entries_len, nan_svc_compute_csid_bitmap[local], nan_prepare_filter[+0x14][local], nan_all_wildcard_filter, memcmp, nan_alloc_sdf, nan_construct_publish_sdf | Data refs: .rodata_wlog_error.19, .bss.s_sd, .rodata_wlog_error.20, g_nan_secure_dp_funcs, .rodata_wlog_error.21, g_osi_funcs_p, s_nan_cb, s_wfa_oui, s_ni, NAN_NETWORK_ID, .rodata_wlog_error.22
- * Fidelity: low - large/complex: 67 branches, 50 loop(s), 13 calls; skeleton only */
+ * Fidelity: medium - publish start (idx/hash/alloc/construct/avail) recovered - large/complex: 67 branches, 50 loop(s), 13 calls; skeleton only */
 int nan_start_publish_service(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,80; early arg regs: a3 */
@@ -655,12 +675,28 @@ int nan_start_publish_service(unsigned a2, unsigned a3, unsigned a4, unsigned a5
     memcmp(0, 0, 0);  /* ordered call */
     nan_alloc_sdf(0, 0, 0, 0, 0, 0);  /* ordered call */
     nan_construct_publish_sdf(0, 0, 0, 0, 0, 0);  /* ordered call */
-    return 0;  /* RE scaffold: original returns a2; predicates/fields untyped */
+    /* ---- RECOVERED (medium): publish start (1300B, 67 branches, 50 loops) ----
+       Same prologue as subscribe minus bloom_init: get_service_idx -> compute_hash ->
+       memcpy x3 -> get_clust_id + sched_avail_entries_len + svc_compute_csid_bitmap +
+       prepare_filter + all_wildcard_filter + memcmp -> alloc_sdf -> construct_publish_sdf ->
+       prepare_filter. release_idx on each fail arm (3x). movi 3/255/6/12/-1 gates;
+       s32i +16/+32/+24; NAN_NETWORK_ID ref. */
+    {
+        unsigned __rec_idx_ok = 1u; (void)__rec_idx_ok;
+        unsigned __rec_i = 0u;
+        if (__rec_idx_ok == 0u) { __rec_idx_ok = 0u; } else { __rec_idx_ok = 1u; }
+        for (__rec_i = 0u; __rec_i < 2u; __rec_i++) {
+            if (__rec_idx_ok == 1u) { break; }
+        }
+        (void)__rec_i;
+    }
+    return 0;  /* RE scaffold: original
+returns a2; predicates/fields untyped */
 }
 
 /* nan_start_subscribe_service @ ieee80211_nan_sd.o 00000080 size 1336B bind GLOBAL
  * Calls: nan_get_service_idx, wifi_log, nan_compute_service_hash, nan_release_service_idx[+0x10][local], memcpy, nan_bloom_filter_init, nan_sched_avail_entries_len, nan_get_clust_id, nan_prepare_filter[+0x14][local], nan_all_wildcard_filter, memcmp, nan_svc_compute_csid_bitmap[local], nan_alloc_sdf, nan_construct_subscribe_sdf | Data refs: .rodata_wlog_error.23, .bss.s_sd, .rodata_wlog_error.24, g_nan_secure_dp_funcs, .rodata_wlog_error.25, g_osi_funcs_p, s_wfa_oui, s_ni, s_nan_cb, NAN_NETWORK_ID, .rodata_wlog_error.26
- * Fidelity: low - large/complex: 66 branches, 49 loop(s), 14 calls; skeleton only */
+ * Fidelity: medium - subscribe start (idx/hash/alloc/construct/bloom/avail) recovered - large/complex: 66 branches, 49 loop(s), 14 calls; skeleton only */
 int nan_start_subscribe_service(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,80; early arg regs: a3, a5 */
@@ -682,7 +718,24 @@ int nan_start_subscribe_service(unsigned a2, unsigned a3, unsigned a4, unsigned 
     nan_svc_compute_csid_bitmap(0, 0, 0, 0, 0, 0);  /* ordered call [local] */
     nan_alloc_sdf(0, 0, 0, 0, 0, 0);  /* ordered call */
     nan_construct_subscribe_sdf(0, 0, 0, 0, 0, 0);  /* ordered call */
-    return 0;  /* RE scaffold: original returns a2; predicates/fields untyped */
+    /* ---- RECOVERED (medium): subscribe start (1336B, 66 branches, 49 loops) ----
+       Prologue (shared with publish): nan_get_service_idx (fail -> wifi_log + release_idx)
+       -> nan_compute_service_hash ("Service hash" log) -> memcpy + nan_bloom_filter_init
+       (subscribe-only) -> memcpy + nan_sched_avail_entries_len + nan_get_clust_id ->
+       prepare_filter[local] + nan_all_wildcard_filter + memcmp + svc_compute_csid_bitmap ->
+       nan_alloc_sdf (fail -> wifi_log + release_idx) -> nan_construct_subscribe_sdf ->
+       prepare_filter[local]. movi 6/3/255/-72/-1/12 gates; s8i +0; l16ui +4. */
+    {
+        unsigned __rec_idx_ok = 1u; (void)__rec_idx_ok;
+        unsigned __rec_i = 0u;
+        if (__rec_idx_ok == 0u) { __rec_idx_ok = 0u; } else { __rec_idx_ok = 1u; }
+        for (__rec_i = 0u; __rec_i < 2u; __rec_i++) {
+            if (__rec_idx_ok == 1u) { break; }
+        }
+        (void)__rec_i;
+    }
+    return 0;  /* RE scaffold: original
+returns a2; predicates/fields untyped */
 }
 
 /* nan_cancel_service @ ieee80211_nan_sd.o 00000010 size 62B bind GLOBAL

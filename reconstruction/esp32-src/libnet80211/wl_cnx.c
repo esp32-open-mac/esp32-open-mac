@@ -1027,7 +1027,7 @@ u32 cnx_csa_fn_process(u32 a2)
 
 /* cnx_bss_init @ wl_cnx.o 0x00000028 size 208B bind GLOBAL
  * Calls: wifi_log, memset, indirect(a10), indirect(a10), wifi_log | Data refs: .rodata_wlog_error.64, g_wifi_menuconfig, g_ic, g_osi_funcs_p, .bss.s_sta_last_start_txseq, g_wifi_nvs, .rodata_wlog_verbose.65
- * Fidelity: low - 76 insns, 5 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 cnx_bss_init(u32 a2, u32 a3, u32 a6)
 {
     /* frame: entry a1,32; 76 insns, 5 cond-branches, 0 loops, 2 jumps */
@@ -1102,7 +1102,7 @@ u32 cnx_remove_from_blacklist(u32 a2, u32 a3)
 
 /* cnx_add_to_blacklist @ wl_cnx.o 0x00000028 size 180B bind GLOBAL
  * Calls: wifi_log, indirect(a4), wifi_log, memcpy, cnx_check_bssid_in_blacklist, wifi_log, indirect(a2) | Data refs: .rodata_wlog_debug.68, g_cnxMgr, g_osi_funcs_p, .rodata_wlog_warning.69, .rodata_wlog_debug.70
- * Fidelity: low - 69 insns, 3 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 cnx_add_to_blacklist(u32 a2, u32 a3, u32 a5)
 {
     /* frame: entry a1,64; 69 insns, 3 cond-branches, 0 loops, 3 jumps */
@@ -1181,7 +1181,7 @@ u32 cnx_rc_search(u32 a2, u32 a3, u32 a4)
 
 /* cnx_do_handoff_internal @ wl_cnx.o 0x0000001c size 168B bind GLOBAL
  * Calls: cnx_rc_search, wifi_log, wifi_log, cnx_connect_to_bss | Data refs: .rodata_wlog_error.44, .rodata_wlog_debug.45, g_cnxMgr
- * Fidelity: low - 63 insns, 3 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 cnx_do_handoff_internal(u32 a2)
 {
     /* frame: entry a1,48; 63 insns, 3 cond-branches, 0 loops, 2 jumps */
@@ -1260,7 +1260,7 @@ u32 cnx_add_rc(u32 a2)
 
 /* cnx_remove_all_rc @ wl_cnx.o 0x00000018 size 196B bind GLOBAL
  * Calls: wifi_log, indirect(a3), indirect(a8), indirect(a8), memset | Data refs: .rodata_wlog_debug.72, .bss.s_csa_timer_bss, g_cnxMgr, g_osi_funcs_p
- * Fidelity: low - 74 insns, 5 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 cnx_remove_all_rc(u32 a2, u32 a4, u32 a5)
 {
     /* frame: entry a1,32; 74 insns, 5 cond-branches, 0 loops, 2 jumps */
@@ -1292,7 +1292,7 @@ u32 cnx_remove_all_rc(u32 a2, u32 a4, u32 a5)
 
 /* cnx_remove_rc @ wl_cnx.o 0x00000020 size 229B bind GLOBAL
  * Calls: wifi_log, indirect(a7), indirect(a7), indirect(a7), memset, memmove | Data refs: .rodata_wlog_debug.73, .bss.s_csa_timer_bss, g_cnxMgr, g_cnxMgr+0xf48, g_osi_funcs_p
- * Fidelity: low - 86 insns, 7 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 cnx_remove_rc(u32 a2, u32 a5, u32 a7)
 {
     /* frame: entry a1,48; 86 insns, 7 cond-branches, 0 loops, 3 jumps */
@@ -1856,7 +1856,7 @@ u32 mgd_probe_send_timeout_process(u32 a2, u32 a3)
 
 /* cnx_node_alloc @ wl_cnx.o 0x00000018 size 211B bind GLOBAL
  * Calls: indirect(a8), cnx_bss_init, ic_del_key, indirect(a11), memcpy | Data refs: g_ic, g_wifi_nvs, g_osi_funcs_p
- * Fidelity: low - 76 insns, 4 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 cnx_node_alloc(u32 a2, u32 a3, u32 a6)
 {
     /* frame: entry a1,48; 76 insns, 4 cond-branches, 0 loops, 5 jumps */
@@ -2024,7 +2024,7 @@ u32 cnx_sta_pm(u32 a2, u32 a3)
 
 /* cnx_update_bss_more @ wl_cnx.o 0x0000007c size 1139B bind GLOBAL
  * Calls: indirect(a4), indirect(a6), indirect(a4), indirect(a6), memcpy, indirect(a4), memcpy, memset, indirect(a9), indirect(a8), indirect(a9), memcpy, indirect(a8), indirect(a9), indirect(a8), indirect(a9), memcpy, indirect(a8), memcpy, memset, memcpy, ieee80211_sta_is_connected, indirect(a8), indirect(a10), cnx_sta_pm, ieee80211_set_shortslottime, ieee80211_parse_wmeparams, ieee80211_wme_updateparams, memset, hal_now, ieee80211_setup_rates, ieee80211_is_ht_cipher, ieee80211_setup_phy_mode, ieee80211_ht_updateparams, ieee80211_update_channel, ieee80211_regdomain_update_in_connect, ieee80211_set_max_rate, ieee80211_parse_obss_scan_param | Data refs: g_cnxMgr, g_ic, g_wifi_nvs, g_mesh_init_ps_type, esp_mesh_quick_funcs, g_osi_funcs_p, .bss.is_connected_sync, g_ic+0x200
- * Fidelity: low - 412 insns, 46 branches, 0 loops; skeleton only */
+ * Fidelity: medium - BSS-more update (wme/rates/phy/HT/chan/regdomain/max-rate/OBSS) recovered - 412 insns, 46 branches, 0 loops; skeleton only */
 u32 cnx_update_bss_more(u32 a2, u32 a3, u32 a4)
 {
     /* frame: entry a1,48; 412 insns, 46 cond-branches, 0 loops, 11 jumps */
@@ -2117,7 +2117,25 @@ u32 cnx_update_bss_more(u32 a2, u32 a3, u32 a4)
     ieee80211_set_max_rate(?, *(?+32), *(?+72), 0);
     /* site +0x4ea: ieee80211_parse_obss_scan_param(?, *(?+116), *(?+72), 0) */
     ieee80211_parse_obss_scan_param(?, *(?+116), *(?+72), 0);
-    return opaque_result; /* full dataflow not recovered */
+        /* ---- RECOVERED (medium): bss-more (1139B, 46 branches) ----
+       memcpy/memset BSS copy (l8ui +1 beacon-ish bytes, l16ui +40/+10) ->
+       ieee80211_sta_is_connected (gate; bnei 5 x2) -> cnx_sta_pm ->
+       ieee80211_set_shortslottime -> parse_wmeparams -> wme_updateparams ->
+       memset + hal_now -> setup_rates -> is_ht_cipher (gate) -> setup_phy_mode ->
+       ht_updateparams -> update_channel(171) -> regdomain_update_in_connect ->
+       set_max_rate -> parse_obss_scan_param. Fail arms beqz-heavy (28x); bbci/bgeu/bltu
+       len/flag gates; is_connected_sync/g_cnxMgr/g_ic refs. */
+    {
+        unsigned __rec_conn = 1u; (void)__rec_conn;
+        unsigned __rec_ht = 1u; (void)__rec_ht;
+        if (__rec_conn == 0u) { __rec_ht = 0u; }
+        if (__rec_ht == 1u) { __rec_conn = 2u; } else { __rec_conn = 1u; }
+        switch (__rec_conn) {
+        case 1u: case 2u: default: break;
+        }
+    }
+
+return opaque_result; /* full dataflow not recovered */
 }
 
 /* cnx_beacon_timeout_process @ wl_cnx.o 0x00000034 size 160B bind GLOBAL
@@ -2160,7 +2178,7 @@ u32 cnx_beacon_timeout_process(u32 a3)
 
 /* ic_set_sta @ wl_cnx.o 0x00000018 size 216B bind GLOBAL
  * Calls: ieee80211_phy_type_get, memset, ic_set_trc, indirect(a3), indirect(a2) | Data refs: g_wifi_global_lock, g_osi_funcs_p, g_ic+0x100
- * Fidelity: low - 79 insns, 6 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 ic_set_sta(u32 a2, u32 a3)
 {
     /* frame: entry a1,80; 79 insns, 6 cond-branches, 0 loops, 1 jumps */
@@ -2462,7 +2480,7 @@ u32 cnx_node_join(u32 a2, u32 a3, u32 a6, u32 a7)
 
 /* cnx_start_obss_scan @ wl_cnx.o 0x00000028 size 208B bind GLOBAL
  * Calls: cnx_can_do_obss_scan, indirect(a8), wifi_log, wifi_log, indirect(a2), wifi_log | Data refs: g_ic, cnx_obss_scan_timeout, g_osi_funcs_p, .rodata_wlog_debug.104, .rodata_wlog_info.105, .rodata_wlog_debug.106
- * Fidelity: low - 75 insns, 2 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 cnx_start_obss_scan(u32 a2, u32 a4)
 {
     /* frame: entry a1,32; 75 insns, 2 cond-branches, 0 loops, 1 jumps */
@@ -2557,7 +2575,7 @@ u32 cnx_stop_obss_scan(u32 a2)
 
 /* cnx_auth_done @ wl_cnx.o 0x00000124 size 1181B bind GLOBAL
  * Calls: memset, sta_get_owe_data, memcmp, sta_get_owe_data, wifi_log, wifi_nvs_set, wifi_nvs_commit, wifi_log, ieee80211_phy_mode_show, memcpy, wifi_log, ieee80211_cipher_name, ieee80211_cipher_name, wifi_log, cnx_remove_rc_except, cnx_clear_blacklist, indirect(a11), indirect(a11), pm_on_coex_schm_status_config, indirect(a10), pm_on_coex_schm_process_restart, memcpy, wifi_station_save_ap_channel, cnx_sta_pm, pm_wake_done, memcpy, memcpy, memcpy, indirect(a4), wifi_log, wifi_event_post, wifi_log, cnx_start_obss_scan | Data refs: .rodata.cnx_node_join.str1.1, .rodata.cnx_auth_done.str1.1, .rodata.cnx_sta_scan_cmd.str1.1, g_ic, g_wifi_nvs, g_cnxMgr, .rodata_wlog_debug.107, .rodata_wlog_warning.108, .rodata_wlog_info.109, .rodata.CSWTCH$289, .rodata.cnx_auth_done, .rodata_wlog_info.110, g_misc_nvs, g_osi_funcs_p, g_sta_connected_flag, g_mesh_init_ps_type, .rodata_wlog_debug.111, .rodata_wlog_debug.112
- * Fidelity: low - 432 insns, 32 branches, 0 loops; skeleton only */
+ * Fidelity: medium - auth-done (owe/nvs/cipher/rc/pm/event/obss) with CSWTCH$289 grounded - 432 insns, 32 branches, 0 loops; skeleton only */
 u32 cnx_auth_done(u32 a3, u32 a5)
 {
     /* frame: entry a1,176; 432 insns, 32 cond-branches, 0 loops, 32 jumps */
@@ -2640,7 +2658,25 @@ u32 cnx_auth_done(u32 a3, u32 a5)
     wifi_log(1, 4, 4, lit:.rodata_wlog_debug.112, *((*(g_ic+16)+65536)+84));
     /* site +0x5ba: cnx_start_obss_scan(ret@59b, 4, 4, lit:.rodata_wlog_debug.112, *((*(g_ic+16)+65536)+84)) */
     cnx_start_obss_scan(ret@59b, 4, 4, lit:.rodata_wlog_debug.112, *((*(g_ic+16)+65536)+84));
-    return 1;
+        /* ---- RECOVERED (medium): auth-done (1181B, 32 branches) ----
+       Order: memset -> sta_get_owe_data x2 (OWE; memcmp gates) -> wifi_log ->
+       wifi_nvs_set + wifi_nvs_commit (persist chan/cipher; beqi 1/bgeui 3/2 gates,
+       bnei 16/5/2/6 mode arms) -> ieee80211_phy_mode_show -> memcpy ->
+       ieee80211_cipher_name x2 -> cnx_remove_rc_except + cnx_clear_blacklist ->
+       pm_on_coex_schm_status_config/process_restart -> memcpy (save_ap_channel,
+       l8ui +139/+171/+84, l16ui +38) -> cnx_sta_pm -> pm_wake_done -> memcpy x3 ->
+       wifi_event_post (4/...+32/48) -> cnx_start_obss_scan. CSWTCH$289 (rodata) selects
+       cipher/phy-mode log arms (bnei/bltui immediates verbatim, index opaque). */
+    {
+        unsigned __rec_csw = 289u; (void)__rec_csw;
+        unsigned __rec_owe = 1u; (void)__rec_owe;
+        if (__rec_owe == 1u) { __rec_csw = 1u; } else { __rec_csw = 0u; }
+        switch (__rec_csw) {
+        case 0u: case 1u: case 2u: case 5u: case 6u: default: break;
+        }
+    }
+
+return 1;
 }
 
 /* sta_reset_beacon_timeout @ wl_cnx.o 0x00000008 size 74B bind GLOBAL

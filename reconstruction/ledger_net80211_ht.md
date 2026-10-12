@@ -33,16 +33,23 @@ The rebuilt `re/esp32/funcdb_libnet80211.json` populates them
 
 | object | size | funcs/units | high | med | low | verdict |
 |---|---|---|---|---|---|---|
-| ieee80211_ht.o | 71 KB | 38/55 | 5 | 29 | 21 | real; BA core mapped |
-| ieee80211_supplicant.o | 95 KB | 125/126 | 73 | 42 | 11 | real; key-install/config glue |
-| ieee80211_regdomain.o | 15 KB | 21/21 | 10 | 9 | 2 | real; table walk recovered |
-| ieee80211_phy.o | 11 KB | 7/7 | 1 | 3 | 3 | real; init/ratetable |
-| ieee80211_mesh_quick.o | 9.6 KB | 7/7 | 1 | 4 | 2 | real; awake-action glue |
-| ieee80211_nan_common.o | 45 KB | 40/44 | 21 | 18 | 5 | real; tx/cb infra |
-| ieee80211_nan_disc.o | 55 KB | 24/48 | 16 | 20 | 12 | real; SM event handlers |
-| ieee80211_nan_datapath.o | 132 KB | 66/76 | 8 | 38 | 30 | real; NDP+FAW sched |
-| ieee80211_nan_sd.o | 65 KB | 37/41 | 5 | 19 | 17 | real; pub/sub/SDF |
+| ieee80211_ht.o | 71 KB | 38/55 | 5 | 36 | 14 | real; BA core mapped |
+| ieee80211_supplicant.o | 95 KB | 125/126 | 73 | 49 | 4 | real; key-install/config glue |
+| ieee80211_regdomain.o | 15 KB | 21/21 | 10 | 10 | 1 | real; table walk recovered |
+| ieee80211_phy.o | 11 KB | 7/7 | 1 | 5 | 1 | real; init/ratetable |
+| ieee80211_mesh_quick.o | 9.6 KB | 7/7 | 1 | 5 | 1 | real; awake-action glue |
+| ieee80211_nan_common.o | 45 KB | 40/44 | 21 | 20 | 3 | real; tx/cb infra |
+| ieee80211_nan_disc.o | 55 KB | 24/48 | 16 | 23 | 9 | real; SM event handlers |
+| ieee80211_nan_datapath.o | 132 KB | 66/76 | 8 | 46 | 22 | real; NDP+FAW sched |
+| ieee80211_nan_sd.o | 65 KB | 37/41 | 5 | 26 | 10 | real; pub/sub/SDF |
 | 13 stubs (below) | 480 B ea | 0 | high (vacuous) | – | – | **EMPTY, see §5** |
+
+Sweep 2026-10-12 (small ≤256B lows): this worker moved 26 to medium
+(ht 6, supplicant 6, regdomain 1, phy 2, mesh_quick 1, nan_common 1,
+nan_datapath 5, nan_disc 2, nan_sd 4 - branch/call inventories verified
+against section disasm + EXPAND relocs); 2 kept low with sharpened notes
+(setup_htrates pair: hardware loop fills). Table recount reflects the files;
+ht/supplicant/nan rows also include parallel-worker upgrades.
 
 Units > funcs: LOCAL statics (`$isra$0`/`$constprop$0`, `addba_*`, `ht_*`,
 `nan_*` helpers) and `.wifirxiram.NN`/`.wifi0iram.NN` residents
@@ -204,3 +211,22 @@ Corollaries: VHT/HE/TWT/BTWT absence is consistent with an 11n-only target;
 - Constants: all immediates/offsets/strings in bodies/headers appear in disasm;
   no logic invented (predicates/fields explicitly untyped; `[v2-only]`/`[local]`
   tags mark edge provenance).
+
+## §8 Upgrade pass 2026-10-12 (low -> medium, offline, disasm-grounded)
+
+Only `Fidelity: low` functions touched; all others byte-identical.
+Braces balanced (comment/string-aware recount). Constants verbatim from disasm;
+802.11/NAN field names cite offsets only, values never invented.
+
+| file | function(size) | old -> new | unlock notes |
+|---|---|---|---|
+| ieee80211_ht.c | ieee80211_update_channel(1154B) | low -> medium | chan/bw update (home/snd + 40M-valid x2 + HT deattach/attach + phy_init + phy_type + trc + has_ht40; l8ui +86/+87, movi 8/3/2/4/14) |
+| ieee80211_nan_disc.c | nan_scan_event_hdlr(1967B) | low -> medium | discovery bring-up (enable_rx, rx_policy, random/compare_mr, post_event, update_tsf, alloc+construct_beacon x3, dwstart, started_event, tsf/memcpy, recycle_tx; movi 11/6/4/12/13) |
+| ieee80211_nan_sd.c | nan_rx_sdf(1777B) | low -> medium | SDF RX (clust_id, receive_ctrl, parse sda/sdea/avail, match_filters, match/receive_cb, bloom_add, update_pending, solicited_publish) |
+| ieee80211_nan_sd.c | nan_start_subscribe_service(1336B) | low -> medium | subscribe prologue (get_idx, hash, bloom_init, avail_len, clust_id, filter/csid/alloc/construct_subscribe) |
+| ieee80211_nan_sd.c | nan_start_publish_service(1300B) | low -> medium | publish prologue (same minus bloom_init; construct_publish; 3x release_idx fail arms) |
+| ieee80211_nan_datapath.c | nan_construct_ndp_req(1071B) | low -> medium | req construct (get_peer_ndp/ndl, dev_caps, service_by_index + peer_svc_record, sched_avail, htcap; NAN_ACTION_OUI) |
+| ieee80211_nan_datapath.c | nan_construct_ndp_resp(1726B) | low -> medium | resp construct (ndl/ndp, dev_caps, sched_avail, htcap, service_by_id; STANDARD_BSSID) |
+| ieee80211_nan_datapath.c | nan_parse_ndp_resp(1084B) | low -> medium | resp parse (get_peer_ndl, ndpa/avail/elem_container, node_available, confirm_peer, send_confirm x2, cbs, delete_peer) |
+| ieee80211_nan_common.c | nan_input(1340B) | low -> medium | NAN dispatch (search_node, ampdu_reorder, decap/bip/ccmp gates; beqi 8/128, bnei 4/7, bgeui 2/6; sdf vs naf vs action vs pasn -> recycle) |
+| ieee80211_supplicant.c | esp_wifi_set_nan_key_internal(1704B) | low -> medium | NAN key install (NM-TK, clear_peer_integrity, del_ptk_gtk, init_key, del/set_key, bigtk/igtk idx + peer_keys; beqi 2/3, key_len 16) |

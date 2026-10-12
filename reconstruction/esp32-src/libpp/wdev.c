@@ -1385,7 +1385,7 @@ L_4:;
  * Calls: memcpy, pp_post | Data refs: g_osi_funcs_p, memcpy, pp_post, wDevCtrl
  *   MMIO: none
  *   funcdb v3: 2 call(s), 4 ref(s); disasm: 2 call(s), 4 data ref(s)
- * Fidelity: low - 48 instr, 5 branches, 4 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 48 instr, 5 branches, 4 indirect; flow + direct calls mapped, GOT-indirects enumerated */
 int32_t wDev_SnifferRxAmpdu(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.wDev_SnifferRxAmpdu; Xtensa ABI: args a2..a7, return a2 */

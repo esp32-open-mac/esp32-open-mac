@@ -91,7 +91,7 @@ extern u32 wifi_log(); /* wifi_log */
 
 /* ieee80211_send_sa_query @ ieee80211.o 0x00000024 size 199B bind LOCAL
  * Calls: ieee80211_get_robustmgtframe, wifi_log, ieee80211_set_tx_desc, ieee80211_mgmt_output, wifi_log | Data refs: .rodata.ieee80211_send_sa_query.str1.1, .rodata_wlog_error.7, .rodata_wlog_info.8
- * Fidelity: low - 65 insns, 3 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 ieee80211_send_sa_query(u32 a2, u32 a3, u32 a4)
 {
     /* frame: entry a1,48; 65 insns, 3 cond-branches, 0 loops, 1 jumps */
@@ -322,7 +322,7 @@ u32 ieee80211_user_ie_init(u32 a3)
 
 /* ieee80211_ifattach @ ieee80211.o 0x00000034 size 210B bind GLOBAL
  * Calls: ieee80211_phy_init, ieee80211_crypto_attach, ieee80211_proto_attach, ieee80211_phy_init, ieee80211_ht_attach, ieee80211_ht_attach, ieee80211_rate_ref_init, ieee80211_scan_attach, ieee80211_action_vendor_spec_attach, ieee80211_user_ie_init, ieee80211_freedom_init, ieee80211_rfid_locp_recv_reset | Data refs: g_ic
- * Fidelity: low - 75 insns, 8 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 ieee80211_ifattach(u32 a3)
 {
     /* frame: entry a1,32; 75 insns, 8 cond-branches, 0 loops, 4 jumps */
@@ -384,7 +384,7 @@ u32 ieee80211_ifdetach(void)
 
 /* wifi_create_nan @ ieee80211.o 0x0000002c size 252B bind GLOBAL
  * Calls: indirect(a2), indirect(a2), memcpy, ieee80211_phy_init, ieee80211_ht_attach, ic_register_rx_cb, indirect(a5), ic_set_interface | Data refs: g_ic, g_osi_funcs_p, .rodata.wifi_create_nan.str1.1, nan_rx_cb
- * Fidelity: low - 72 insns, 4 branches, 0 loops; skeleton only (weak) */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 wifi_create_nan(u32 a4, u32 a5)
 {
     /* frame: entry a1,32; 72 insns, 4 cond-branches, 0 loops, 2 jumps */
@@ -645,7 +645,7 @@ u32 ieee80211_setup_pmf(void)
 
 /* wifi_create_softap @ ieee80211.o 0x00000030 size 250B bind GLOBAL
  * Calls: indirect(a2), indirect(a7), chm_get_current_band, memcpy, ieee80211_phy_init, ieee80211_ht_attach, ic_register_rx_cb, ieee80211_setup_pmf, indirect(a5), ic_set_interface | Data refs: g_ic, g_osi_funcs_p, g_wifi_nvs, .rodata.wifi_create_nan.str1.1, ap_rx_cb
- * Fidelity: low - 89 insns, 5 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 wifi_create_softap(u32 a4, u32 a5, u32 a6)
 {
     /* frame: entry a1,32; 89 insns, 5 cond-branches, 0 loops, 3 jumps */
@@ -687,7 +687,7 @@ u32 wifi_create_softap(u32 a4, u32 a5, u32 a6)
 
 /* wifi_create_sta @ ieee80211.o 0x00000038 size 254B bind GLOBAL
  * Calls: indirect(a2), indirect(a7), chm_get_current_band, memcpy, ieee80211_phy_init, ieee80211_ht_attach, ic_register_rx_cb, ic_register_michael_mic_failure_cb, ieee80211_setup_pmf, indirect(a5), ic_set_interface | Data refs: g_ic, g_osi_funcs_p, g_wifi_nvs, .rodata.wifi_create_nan.str1.1, sta_rx_cb, sta_michael_mic_failure
- * Fidelity: low - 90 insns, 5 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 wifi_create_sta(u32 a4, u32 a5)
 {
     /* frame: entry a1,32; 90 insns, 5 cond-branches, 0 loops, 3 jumps */

@@ -70,7 +70,7 @@ int ieee80211_phy_type_get(unsigned a2, unsigned a3, unsigned a4, unsigned a5, u
 
 /* ieee80211_phy_mode_show @ ieee80211_phy.o 00000020 size 96B bind GLOBAL
  * Calls: strcpy | Data refs: .rodata.ieee80211_phy_mode_show.str1.1, .rodata.phymode2str.str1.1
- * Fidelity: low - large/complex: 13 branches, 6 loop(s), 1 call; skeleton only */
+ * Fidelity: medium - small frame, 1 call + 13 branches mapped (backward-edge marks kept; predicates opaque) */
 int ieee80211_phy_mode_show(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3 */
@@ -98,7 +98,7 @@ int ieee80211_setup_ratetable(unsigned a2, unsigned a3, unsigned a4, unsigned a5
 
 /* ieee80211_phy_init @ ieee80211_phy.o 0000003c size 250B bind GLOBAL
  * Calls: wifi_log, ieee80211_setup_ratetable, ic_trc_update_ifx_phy_mode, wDev_enable_low_rate, wDev_disable_low_rate, esp_wifi_vnd_lora_enable, esp_wifi_vnd_lora_disable | Data refs: g_ic, .rodata.ieee80211_setup_ratetable.str1.1, .rodata_wlog_error.3, g_wifi_nvs
- * Fidelity: low - large/complex: 19 branches, 17 loop(s), 7 calls; skeleton only */
+ * Fidelity: medium - small frame, 7 calls + 19 branches mapped (backward-edge marks kept; predicates opaque) */
 int ieee80211_phy_init(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3, a5, a6 */

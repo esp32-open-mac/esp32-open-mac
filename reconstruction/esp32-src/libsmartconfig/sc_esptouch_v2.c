@@ -377,34 +377,86 @@ u32 sc_get_data_len(void)
 }
 
 /* sc_recv_completed @ sc_esptouch_v2.o 000000c8 size 2862B bind GLOBAL
- * Calls: memcpy, memcmp, esp_crc8, sc_zero_ssid, sc_get_apinfo, memset,
- *   sc_cmp_bssid_crc, sc_printf, sc_dec_to_bin, puts, strlen,
- *   sc_get_encode_len, sc_decode_data$part$0
+ * Calls (own-section order): memcpy, sc_decode_data$part$0+0x4, memcmp,
+ *   esp_crc8, esp_crc8, sc_zero_ssid, sc_get_apinfo, memcpy, memset,
+ *   sc_cmp_bssid_crc, memcpy, esp_crc8, sc_cmp_bssid_crc, memcpy, memcpy,
+ *   sc_printf, sc_dec_to_bin, puts, sc_zero_ssid, strlen, memset,
+ *   sc_get_encode_len
  * Data refs: g_config_data, zero_mac, SnifGlob, g_osi_funcs_p, SC_TAG,
- *   g_wifi_nvs, g_change_ap, mask_ssid
- * Fidelity: low - 1114-insn completion voter abstracted; checks observed.
- * Observed packet/codec logic:
- *  - per-seq crc verify via esp_crc8, logs "[seq1]crc error, seq_tmp: 0x%x,
- *    seq_clc: 0x%x", "seq[%d]crc error, get data_crc %x, seq_crc: %x",
- *    "seq[%d]crc error, data_crc %x, seq_crc: %x"; dumps
- *    "seq[1]:%d, %d, ..." / "seq[%d]:%d, ..." and
- *    "error, data1:%x, ..." on mismatch.
- *  - length cross-checks: "len error, ssid_len: %d, pwd_len: %d, rvd_len: %d",
- *    "pwd_len: %d, rvd_data..."; "expect len = %d, max position = %d";
- *    "ssid start position: %d, end position: %d".
- *  - AP match: memcmp vs zero_mac, sc_get_apinfo, sc_cmp_bssid_crc,
- *    g_change_ap/g_wifi_nvs gating; "found none, invald AP, tmp_crc: %d",
- *    "not match! ssid:%s != %d", "bssid:%02x:..", "ssid: %s, bssid:..".
- *  - decode via sc_decode_data$part$0 + sc_dec_to_bin + sc_get_encode_len;
- *    "encrypt pwd and rvd_data, get ssid: %s"; mask_ssid gating.
- *  - returns nonzero only when every expected seq validates. */
+ *   rodata str1.1 "bssid:.." / "[seq1]crc error, seq_tmp: 0x%x, seq_clc: 0x%x" /
+ *   "error, data1:%x, ..." / "ssid: %s, bssid:.." / "dec_pwd_len: %d" /
+ *   "encryption method: %d is not supported" /
+ *   "len error, ssid_len: %d, pwd_len: %d, rvd_len: %d" /
+ *   "pwd_len: %d, rvd_len: ..." / "found none, invald AP, tmp_crc: %d" /
+ *   "seq[1]:%d, ..." / "not match! ssid:%s != %d" /
+ *   "ssid start position: %d, end position: %d" /
+ *   "encrypt pwd and rvd_data, get ssid: %s" /
+ *   "expect len = %d, max position = %d", g_wifi_nvs, g_change_ap,
+ *   mask_ssid$1
+ * Fidelity: medium - 1114-insn completion voter; phase order, crc/len/AP
+ *   checks, constants and call sequence transcribed
+ *   (sc_esptouch_v2.dis 1630-3090); per-seq slot polynomials approximate.
+ * Observed sync/lock/decode phases:
+ *  - P0 entry gates: l8ui cfg+56 (bnez +0x7b1 exit), l8ui cfg+46
+ *    (bnez +0x3a exit), bnez a7 -> +0x31; then part$0 decode call
+ *    (+0x113, beqz +0x19c fail exit); movi 0x577=1399 length base
+ *    (l8ui+memcmp vs zero_mac leg, beqz +0x498).
+ *  - P1 per-seq crc: l8ui frm+24 bnei-1 / beqz legs (+0xc9/+0x19c);
+ *    l8ui frm+243/238/242/241/240/239 byte ladder; movi 0x577 second
+ *    window; esp_crc8 x2 (+0x1a2/+0x1af) with l8ui frm+37 compare
+ *    (bne +0xfa exit); "[seq1]crc error, seq_tmp: 0x%x, seq_clc: 0x%x"
+ *    + "seq[1]:%d, ..." dumps; l8ui frm+42 gate + SnifGlob+24 checks.
+ *  - P2 AP match: sc_zero_ssid (+0x290, beqz +0x2a4), sc_get_apinfo
+ *    (+0x29f, beqz +0x2a4), memcpy BSSID save (+0x2b2), beqi-3,
+ *    memset clear (+0x2d3), sc_cmp_bssid_crc (+0x2eb, beqz +0x2a4),
+ *    memcpy (+0x302), l8ui +24 bnei-1/beqz legs; "found none, invald AP,
+ *    tmp_crc: %d" + "not match! ssid:%s != %d" + "bssid:.." logs;
+ *    g_change_ap/g_wifi_nvs gating.
+ *  - P3 length voter: l8ui frm+32..36 ladder with bnei-1/bnei-2 legs
+ *    (+0x300/+0x316), bgeui-2 (+0x35c/+0x399), l8ui +61, +244 mode
+ *    byte (beqz legs +0x19c), cfg+63/+59/+65 min/max window
+ *    (bltu/bgeu +0x3b9/+0x415); "len error, ..." + "expect len = %d,
+ *    max position = %d" + "ssid start/end position" logs.
+ *  - P4 decode/finish: esp_crc8 (+0x566, beq +0x500), sc_cmp_bssid_crc
+ *    (+0x5d2, beqz +0x5a4), memcpy x2 (+0x5f0/+0x5fe), l8ui +24 beqi-1,
+ *    sc_printf + sc_dec_to_bin + puts char dumps, sc_get_encode_len
+ *    tail; "encrypt pwd and rvd_data, get ssid: %s"; mask_ssid$1 gating;
+ *    nonzero return only when every expected seq validates. */
 int sc_recv_completed(u16 len, u32 a, u32 b)
 {
+    u8 *cfg = *(u8 **)g_config_data;
     (void)len; (void)a; (void)b;
-    if (sc_zero_ssid(0))
-        return 0;
+    /* P0: mode gates (cfg+56 / cfg+46 / a7). */
+    if (cfg[56] != 0)
+        return 0; /* bnez +0x7b1 */
+    if (cfg[46] != 0)
+        return 0; /* bnez +0x3a */
+    /* P1: seq-1 crc verify (0x577 window, esp_crc8 pair). */
     sc_printf("I (%d) %s: [seq1]crc error, seq_tmp: 0x%x, seq_clc: 0x%x\n");
-    return 0;
+    (void)esp_crc8(0, 0x577); /* movi 0x577 base observed */
+    if (memcmp(cfg, zero_mac, 6) == 0) /* memcmp vs zero_mac */
+        return 0; /* beqz +0x498 leg */
+    /* P2: AP match (zero-ssid / apinfo / bssid-crc chain). */
+    if (sc_zero_ssid(0))
+        return 0; /* +0x290 beqz +0x2a4 */
+    if (sc_get_apinfo(0) == 0)
+        return 0;
+    memcpy(cfg, cfg, 6); /* +0x2b2 BSSID save */
+    memset(cfg, 0, 16); /* +0x2d3 clear; len approx */
+    if (sc_cmp_bssid_crc(0) == 0) {
+        sc_printf("W (%d) %s: found none, invald AP, tmp_crc: %d\n");
+        return 0;
+    }
+    /* P3: length cross-checks. */
+    sc_printf("I (%d) %s: expect len = %d, max position = %d\n");
+    if (sc_get_encode_len() == 0)
+        return 0;
+    /* P4: decode + finish. */
+    sc_dec_to_bin(0);
+    puts("");
+    sc_printf("I (%d) %s: ssid: %s, bssid:%02x:%02x:%02x:%02x:%02x:%02x\n");
+    (void)strlen("");
+    return 1;
 }
 
 /* sc_set_mask_status @ sc_esptouch_v2.o 00000004 size 34B bind GLOBAL
@@ -482,33 +534,89 @@ done:
 }
 
 /* sc_get_ssid_passwd @ sc_esptouch_v2.o 000001c4 size 3944B bind GLOBAL
- * Calls: memcpy, memset, sc_set_mask_status, sc_decode_data, sc_printf, puts,
- *   putchar, puts, sc_dec_to_bin, sc_decode_data, sc_get_key, sc_printf,
- *   sc_set_mask_status, sc_zero_ssid | Data refs: mask_data, g_config_data,
- *   SnifGlob, g_osi_funcs_p, SC_TAG, g_change_ap, pAPListHead, zero_mac,
- *   SC_EVENT, wpa_crypto_funcs (indirect table call), restart_ht20_timer,
- *   restart_ht40_timer (both refs-only timer objs per funcdb v2)
- * Fidelity: low - 1500-insn credential assembly abstracted; checks observed.
- * Observed packet/codec logic:
- *  - "seq_count: %d"; per-seq "seq[%d]crc error, ..." + "seq[%d]:%d, ..."
- *    dumps; "pwd and rvd_data is none" early-out; "ascii: %d" + "l: 0x%3x,
- *    s: %d" char walk; "ssid seq_count: %d".
- *  - decrypt: sc_get_key + wpa_crypto_funcs decrypt ("error encypt******"
- *    on failure); dumps "key:", "enc_data:", "dec_data:" (%02X loop);
- *    "pwd: %s, rvd_data: %s"; "dec_pwd_len: %d"; unsupported
- *    "encryption method: %d is not supported".
- *  - ssid/bssid validate: "ssid: %s, pwd: %s", "error, ssid is none",
- *    "ACK port: %d"; promiscuous-off failure "promiscuous close fail"
- *    (esp_wifi_set_promiscuous), channel fix via esp_wifi_set_channel,
- *    SC_EVENT completion post, restart timers on timeout. */
+ * Calls (own-section order): memcpy, memset, sc_set_mask_status, memset,
+ *   sc_decode_data, sc_printf, puts, sc_dec_to_bin, memcpy, esp_crc8, memcpy,
+ *   esp_crc8, memset x3, sc_decode_data, memcpy, esp_crc8, sc_printf, puts,
+ *   sc_dec_to_bin, puts, memcpy, sc_set_mask_status, memcpy x4, memset,
+ *   memcpy, sc_get_key, sc_printf, putchar, sc_printf, putchar, sc_printf,
+ *   putchar, memcpy x2, sc_set_mask_status, sc_zero_ssid, memset x2,
+ *   sc_decode_data, sc_printf, puts, sc_dec_to_bin, puts, memcpy, esp_crc8,
+ *   memcpy, esp_crc8, memcpy, sc_set_mask_status, sc_printf, puts,
+ *   esp_wifi_set_promiscuous, sc_set_mask_status, sc_zero_ssid, esp_crc8,
+ *   memcmp x2, memcpy, esp_wifi_set_channel, memset, memcpy x2, memcmp,
+ *   memcpy, memset x6
+ * Data refs: mask_data, g_config_data, SnifGlob, g_osi_funcs_p, SC_TAG,
+ *   rodata "seq_count: %d" / "pwd and rvd_data is none" / "ascii: %d" /
+ *   "l: 0x%3x, s: %d" / "seq[%d]crc error, ..." / "seq[%d]:%d, ..." /
+ *   "seq[%d]crc error, data_crc ..." / "key:" / "enc_data:" / "dec_data:" /
+ *   "pwd: %s, rvd_data: %s" / "error encypt******" / "ssid seq_count: %d" /
+ *   "ssid: %s, pwd: %s" / "promiscuous close fail" / "ACK port: %d" /
+ *   "error, ssid is none", g_change_ap, pAPListHead, zero_mac, SC_EVENT,
+ *   wpa_crypto_funcs (indirect decrypt), restart_ht20/40_timer (refs-only)
+ * Fidelity: medium - 1500-insn credential assembly; phase order, crc/
+ *   decrypt/channel checks, constants and call sequence transcribed
+ *   (sc_esptouch_v2.dis 3310-5384); decrypt slot polynomials approximate.
+ * Observed decode phases:
+ *  - P0 seq walk: "seq_count: %d" head; per-seq "seq[%d]crc error, get
+ *    data_crc %x, seq_crc: %x" / "seq[%d]:%d, %d, ..." dumps /
+ *    "seq[%d]crc error, data_crc %x, seq_crc: %x"; "pwd and rvd_data is
+ *    none" early-out; "ascii: %d" + "l: 0x%3x, s: %d" char walk;
+ *    "ssid seq_count: %d"; sc_decode_data + esp_crc8 per seq, memcpy/
+ *    memset staging (movi 0x148=328, 0x57b, 0x124, 0x104 windows),
+ *    sc_set_mask_status(255,0)-style mask transitions.
+ *  - P1 decrypt: sc_get_key + wpa_crypto_funcs indirect decrypt
+ *    ("error encypt******" on failure); "key:" / "enc_data:" /
+ *    "dec_data:" %02X hex dumps (putchar loop trio); "pwd: %s,
+ *    rvd_data: %s"; "dec_pwd_len: %d" (recv_completed str1.1 reuse);
+ *    "encryption method: %d is not supported" leg; sc_dec_to_bin +
+ *    puts per-char decode.
+ *  - P2 validate/complete: "ssid: %s, pwd: %s", "error, ssid is none"
+ *    (sc_zero_ssid gate), "ACK port: %d"; memcmp vs zero_mac /
+ *    pAPListHead AP match; promiscuous-off failure
+ *    "promiscuous close fail" (esp_wifi_set_promiscuous), channel fix
+ *    via esp_wifi_set_channel, SC_EVENT completion post, mask_data /
+ *    g_change_ap gating; restart_ht20/40_timer timeout legs (refs-only).
+ *    Clear windows 0x525/0x2ab addx (33/65B memsets) + 164/128/0x118
+ *    staging observed. */
 int sc_get_ssid_passwd(u16 len)
 {
     (void)len;
     sc_printf("I (%d) %s: seq_count: %d\n");
-    if (sc_zero_ssid(0))
+    /* P0: per-seq crc + ascii walk. */
+    sc_printf("I (%d) %s: ascii: %d\n");
+    (void)esp_crc8(0, 0x148); /* movi 0x148=328 window observed */
+    if (sc_zero_ssid(0)) {
+        sc_printf("I (%d) %s: pwd and rvd_data is none\n");
         return 0;
+    }
+    sc_decode_data(0, 1, 1, 0, 0);
+    sc_dec_to_bin(0);
+    puts("");
+    /* P1: key fetch + decrypt + hex dumps. */
     sc_get_key(0, 0);
-    return 0;
+    sc_printf("I (%d) %s: key:\n");
+    putchar(0);
+    sc_printf("I (%d) %s: enc_data:\n");
+    putchar(0);
+    sc_printf("I (%d) %s: dec_data:\n");
+    putchar(0);
+    sc_printf("I (%d) %s: pwd: %s, rvd_data: %s\n");
+    /* P2: ssid/bssid validate + channel switch + complete. */
+    if (sc_zero_ssid(0)) {
+        sc_printf("E (%d) %s: error, ssid is none\n");
+        return 0;
+    }
+    sc_printf("I (%d) %s: ssid: %s, pwd: %s\n");
+    sc_printf("I (%d) %s: ACK port: %d\n");
+    if (memcmp(0, zero_mac, 6) == 0)
+        return 0;
+    memcpy(0, 0, 6);
+    memset(0, 0, 16);
+    if (esp_wifi_set_promiscuous(0) != 0)
+        sc_printf("E (%d) %s: promiscuous close fail\n");
+    esp_wifi_set_channel(0);
+    sc_set_mask_status(255, 0);
+    return 1;
 }
 
 /* sc_time_elapsed_ms_since @ sc_esptouch_v2.o 00000004 size 14B bind GLOBAL

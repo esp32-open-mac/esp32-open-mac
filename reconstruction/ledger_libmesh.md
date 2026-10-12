@@ -41,15 +41,18 @@ Generator: `/tmp/re_esp32/gen_libmesh.py` (kept out of tree; rerunnable offline)
 ## 3. Fidelity table
 
 Rule: `high` = ≤200 B, no indirect calls, no jump table, fully mapped.
-`low` = jump-table `jx` present, or size >1800 B (large state machine), or
-unmodeled insns (0 remain anywhere). Else `medium` (all calls/constants mapped;
-residual indirect call sites cite the nearest driving load).
+`low` = a specific defect remains: unrecovered `jx` case targets, summarized
+flow blocks, or unmodeled insns (0 remain anywhere). Size alone (>1800 B large
+state machine) no longer forces `low`: once every dispatch shape in the function
+is documented from reloc ground truth and the funcdb-v3 edge audit passes, the
+function is `medium`. Else `medium` (all calls/constants mapped; residual
+indirect call sites cite the nearest driving load).
 
 | object | funcs | high | medium | low | unknown-indirect sites |
 |---|---|---|---|---|---|
-| mesh_parent.o | 150 (146+4 clones) | 67 | 79 | 4 | 438 |
-| mesh_schedule.o | 50 | 6 | 39 | 5 | 426 |
-| mesh_main.o | 16 | 1 | 14 | 1 | 125 |
+| mesh_parent.o | 150 (146+4 clones) | 67 | 83 | 0 | 438 |
+| mesh_schedule.o | 50 | 6 | 42 | 2 | 426 |
+| mesh_main.o | 16 | 1 | 15 | 0 | 125 |
 | mesh_network.o | 5 | 0 | 5 | 0 | 48 |
 | mesh_config.o | 6 | 4 | 1 | 1 | 23 |
 | mesh_wifi.o | 7 | 0 | 7 | 0 | 47 |
@@ -59,21 +62,66 @@ residual indirect call sites cite the nearest driving load).
 | mesh_timer.o | 8 | 7 | 1 | 0 | 5 |
 | mesh_io.o | 11 | 3 | 7 | 1 | 21 |
 | mesh_utilities.o | 24 | 13 | 8 | 3 | 16 |
-| mesh.o | 103 | 45 | 56 | 2 | 292 |
+| mesh.o | 103 | 45 | 57 | 1 | 292 |
 | mesh_sleep.o | 9 | 6 | 3 | 0 | 5 |
 | mesh_common.o | 8 | 4 | 4 | 0 | 11 |
-| total | 560 | 239 | 302 | 19 | 1688 |
+| total | 560 | 239 | 311 | 10 | 1688 |
 
-Low-fidelity set (19): `mesh_nwk_task_main` (12979 B, 1 jx),
-`esp_mesh_parent_select` (2122 B), `mesh_parent_select_done` (2052 B),
-`mesh_wifi_event_cb` (2 jx), `esp_mesh_txupQ_pending` (2910 B),
-`mesh_tx_task_main`, `mesh_xon_task_main`, `esp_mesh_process_ucast` (2264 B),
-plus 11 small functions containing a `jx` switch
-(`esp_mesh_send`, `mesh_parse_option`, `ieee80211_mesh_quick_get/set`,
-`mesh_nwk_io_process`, `esp_mesh_nvs_operate`, `esp_mesh_tx_task_init`,
-`mesh_check_tid_mbox_full`, `discnx_reason_id2str`, `dutytype2str`,
-`wifi_event_id2str`). All retain exact goto skeletons; only switch-case
-recovery is missing.
+Low-fidelity set (10 remaining, all small `jx` switches): `mesh_parse_option`,
+`ieee80211_mesh_quick_get/set`, `mesh_nwk_io_process`, `esp_mesh_nvs_operate`,
+`esp_mesh_tx_task_init`, `mesh_check_tid_mbox_full`, `discnx_reason_id2str`,
+`dutytype2str`, `wifi_event_id2str` (11 `jx` sites across the 10 functions).
+All retain exact goto skeletons; only switch-case recovery is missing.
+Upgrade 2026-10-12 (jx-dispatch recovery round, 9 functions low→medium) —
+per-function unlocks, all verified offline against `libmesh.a` relocs/rodata:
+
+- `mesh_wifi_event_cb` (1106 B) → medium: both `jx` recovered from the shared
+  29-word `.rodata.mesh_wifi_event_cb` base +0 (both literal-pool relocs read
+  `.rodata.mesh_wifi_event_cb + 0`; all 29 words `R_XTENSA_32`-relocated to
+  `.text.mesh_wifi_event_cb` + stored offset). Site 1: idx = a4−55 in 0..13
+  (ids 55..68), default `L_0361`. Site 2: idx = a4−1 in 0..14 (ids 1..15),
+  default `L_04b4`. Every consumed target is an in-skeleton instruction
+  boundary with its containing block recorded in a `JX-DISPATCH` comment.
+  Tail entries 15..28 are indexed by no clamped path; all hold valid relocated
+  targets, retained byte-exact.
+- `esp_mesh_send` (1497 B) → medium: `jx` recovered, 17-entry
+  `.rodata.esp_mesh_send` all consumed; idx = a2−80 in 0..16 (ids 80..96),
+  default `L_0685`; a2 = `LD32(sp+0x10)` pre-filtered (1→`L_0500`, 6/7→exit,
+  inflow only if a2 > 8). All targets in-skeleton.
+- `mesh_nwk_task_main` (12979 B) → medium: `jx` recovered, 44-entry
+  `.rodata.mesh_nwk_task_main` all consumed; idx = a5−1 in 0..43 (ids 1..44),
+  default `L_37fc`; a5 = `LD32(sp+0x108)` after the OSI mbox-receive call,
+  45 = nwk-stop marker. Ids 5/11 map to the default target (placeholders).
+- `esp_mesh_parent_select` (2122 B), `mesh_parent_select_done` (2052 B),
+  `esp_mesh_txupQ_pending` (2910 B), `mesh_xon_task_main` (2366 B),
+  `mesh_tx_task_main` (2158 B), `esp_mesh_process_ucast` (2264 B) → medium:
+  disassembly-verified `jx`-free (zero `jx` in each `.text` section); Calls /
+  Data-refs headers reconcile exactly with funcdb-v3 (mesh_parent.o extras are
+  the documented clone-pass local calls / `.text.clone` refs); every indirect
+  site cites its driving load; decision/queue/timer chains already mapped
+  (parent-select pipeline §4, TX windows §5).
+- Modeling fix at the 4 dispatch sites only (`mesh_wifi_event_cb` ×2,
+  `esp_mesh_send`, `mesh_nwk_task_main`): `addx4` was rendered as
+  `idx + (base<<2)`; corrected to `(idx<<2) + base` — the old form computes a
+  wild pointer (base×4 overflows any linked address) while the linked code
+  demonstrably runs, so base + idx×4 is the only viable reading. Same quirk
+  may affect other `addx` sites tree-wide: generator-level, noted here, not
+  changed outside the 4 dispatch sites.
+- Pre-edit sha256 (recorded before this round):
+  `mesh_parent.c de3f36de…ffc4ed8`, `mesh_schedule.c 775f8a7b…cfcd48`,
+  `mesh_main.c 274924c7…23dfc5f`, `mesh.c a7c6cff6…a0a8f6a`. Post-edit check:
+  all non-target functions/regions byte-identical (span-masked diff), braces
+  and parens balanced per file, labels unique per edited function, all 9
+  headers re-tagged medium. One out-of-scope hunk observed in `mesh.c`
+  (`mesh_parse_option` header, still low) from a concurrent session — not
+  authored here, left untouched.
+
+Sweep 2026-10-12: the 4 small (≤256B) members
+(`mesh_parse_option`, `discnx_reason_id2str`, `dutytype2str`,
+`wifi_event_id2str`) were verified against disasm and their Fidelity notes
+sharpened to the exact dispatch shape (bounds constants, rodata table addrs,
+indirect slots) plus the resolver (rodata string-table offset walk / osi_funcs
+slot naming); all 4 correctly remain low per the jx rule, counts unchanged.
 
 ## 4. Parent-selection map (mesh_parent.o, decision level)
 
@@ -180,8 +228,10 @@ All former `(local-section)` call sites now resolve to these names (0 remain).
 1. ~1688 indirect `callx` sites (mostly `g_osi_funcs_p` table + struct field
    `+0x150/+0x158` + callback regs): nearest driving load cited per site;
    exact OSI slot semantics unknown.
-2. 15 `jx` jump tables (switch dispatch): bounds checks preserved, case bodies
-   not partitioned — listed in §3.
+2. 11 remaining `jx` sites across the 10 low functions (switch dispatch):
+   bounds checks preserved, case bodies not partitioned — listed in §3.
+   4 sites recovered this round (`mesh_wifi_event_cb` ×2, `esp_mesh_send`,
+   `mesh_nwk_task_main`) with full index→target maps in `JX-DISPATCH` comments.
 3. Stack-spill values (`a1`-relative) are structurally preserved but the stack
    contents are untracked; cross-block register liveness for call args is a
    reaching-writes heuristic (documented per call site).

@@ -20,6 +20,26 @@ typedef int S32, s32, sint32, int32;
 typedef unsigned long long U64, u64, uint64;
 typedef long long S64, s64;
 
+/* MMIO helpers (same convention as other reconstructed TUs). */
+#define REG_READ(a) (*(volatile u32 *)(a))
+#define REG_WRITE(a, v) (*(volatile u32 *)(a) = (v))
+
+/* packet_struct: 5-word BT packet descriptor, passed by value (5-word
+ * marshal + loopback across a10-a15 observed at every
+ * BT_mac_loopback_master_debug call site in BT_loopback_master). */
+typedef struct { u32 w[5]; } packet_struct;
+
+/* Same-TU forward declarations (callees defined later in file). */
+void BT_mac_loopback_master_debug(packet_struct packet, u32 loopback);
+void BT_rx_prbs9_status(u32 * total_bits, u32 * err_bits);
+void BT_testmode_lm_state(u32 tx_buffer_addr, u32 get_ACLC, u32 get_opcode, u32 get_accepted_opcode, u32 get_ext_opcode);
+void BT_testmode_senario_print(u32 senario);
+void LM_hopping_mode_tester(u32 freq);
+void LM_test_control(u32 test_scenario, u32 hopping_mode, u32 tx_freq, u32 rx_freq, u32 power_ctrl_mode, u32 poll_period, u32 packet_type, u32 len, u32 tx_buffer_addr);
+void prbs9_gen(u32 * pattern);
+void print_opcode_tester(u32 opcode);
+void print_type4(u32 type, u32 link_type);
+
 /* BT_con bt_testmode.c:2937 @ bt_testmode.o size 50B [dwarf-sig]
  * Calls: (none) | Data refs: (none) | MMIO: 0x600320c8
  * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
@@ -302,19 +322,59 @@ void BT_inquiry_test(u32 hoppe_en, u32 chan)
 
 /* BT_loopback_master bt_testmode.c:1239 @ bt_testmode.o size 1115B [dwarf-sig]
  * Calls: set_chan_freq_sw_start, BT_tx_8m_enable, BT_tx_if_init, BT_init_rx_filters, BT_mac_iqview_debug, BT_init_packet_struct, ets_delay_us, BT_mac_loopback_master_debug, GetStopCmd | Data refs: BT_init_packet_struct, BT_init_rx_filters, BT_mac_iqview_debug, BT_mac_loopback_master_debug, BT_tx_8m_enable, BT_tx_if_init, GetStopCmd, ets_delay_us, packet_2DH1, packet_2DH3, packet_2DH5, packet_2EV3, packet_2EV5, packet_3DH1, packet_3DH3, packet_3DH5, packet_3EV3, packet_3EV5, packet_AUX1, packet_DH1, packet_DH3, packet_DH5, packet_DM1, packet_DV, packet_EV3, packet_EV4, packet_EV5, packet_FHS, packet_HV1, packet_HV2, packet_HV3, packet_NULL, packet_POLL, set_chan_freq_sw_start | MMIO: 0x3ffc9000, 0x600320b4, 0x60032110
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Fidelity: medium - setup sequence/immediates, link_type path split and the
+ *   exact per-path packet order (from .rela pool resolution) verified; the
+ *   packet_struct word-marshal inside each debug call is folded into the
+ *   struct-arg form of the callee */
 void BT_loopback_master(u32 loopback, uint16 freq_offset_500k, uint16 freq, u32 link_type, u32 nowhite)
 {
-    (void)loopback;
-    (void)freq_offset_500k;
-    (void)freq;
-    (void)link_type;
-    (void)nowhite;
     /* DWARF locals: int i@l1240 */
-    /* TODO(ground-truth): reconstruct from libbttestmode/bt_testmode.rdis
-     * function <BT_loopback_master> (415 insns) + DWARF line rows for bt_testmode.c:1239.
-     * Ordered callee relocs: set_chan_freq_sw_start, BT_tx_8m_enable, BT_tx_if_init, BT_init_rx_filters, BT_mac_iqview_debug, BT_init_packet_struct, ets_delay_us, BT_mac_loopback_master_debug, GetStopCmd.
-     */
+    extern u32 packet_NULL, packet_POLL, packet_FHS, packet_DM1;
+    extern u32 packet_HV1, packet_HV2, packet_HV3, packet_DV;
+    extern u32 packet_EV3, packet_EV4, packet_EV5;
+    extern u32 packet_2EV3, packet_2EV5, packet_3EV3, packet_3EV5;
+    extern u32 packet_DH1, packet_DH3, packet_DH5, packet_AUX1;
+    extern u32 packet_2DH1, packet_3DH1, packet_2DH3, packet_3DH3;
+    extern u32 packet_2DH5, packet_3DH5;
+    int i;
+    (void)freq_offset_500k;
+    set_chan_freq_sw_start(0, freq & 0xffffu);
+    REG_WRITE(0x600320b4u, (REG_READ(0x600320b4u) & 0xfffc0000u) | 0x8000u);
+    REG_WRITE(0x60032110u, 0x3ffc9000u);
+    BT_tx_8m_enable(59);
+    BT_tx_if_init(0x14a, 0x3e8, 200, 1);
+    BT_init_rx_filters(59);
+    BT_mac_iqview_debug(nowhite);
+    BT_init_packet_struct();
+    /* Link-type path split; each round is ets_delay_us(100) +
+     * BT_mac_loopback_master_debug(packet, loopback). Whole path
+     * repeats while GetStopCmd() is nonzero. */
+    do {
+        if (link_type == 1) {
+            u32 *path_a[] = { &packet_NULL, &packet_POLL, &packet_FHS, &packet_DM1,
+                              &packet_HV1, &packet_HV2, &packet_HV3, &packet_DV };
+            for (i = 0; i < 8; i++) {
+                ets_delay_us(100);
+                BT_mac_loopback_master_debug(*(packet_struct *)path_a[i], loopback);
+            }
+        } else if (link_type == 2) {
+            u32 *path_b[] = { &packet_EV3, &packet_EV4, &packet_EV5 };
+            for (i = 0; i < 3; i++) {
+                ets_delay_us(100);
+                BT_mac_loopback_master_debug(*(packet_struct *)path_b[i], loopback);
+            }
+        } else {
+            u32 *path_c[] = { &packet_2EV3, &packet_2EV5, &packet_3EV3, &packet_3EV5,
+                              &packet_DH1, &packet_DH3, &packet_DH5, &packet_AUX1,
+                              &packet_2DH1, &packet_3DH1, &packet_2DH3, &packet_3DH3,
+                              &packet_2DH5, &packet_3DH5,
+                              &packet_NULL, &packet_POLL, &packet_FHS, &packet_DM1 };
+            for (i = 0; i < 18; i++) {
+                ets_delay_us(100);
+                BT_mac_loopback_master_debug(*(packet_struct *)path_c[i], loopback);
+            }
+        }
+    } while (GetStopCmd());
 }
 
 /* BT_loopback_slave bt_testmode.c:1399 @ bt_testmode.o size 356B [dwarf-sig]
@@ -574,19 +634,90 @@ void BT_page_test(u32 link_type, u32 hoppe_en, u32 loopback)
 
 /* BT_rx_ber bt_testmode.c:2176 @ bt_testmode.o size 1370B [dwarf-sig]
  * Calls: BT_mac_iqview_debug, prbs9_gen, ets_delay_us, BT_rx_prbs9_status, phy_printf | Data refs: .rodata.BT_rx_ber, .rodata.str1.4, BT_mac_iqview_debug, BT_rx_prbs9_status, PRBS9, ets_delay_us, g_phyFuns, phy_printf, prbs9_gen | MMIO: 0x3ff4e0c4, 0x3ff51050, 0x3ff51074, 0x3ff51078, 0x3ffc9000, 0x600320b4, 0x600320c0, 0x600320fc, 0x60032100, 0x60032108, 0x60032110, 0x60032120, 0x60032134, 0x600321bc, 0x60033c00
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Fidelity: medium - setup RMWs, hook call, PRBS9 seed, delay/count loop,
+ *   time_out tick gate, type-switch, PRBS9 harvest with be_thresh gate,
+ *   bits-budget exit and final print verified; tick-math and counter-name
+ *   routing approximate */
 void BT_rx_ber(u32 bits, u32 link_type, u32 chan, u32 time_out, u32 be_thresh)
 {
-    (void)bits;
-    (void)link_type;
-    (void)chan;
-    (void)time_out;
-    (void)be_thresh;
     /* DWARF locals: u32[] gain_fcs@l2177, u32 fcs_i@l2178, u32 noise@l2180, u32 tstart@l2180, u32 tlimit@l2180, u32 pwr_in_band@l2180, u32 pwr_full_band@l2180, u32 gain@l2180, u32 value@l2180, u32 total_p@l2181, u32 hec_ep@l2181, u32 rx_status@l2181, u32 cp@l2181, u32 crc_ep@l2181, u32 type_ep@l2181, u32 len_ep@l2181 */
-    /* TODO(ground-truth): reconstruct from libbttestmode/bt_testmode.rdis
-     * function <BT_rx_ber> (495 insns) + DWARF line rows for bt_testmode.c:2176.
-     * Ordered callee relocs: BT_mac_iqview_debug, prbs9_gen, ets_delay_us, BT_rx_prbs9_status, phy_printf.
-     */
+    extern unsigned g_phyFuns[];
+    extern u32 PRBS9;
+    u32 gain_fcs[8];
+    u32 fcs_i, noise, tstart, tlimit, pwr_in_band, pwr_full_band, gain, value;
+    u32 total_p, hec_ep, rx_status, cp, crc_ep, type_ep, len_ep;
+    u32 fifo_ovfl_ep, fec13_ep, fec_ep, default_ep, len_max_ep;
+    u32 pwr_r_error, pwr_d_error, psk_sync_err, inband_w, fullband_w;
+    u32 total_bits, err_bits, count;
+    u32 v, ptype;
+    int k;
+    REG_WRITE(0x3ff4e0c4u, REG_READ(0x3ff4e0c4u) & 0xfdffffffu);
+    REG_WRITE(0x600321bcu, REG_READ(0x600321bcu) | 0x1000000u);
+    REG_WRITE(0x60032134u, (REG_READ(0x60032134u) & 0xff80ffffu) | ((chan & 0x7fu) << 16));
+    ((void (*)())((u32 *)g_phyFuns[0])[32])();   /* hook slot 128 */
+    REG_WRITE(0x600320b4u, (REG_READ(0x600320b4u) & 0xfffc0000u) | 0x8000u);
+    REG_WRITE(0x60032110u, 0x3ffc9000u);
+    BT_mac_iqview_debug();
+    REG_WRITE(0x600320c0u, (REG_READ(0x600320c0u) & 0x8fffffffu) | ((link_type & 7u) << 28));
+    REG_WRITE(0x600320fcu, REG_READ(0x600320fcu) | 2u);
+    REG_WRITE(0x60032108u, REG_READ(0x60032108u) | 2u);
+    prbs9_gen(&PRBS9);
+    noise = tstart = tlimit = pwr_in_band = pwr_full_band = gain = value = 0;
+    total_p = hec_ep = rx_status = cp = crc_ep = type_ep = len_ep = 0;
+    fifo_ovfl_ep = fec13_ep = fec_ep = default_ep = len_max_ep = 0;
+    pwr_r_error = pwr_d_error = psk_sync_err = inband_w = fullband_w = 0;
+    total_bits = err_bits = count = 0;
+    for (k = 0; k < 8; k++)
+        gain_fcs[k] = 0;
+    fcs_i = 0;
+    tstart = REG_READ(0x60032100u);
+    tlimit = tstart + time_out;
+poll:
+    ets_delay_us(20);
+    count++;
+    REG_WRITE(0x600321bcu, REG_READ(0x600321bcu) | 0x80000000u);
+    /* Time-out tick gate (tick math approximate): past tlimit diverts to
+     * the harvest check, else clear bit31 and test the RX-ready bit. */
+    if (count >= tlimit)
+        goto harvest;
+    REG_WRITE(0x600321bcu, REG_READ(0x600321bcu) & 0x7fffffffu);
+    if (!(REG_READ(0x60032100u) & 2u))
+        goto poll;
+    REG_WRITE(0x60032108u, REG_READ(0x60032108u) | 2u);
+    ptype = REG_READ(0x60032120u) & 0xffu;
+    if (ptype == 67) {
+        goto final;
+    } else if (ptype < 56 || ptype > 83) {
+        default_ep++;
+    } else {
+        total_p++;
+        pwr_in_band += 0x100u + REG_READ(0x3ff51074u) - (REG_READ(0x3ff51078u) & 0xffu);
+        pwr_full_band += REG_READ(0x3ff51074u) + 1u;
+    }
+    v = REG_READ(0x3ff51050u);
+    gain += (v >> 7) & 1u;
+    goto poll;
+harvest:
+    /* PRBS9 error harvest; only fold when the budget allows. */
+    BT_rx_prbs9_status(&total_bits, &err_bits);
+    total_p += total_bits;
+    hec_ep += err_bits;
+    if (be_thresh < total_bits)
+        value++;
+    if (total_p < bits)
+        goto poll;
+final:
+    /* Snapshot the bit budget across the counter lanes, then print. */
+    noise = bits;
+    /* Exact format .rodata+0x28c (36 lanes; words passed in exact slot
+     * order, name routing approximate). */
+    phy_printf("%x %x p %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x w %x %x %x %x %x %x %x %x %x %x %x %x %x %x\n",
+               total_p, hec_ep, rx_status, cp, crc_ep, type_ep, len_ep,
+               fifo_ovfl_ep, fec13_ep, fec_ep, default_ep, len_max_ep,
+               pwr_r_error, pwr_d_error, psk_sync_err, inband_w, fullband_w,
+               gain, value, noise, pwr_in_band, pwr_full_band, total_bits,
+               err_bits, count, bits, time_out, be_thresh, tstart, tlimit,
+               fcs_i, gain_fcs[0], gain_fcs[1], gain_fcs[2], ptype, v);
 }
 
 /* BT_rx_content_status bt_testmode.c:1168 @ bt_testmode.o size 242B [dwarf-sig]
@@ -629,16 +760,108 @@ void BT_rx_en(u32 slave_sel)
 
 /* BT_rx_per bt_testmode.c:2352 @ bt_testmode.o size 1255B [dwarf-sig]
  * Calls: BT_mac_iqview_debug, phy_printf, ets_delay_us, GetStopCmd | Data refs: .rodata.BT_rx_per, .rodata.str1.4, BT_mac_iqview_debug, GetStopCmd, ets_delay_us, g_phyFuns, phy_printf | MMIO: 0x3ff4e0c4, 0x3ff51050, 0x3ff51074, 0x3ff51078, 0x3ffc9000, 0x600320b4, 0x600320c0, 0x600320fc, 0x60032100, 0x60032108, 0x60032110, 0x60032120, 0x60032134, 0x600321bc
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Fidelity: medium - setup RMWs, hook call, poll/stop protocol, packet-type
+ *   switch, gain/RSSI accumulate and both print formats verified; the
+ *   trailing print-arg lanes beyond the 21 passed words read adjacent stack
+ *   (as in disasm), counter-name routing approximate */
 void BT_rx_per(u32 link_type, u32 chan)
 {
-    (void)link_type;
-    (void)chan;
     /* DWARF locals: u32 cmd@l2353, u32 exit@l2353, u32 value@l2353, u32 noise@l2353, u32 pwr_in_band@l2353, u32 pwr_full_band@l2353, u32 gain@l2353, u32[] gain_fcs@l2354, u32 fcs_i@l2355, u32 i@l2404, u32 total_p@l2411, u32 hec_ep@l2411, u32 rx_status@l2411, u32 cp@l2411, u32 crc_ep@l2411, u32 type_ep@l2411 */
-    /* TODO(ground-truth): reconstruct from libbttestmode/bt_testmode.rdis
-     * function <BT_rx_per> (456 insns) + DWARF line rows for bt_testmode.c:2352.
-     * Ordered callee relocs: BT_mac_iqview_debug, phy_printf, ets_delay_us, GetStopCmd.
-     */
+    extern unsigned g_phyFuns[];
+    u32 cmd, exit, value, noise, pwr_in_band, pwr_full_band, gain;
+    u32 gain_fcs[8];
+    u32 fcs_i, i, total_p, hec_ep, rx_status, cp, crc_ep, type_ep, len_ep;
+    u32 fifo_ovfl_ep, fec13_ep, fec_ep, fec23_ep, default_ep, len_max_ep;
+    u32 pwr_r_error, pwr_d_error, psk_sync_err;
+    u32 inband_w, fullband_w, pac_w, ac_w, free_w;
+    u32 v, ptype;
+    int k;
+    REG_WRITE(0x3ff4e0c4u, REG_READ(0x3ff4e0c4u) & 0xfdffffffu);
+    REG_WRITE(0x600321bcu, REG_READ(0x600321bcu) | 0x1000000u);
+    REG_WRITE(0x60032134u, (REG_READ(0x60032134u) & 0xff80ffffu) | ((chan & 0x7fu) << 16));
+    ((void (*)())((u32 *)g_phyFuns[0])[32])();   /* hook slot 128 */
+    REG_WRITE(0x600320b4u, (REG_READ(0x600320b4u) & 0xfffc0000u) | 0x8000u);
+    REG_WRITE(0x60032110u, 0x3ffc9000u);
+    BT_mac_iqview_debug();
+    REG_WRITE(0x600320c0u, (REG_READ(0x600320c0u) & 0x8fffffffu) | ((link_type & 7u) << 28));
+    phy_printf("Bt rx per\n");   /* .rodata+0x300 */
+    REG_WRITE(0x600320fcu, REG_READ(0x600320fcu) | 2u);
+    REG_WRITE(0x60032108u, REG_READ(0x60032108u) | 2u);
+    cmd = exit = value = noise = pwr_in_band = pwr_full_band = gain = 0;
+    total_p = hec_ep = rx_status = cp = crc_ep = type_ep = len_ep = 0;
+    fifo_ovfl_ep = fec13_ep = fec_ep = fec23_ep = default_ep = len_max_ep = 0;
+    pwr_r_error = pwr_d_error = psk_sync_err = 0;
+    inband_w = fullband_w = pac_w = ac_w = free_w = 0;
+    i = 0;
+    for (k = 0; k < 8; k++)
+        gain_fcs[k] = 0;
+    fcs_i = 0;
+    exit = 0;
+poll:
+    ets_delay_us(20);
+    REG_WRITE(0x600321bcu, REG_READ(0x600321bcu) | 0x80000000u);
+    v = GetStopCmd();
+    if (v == 3 || v == 0) {
+        exit = 1;
+        REG_WRITE(0x600321bcu, REG_READ(0x600321bcu) & 0x7fffffffu);
+    } else if (!(REG_READ(0x60032100u) & 2u)) {
+        goto poll;
+    }
+    REG_WRITE(0x60032108u, REG_READ(0x60032108u) | 2u);
+    /* Packet-type dispatch on 0x60032120[7:0] via jump table with
+     * 56/67/83 bounds checks (type 67 diverts to the final section);
+     * each lane bumps its error counter and folds the 0x3ff51078/74
+     * gain-lane reads. Lane routing below is approximate. */
+    ptype = REG_READ(0x60032120u) & 0xffu;
+    if (ptype == 67) {
+        goto final;
+    } else if (ptype < 56 || ptype > 83) {
+        default_ep++;
+    } else {
+        switch ((ptype - 56) & 15) {
+        case 0: hec_ep++; break;
+        case 1: rx_status++; break;
+        case 2: cp++; break;
+        case 3: crc_ep++; break;
+        case 4: type_ep++; break;
+        case 5: len_ep++; break;
+        case 6: fifo_ovfl_ep++; break;
+        case 7: fec13_ep++; break;
+        case 8: fec_ep++; break;
+        case 9: fec23_ep++; break;
+        case 10: len_max_ep++; break;
+        case 11: pwr_r_error++; break;
+        case 12: pwr_d_error++; break;
+        default: total_p++; break;
+        }
+        pwr_in_band += 0x100u + REG_READ(0x3ff51074u) - (REG_READ(0x3ff51078u) & 0xffu);
+        pwr_full_band += REG_READ(0x3ff51074u) + 1u;
+    }
+    /* Status-bit accumulation from 0x3ff51050. */
+    v = REG_READ(0x3ff51050u);
+    i++;
+    psk_sync_err += (v >> 6) & 1u;
+    inband_w += (v >> 5) & 1u;
+    fullband_w += (v >> 4) & 1u;
+    pac_w += (v >> 3) & 1u;
+    ac_w += (v >> 2) & 1u;
+    free_w += v & 1u;
+    gain += (v >> 7) & 1u;
+    if (!exit)
+        goto poll;
+    /* Final stop confirm, then quou-averaged packet estimate. */
+final:
+    v = GetStopCmd();
+    if (v != 3 && v != 0)
+        goto poll;
+    if (total_p)
+        cmd = (value + total_p / 2 + total_p) / (value + total_p);
+    /* Exact format .rodata+0x30c (32 lanes; 21 words passed, order exact). */
+    phy_printf("%x %x %x %x %x %x %x %x %x %x %x %x %x %x w %x %x %x %x %x %x %x %x p %x %x %x %x %x %x %x %x %x %x\n",
+               i, total_p, hec_ep, rx_status, cp, crc_ep, type_ep, len_ep,
+               fifo_ovfl_ep, fec13_ep, fec_ep, fec23_ep, default_ep, len_max_ep,
+               pwr_r_error, pwr_d_error, psk_sync_err, inband_w, fullband_w,
+               pac_w, ac_w);
 }
 
 /* BT_rx_prbs9_err_bits bt_testmode.c:1159 @ bt_testmode.o size 28B [dwarf-sig]
@@ -1019,15 +1242,94 @@ void BT_testmode_lc_tx_model(u32 tx_payload, u32 device_sel, u32 lt_addr, u32 pa
 
 /* BT_testmode_lm_model_tester bt_testmode.c:4825 @ bt_testmode.o size 2254B [dwarf-sig]
  * Calls: print_opcode_tester, phy_printf, LM_hopping_mode_tester, BT_testmode_senario_print, print_type4, LM_test_control, BT_testmode_lm_state | Data refs: .rodata.str1.4, ARQN, BT_testmode_lm_state, BT_testmode_senario_print, LLID, LMP_payload, LM_ack, LM_hopping_mode_tester, LM_state, LM_test_control, RX_frequency, TX_BUFFER_SEL, arq, check_packet, detach, epac_type, get_opcode, hopping_mode, ignore_payload, ins_count, jump, length_of_test_data, link_type, myRX_frequency, myTX_frequency, nactv, next_tester_state, nidle, packet_type, period_past, pheader_len, phy_printf, poll_period, power_control_mode, print_opcode_tester, print_type4, rpoll, rx_status, tc_linktype, tc_packet_type, test_case, test_scenario, tester_state, tpoll, tx_length, tx_packet | MMIO: 0x3ffc8000, 0x3ffc9008, 0x3ffc9010, 0x3ffca000, 0x600320b4, 0x600320c0
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Fidelity: medium - RX-gate funnel, opcode/ncop prints, hopping validation,
+ *   TA print, scenario-table arms, type4/nibble path, 16-count loop, link
+ *   RMWs, LM_test_control/TC print and conditional lm_state verified in
+ *   shape; per-arm table immediates and static-slot routing approximate */
 void BT_testmode_lm_model_tester(u32 get_pac)
 {
-    (void)get_pac;
     /* DWARF locals: u32 tx_buffer_addr@l4826, u32 get_accepted_opcode@l4826, u32 get_ACLC@l4826, u32 get_ext_opcode@l4826 */
-    /* TODO(ground-truth): reconstruct from libbttestmode/bt_testmode.rdis
-     * function <BT_testmode_lm_model_tester> (908 insns) + DWARF line rows for bt_testmode.c:4825.
-     * Ordered callee relocs: print_opcode_tester, phy_printf, LM_hopping_mode_tester, BT_testmode_senario_print, print_type4, LM_test_control, BT_testmode_lm_state.
-     */
+    extern u32 tx_buffer_addr, get_accepted_opcode, get_ACLC, get_ext_opcode;
+    extern u32 get_opcode, test_scenario, test_case, tester_state;
+    extern u32 hopping_mode, ncop, link_type;
+    u32 opcode, ncop_val, scenario, mode;
+    /* RX LT_ADDR gate: only LT_ADDR 3 with a fresh packet proceeds. */
+    if (((REG_READ(0x3ffc9008u) & 3u) != 3) || get_pac != 1)
+        return;
+    tx_buffer_addr = get_ACLC ? 0x3ffca000u : 0x3ffc8000u;
+    /* Opcode-buffer validation funnel (zero/nonzero gates over the RX
+     * opcode slots, 57/56/127/4/3 marker compares). */
+    opcode = (REG_READ(0x3ffc9010u) >> 1) & 0x7fu;
+    if (opcode != 3 && opcode != 127 && opcode != 4)
+        return;
+    print_opcode_tester(opcode);
+    ncop_val = (REG_READ(0x3ffc9010u) >> 8) & 0xffu;
+    phy_printf("ncop %d\n", ncop_val);
+    /* Hopping-mode validation then tester kick (arg = hopping static). */
+    if (hopping_mode != get_opcode)
+        return;
+    LM_hopping_mode_tester(hopping_mode);
+    phy_printf("TA");   /* .rodata+0x8a8, no newline */
+    /* Scenario switch on the scenario byte (verified values 9/11/13/14/15):
+     * each arm programs ~10 immediates into the scenario-table statics
+     * (test_scenario/test_case/tpoll/rpoll/period lanes) and converges on
+     * the type4 path. Per-arm immediate mapping approximate. */
+    scenario = get_opcode;
+    switch (scenario) {
+    case 9:
+        test_scenario = 78;
+        test_case = 20;
+        tester_state = 1;
+        ncop = 27;
+        break;
+    case 11:
+        test_scenario = 41;
+        test_case = 4;
+        ncop = 20;
+        break;
+    case 13:
+        test_scenario = 3;
+        ncop = 4;
+        break;
+    case 14:
+        test_scenario = 2;
+        ncop = 0x153;
+        break;
+    case 15:
+        test_scenario = 1;
+        ncop = 7;
+        break;
+    default:
+        return;
+    }
+    /* Common tail: announce the programmed scenario, then the nibble-split
+     * type4 select (verified: low nibble = type, high nibble 0/1/2/other
+     * maps to 4/2/5/3). */
+    BT_testmode_senario_print(test_scenario);
+    opcode = get_opcode;
+    mode = (opcode >> 4) & 0xfu;
+    if (mode == 0)
+        mode = 4;
+    else if (mode == 1)
+        mode = 2;
+    else if (mode == 2)
+        mode = 5;
+    else
+        mode = 3;
+    print_type4(opcode & 0xfu, mode);
+    phy_printf("\n");   /* .rodata+0x1a4 */
+    if (++ncop >= 16)
+        return;
+    /* Link RMWs then test-control kick. */
+    REG_WRITE(0x600320b4u, (REG_READ(0x600320b4u) & 0x8fffffffu) | ((link_type & 7u) << 28));
+    REG_WRITE(0x600320c0u, (REG_READ(0x600320c0u) & 0x8fffffffu) | ((link_type & 7u) << 28));
+    LM_test_control(test_scenario, hopping_mode, get_ACLC, get_opcode,
+                    get_accepted_opcode, get_ext_opcode, tx_buffer_addr,
+                    test_case, tester_state);
+    phy_printf("TC");   /* .rodata+0x8ac, no newline */
+    if (tester_state)
+        BT_testmode_lm_state(tx_buffer_addr, get_ACLC, get_opcode,
+                             get_accepted_opcode, get_ext_opcode);
 }
 
 /* BT_testmode_lm_state bt_testmode.c:4464 @ bt_testmode.o size 1007B [dwarf-sig]

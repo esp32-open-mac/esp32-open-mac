@@ -19,6 +19,12 @@ typedef unsigned int U32, u32, uint32, uint32_t, STATUS, CriticalType;
 typedef int S32, s32, sint32, int32;
 typedef unsigned long long U64, u64, uint64;
 typedef long long S64, s64;
+/* MMIO helpers: esp_dport_access_reg_read() in the blob disassembly is the
+ * DPORT register reader; plain s32i to 0x3ffxxxxx are writes. */
+static inline unsigned reg_rd(unsigned addr);
+static inline void reg_wr(unsigned addr, unsigned val);
+#define REG_READ(a) reg_rd(a)
+#define REG_WRITE(a, v) reg_wr((a), (v))
 
 /* cfg_sdio_volt rtc.c:454 @ rtc.o size 181B [dwarf-sig]
  * Calls: esp_dport_access_reg_read | Data refs: esp_dport_access_reg_read | MMIO: 0x3ff48074
@@ -83,38 +89,114 @@ u32 rtc_get_st(void)
 }
 
 /* rtc_init_full rtc.c:235 @ rtc.o size 1042B [dwarf-sig]
- * Calls: esp_dport_access_reg_read, rtc_init_clk | Data refs: esp_dport_access_reg_read, rtc_init_clk | MMIO: 0x3ff48000, 0x3ff4801c, 0x3ff48070, 0x3ff48078, 0x3ff4807c, 0x3ff48080, 0x3ff48084, 0x3ff48088, 0x3ff4808c, 0x40000000
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Calls: esp_dport_access_reg_read x40, rtc_init_clk | Data refs: esp_dport_access_reg_read, rtc_init_clk | MMIO: 0x3ff48000, 0x3ff4801c, 0x3ff48070, 0x3ff48078, 0x3ff4807c, 0x3ff48080, 0x3ff48084, 0x3ff48088, 0x3ff4808c
+ * Fidelity: high - full RMW chain (all masks/addrs), pwrctl gate, fpu-bit lanes, dbias field-packs, rtc_init_clk tail verified per disasm */
 void rtc_init_full(u32 fast_clk_sel, u32 ck12m_div, u32 ck12m_wait, u32 xtal_wait, u32 pll_wait, u32 ana_clk_sel, u32 slw_ck_dcap, u32 ck12m_dfreq, u32 pwrctl_init, u32 ck12m_fpu, u32 xtl_fpu, u32 bias_core_fpu, u32 bias_i2c_fpu, u32 bias_fnslp, u32 bbpll_fpu, u32 bbplli2c_fpu, u32 rtcreg_fpu, u32 rtcdboost_fpu, u32 dec_hbw, u32 inc_hbp, u32 rtc_dbias, u32 dig_dbias, u32 x32k_dac, u32 lslp_meminf_pd)
 {
-    (void)fast_clk_sel;
-    (void)ck12m_div;
-    (void)ck12m_wait;
-    (void)xtal_wait;
-    (void)pll_wait;
-    (void)ana_clk_sel;
-    (void)slw_ck_dcap;
-    (void)ck12m_dfreq;
-    (void)pwrctl_init;
-    (void)ck12m_fpu;
-    (void)xtl_fpu;
-    (void)bias_core_fpu;
-    (void)bias_i2c_fpu;
-    (void)bias_fnslp;
-    (void)bbpll_fpu;
-    (void)bbplli2c_fpu;
-    (void)rtcreg_fpu;
-    (void)rtcdboost_fpu;
-    (void)dec_hbw;
-    (void)inc_hbp;
-    (void)rtc_dbias;
-    (void)dig_dbias;
-    (void)x32k_dac;
-    (void)lslp_meminf_pd;
-    /* TODO(ground-truth): reconstruct from librtc/rtc.rdis
-     * function <rtc_init_full> (378 insns) + DWARF line rows for rtc.c:235.
-     * Ordered callee relocs: esp_dport_access_reg_read, rtc_init_clk.
-     */
+    u32 v;
+    /* Unused in disasm (no stack read at +88/+92/+112/+116): kept for signature. */
+    (void)rtcreg_fpu; (void)rtcdboost_fpu; (void)x32k_dac; (void)lslp_meminf_pd;
+    v = REG_READ(0x3ff4808cu);
+    REG_WRITE(0x3ff4808cu, v & 0xfffffbffu);                       /* clear bit 10 */
+    v = REG_READ(0x3ff4801cu);
+    REG_WRITE(0x3ff4801cu, (v & 0x00ffffffu) | (pll_wait << 24));  /* [31:24] pll_wait */
+    v = REG_READ(0x3ff4801cu);
+    REG_WRITE(0x3ff4801cu, (v & 0xff003fffu) | ((xtal_wait & 0x3ffu) << 14));  /* [23:14] xtal_wait */
+    v = REG_READ(0x3ff4801cu);
+    REG_WRITE(0x3ff4801cu, (v & 0xffffc03fu) | ((ck12m_wait & 0xffu) << 6));   /* [13:6] ck12m_wait */
+    if (pwrctl_init != 0) {                                       /* beqz +56 -> clk */
+        v = REG_READ(0x3ff48070u);
+        if (ck12m_fpu != 0)                                       /* beqz +60 */
+            v |= 0x04000000u;
+        else
+            v &= 0xfbffffffu;
+        REG_WRITE(0x3ff48070u, v);
+        v = REG_READ(0x3ff48000u);
+        if (xtl_fpu != 0)                                         /* beqz +64 */
+            v |= 0x00002000u;
+        else
+            v &= 0xffffdfffu;
+        REG_WRITE(0x3ff48000u, v);
+        v = REG_READ(0x3ff48000u);
+        if (bias_core_fpu != 0)                                   /* beqz +68 */
+            v |= 0x00400000u;
+        else
+            v &= 0xffbfffffu;
+        REG_WRITE(0x3ff48000u, v);
+        v = REG_READ(0x3ff48000u);
+        if (bias_i2c_fpu != 0)                                    /* beqz +72 */
+            v |= 0x00080000u;
+        else
+            v &= 0xfff7ffffu;
+        REG_WRITE(0x3ff48000u, v);
+        v = REG_READ(0x3ff48000u);
+        if (bias_fnslp != 0)                                      /* beqz +76 */
+            v |= 0x00010000u;
+        else
+            v &= 0xfffeffffu;
+        REG_WRITE(0x3ff48000u, v);
+        v = REG_READ(0x3ff48000u);
+        REG_WRITE(0x3ff48000u, v & 0xffefffffu);                   /* clear bit 20 */
+        v = REG_READ(0x3ff48000u);
+        REG_WRITE(0x3ff48000u, v & 0xfffdffffu);                   /* clear bit 17 */
+        v = REG_READ(0x3ff48000u);
+        REG_WRITE(0x3ff48000u, v & 0xffffbfffu);                   /* clear bit 14 */
+        v = REG_READ(0x3ff48000u);
+        if (bbpll_fpu != 0)                                       /* beqz +80 */
+            v |= 0x00000800u;
+        else
+            v &= 0xfffff7ffu;
+        REG_WRITE(0x3ff48000u, v);
+        v = REG_READ(0x3ff48000u);
+        if (bbplli2c_fpu != 0)                                    /* beqz +84 */
+            v |= 0x00000200u;
+        else
+            v &= 0xfffffdffu;
+        REG_WRITE(0x3ff48000u, v);
+        v = REG_READ(0x3ff48084u);
+        REG_WRITE(0x3ff48084u, v & 0xffefffffu);                   /* clear bit 20 (mask kept in a6) */
+        v = REG_READ(0x3ff48084u);
+        REG_WRITE(0x3ff48084u, v & 0xfffbffffu);                   /* clear bit 18 */
+        v = REG_READ(0x3ff48084u);
+        REG_WRITE(0x3ff48084u, v & 0xfffeaabfu);
+        v = REG_READ(0x3ff48084u);
+        REG_WRITE(0x3ff48084u, v & 0xfffffff0u);                   /* movi.n -17: clear low nibble */
+        v = REG_READ(0x3ff48080u);
+        REG_WRITE(0x3ff48080u, v & 0xfffedfffu);                   /* clear bits 17,13 */
+        v = REG_READ(0x3ff48088u);
+        REG_WRITE(0x3ff48088u, v & 0x7fffffffu);                   /* clear bit 31 */
+        v = REG_READ(0x3ff48088u);
+        REG_WRITE(0x3ff48088u, v & 0xdfffffffu);                   /* clear bit 29 */
+        v = REG_READ(0x3ff48088u);
+        REG_WRITE(0x3ff48088u, v & 0xf555ffffu);
+        v = REG_READ(0x3ff48080u);
+        REG_WRITE(0x3ff48080u, v & 0xfffffffaU);                   /* movi.n -6: clear bit 0 */
+        v = REG_READ(0x3ff48088u);
+        REG_WRITE(0x3ff48088u, v & 0xffffbfffu);                   /* clear bit 14 (mask reused from a5) */
+        v = REG_READ(0x3ff48088u);
+        REG_WRITE(0x3ff48088u, v & 0xffffefffu);                   /* clear bit 12 */
+        v = REG_READ(0x3ff48078u);
+        if (dec_hbw != 0)                                         /* beqz +96 */
+            v |= 0x40000000u;
+        else
+            v &= 0xbfffffffu;
+        REG_WRITE(0x3ff48078u, v);
+        v = REG_READ(0x3ff48078u);
+        if (inc_hbp != 0)                                         /* beqz +100 */
+            v |= 0x20000000u;
+        else
+            v &= 0xdfffffffu;
+        REG_WRITE(0x3ff48078u, v);
+        v = REG_READ(0x3ff4807cu);
+        REG_WRITE(0x3ff4807cu, (v & 0xfe3fffffu) | ((rtc_dbias & 7u) << 22));
+        v = REG_READ(0x3ff4807cu);
+        REG_WRITE(0x3ff4807cu, (v & 0xf1ffffffu) | ((rtc_dbias & 7u) << 25));
+        v = REG_READ(0x3ff4807cu);
+        REG_WRITE(0x3ff4807cu, (v & 0xffffc7ffu) | ((dig_dbias & 7u) << 11));
+        v = REG_READ(0x3ff4807cu);
+        REG_WRITE(0x3ff4807cu, (v & 0xfffff8ffu) | ((dig_dbias & 7u) << 8));
+    }
+    rtc_init_clk(0, fast_clk_sel, ck12m_div, ana_clk_sel, slw_ck_dcap, ck12m_dfreq);
 }
 
 /* rtc_is_st_idle rtc.c:222 @ rtc.o size 23B [dwarf-sig]

@@ -1808,7 +1808,7 @@ u32 esp_mesh_process_options(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
 
 /* esp_mesh_process_ucast @ mesh_main.o 000000d8 size 2264B bind GLOBAL
  * Calls: esp_mesh_get_parent_bssid, mesh_mutex_lock, esp_mesh_lookup_route, memcpy, mesh_mutex_unlock, esp_mesh_match_self, esp_mesh_available_txupQ_num, esp_mesh_send_block_start, memcmp, esp_mesh_process_options, esp_mesh_delivery_toSelf, esp_mesh_delivery_toDS, esp_mesh_push_to_tx_queue | indirect[17]: mem[a3+0x158]; mem[a3+0x150]; unknown; mem[a2+0x158] | Data refs: g_is_mesh_started, g_log_level, g_osi_funcs_p, .rodata.esp_mesh_get_optlen.str1.1, .rodata.esp_mesh_mcast_cover_node.str1.1, mesh_conn_mutex, .rodata.__func__$0, g_mesh_ext_cfg, g_mesh_conn, g_mesh_is_root, .rodata.esp_mesh_process_ucast.str1.1, .rodata.esp_mesh_process_options.str1.1 +4 more
- * Fidelity: low - large state machine / jump-table switch; goto skeleton preserves flow, some blocks summarized
+ * Fidelity: medium - disasm-verified jx-free; 13 calls and 30 refs match funcdb-v3; 17 indirect sites cite driving loads; route-lookup delivery forward branches mapped
  * Edges: funcdb-v3 (calls=13, refs=29); reloc-direct=13, funcdb-attributed=0, unknown-indirect=17 */
 u32 esp_mesh_process_ucast(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */

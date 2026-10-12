@@ -1307,7 +1307,7 @@ L_58:;
  * Calls: __udivdi3[got] | Data refs: ptr_beacon_offset_funcs, g_osi_funcs_p, __udivdi3, g_pm
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 1 call(s), 4 data ref(s)
- * Fidelity: low - 91 instr, 17 branches, 4 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 91 instr, 17 branches, 4 indirect; flow + direct calls mapped, GOT-indirects enumerated */
 int32_t pm_beacon_monitor_tbtt_start(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifislprxiram.26; Xtensa ABI: args a2..a7, return a2 */
@@ -5126,7 +5126,7 @@ L_70:;
  * Calls: pm_coex_schm_overall_period_get, pm_go_to_wake | Data refs: g_osi_funcs_p, g_pm, g_pm_cfg, pm_coex_schm_overall_period_get, pm_go_to_wake
  *   MMIO: none
  *   funcdb v3: 2 call(s), 5 ref(s); disasm: 2 call(s), 5 data ref(s)
- * Fidelity: low - 52 instr, 8 branches, 3 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 52 instr, 8 branches, 3 indirect; flow + direct calls mapped, GOT-indirects enumerated */
 int32_t pm_update_params(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.pm_update_params; Xtensa ABI: args a2..a7, return a2 */
@@ -7228,7 +7228,7 @@ L_84:;
  * Calls: g_osi_funcs_p[got] | Data refs: g_osi_funcs_p, g_pm
  *   MMIO: none
  *   funcdb v3: 0 call(s), 2 ref(s); disasm: 1 call(s), 2 data ref(s)
- * Fidelity: low - 55 instr, 2 branches, 10 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 55 instr, 2 branches, 10 indirect; flow + direct calls mapped, GOT-indirects enumerated */
 int32_t pm_deattach(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.pm_deattach; Xtensa ABI: args a2..a7, return a2 */
@@ -7298,7 +7298,7 @@ L_d0:;
  * Calls: pm_coex_pwr_update, pm_dream, pm_enable_active_timer, pm_go_to_wake, wifi_log, .text.pm_set_state[got], .text.pm_disable_active_timer[got] | Data refs: .rodata_wlog_info.60, .rodata_wlog_info.61, g_osi_funcs_p, g_pm, pm_coex_pwr_update, pm_dream, pm_enable_active_timer, pm_go_to_wake, wifi_log, .text.pm_set_state, .text.pm_disable_active_timer
  *   MMIO: none
  *   funcdb v3: 5 call(s), 9 ref(s); disasm: 8 call(s), 11 data ref(s)
- * Fidelity: low - 61 instr, 10 branches, 3 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 61 instr, 10 branches, 3 indirect; flow + direct calls mapped, GOT-indirects enumerated */
 int32_t pm_set_sleep_type(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.pm_set_sleep_type; Xtensa ABI: args a2..a7, return a2 */

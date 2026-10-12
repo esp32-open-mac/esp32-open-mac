@@ -51,7 +51,7 @@ four objects in `/tmp/re_esp32/{libcore,libwapi}/`. All numeric constants in the
 | esp_wifi_internal_wapi_deinit | 0x04 | 13B | high | single tail call |
 | esp_wifi_internal_wapi_init | 0x04 | 13B | high | single tail call |
 | key_derivation_hmac_sha256 | 0x08 | 122B | medium | counter loop (62/32/31) + primitive shape observed; arg roles inferred |
-| wapi_process_packet_type | 0x104 | 1418B | low | dispatch + per-branch call sequences observed; states/layouts structural |
+| wapi_process_packet_type | 0x104 | 1418B | medium | header/frag/12-way dispatch gates + per-branch call sequences transcribed; state numbers/layouts structural |
 | wapi_sm_deinit | 0x0c | 94B | high | 4 member frees + clear + unregister tail |
 | wapi_sm_init | 0x58 | 367B | medium | alloc sizes, callback stores, memsets, -1/-2/-3 paths observed; slot meanings from section names |
 | wapi_sm_set_own_addr | 0x04 | 20B | high | memcpy(sm+204, mac, 6) |

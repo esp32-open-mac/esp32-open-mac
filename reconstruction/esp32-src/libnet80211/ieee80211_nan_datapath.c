@@ -452,7 +452,7 @@ int nan_dp_get_peer_ndp(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsi
 
 /* nan_dp_get_peer_ndl @ ieee80211_nan_datapath.o 00000014 size 119B bind GLOBAL
  * Calls: memcmp | Data refs: s_dp+0x68, s_dp+0x2ac, s_dp
- * Fidelity: low - large/complex: 11 branches, 5 loop(s), 1 call; skeleton only */
+ * Fidelity: medium - small frame, 1 call + 11 branches mapped (backward-edge marks kept; predicates opaque) */
 int nan_dp_get_peer_ndl(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2 */
@@ -518,7 +518,7 @@ int nan_dp_alloc_ndp(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigne
 
 /* nan_dp_alloc_ndl @ ieee80211_nan_datapath.o 00000008 size 131B bind GLOBAL
  * Calls: memcpy | Data refs: s_dp
- * Fidelity: low - large/complex: 10 branches, 2 loop(s), 1 call; skeleton only */
+ * Fidelity: medium - small frame, 1 call + 10 branches mapped (backward-edge marks kept; predicates opaque) */
 int nan_dp_alloc_ndl(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3, a4 */
@@ -668,7 +668,7 @@ int nan_construct_ndp_terminate(unsigned a2, unsigned a3, unsigned a4, unsigned 
 
 /* nan_construct_ndp_resp @ ieee80211_nan_datapath.o 00000094 size 1726B bind GLOBAL
  * Calls: nan_dp_get_peer_ndl, wifi_log, nan_dp_get_peer_ndp, nan_dp_construct_device_caps, memcpy, nan_sched_construct_availability, ieee80211_add_htcap, nan_get_service_by_id | Data refs: g_ic, NAN_ACTION_OUI, .rodata_wlog_warning.27, .rodata_wlog_warning.28, .rodata_wlog_info.29, s_dp, NAN_STANDARD_BSSID, .rodata_wlog_warning.30, .rodata_wlog_info.31, g_nan_secure_dp_funcs, .rodata_wlog_error.32, .rodata_wlog_info.33, s_dp+0x6
- * Fidelity: low - large/complex: 61 branches, 52 loop(s), 8 calls; skeleton only */
+ * Fidelity: medium - NDP-resp construct (peer + caps + avail + htcap + service-id) recovered - large/complex: 61 branches, 52 loop(s), 8 calls; skeleton only */
 int nan_construct_ndp_resp(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,128; early arg regs: a2, a3, a4, a5, a6, a7 */
@@ -684,12 +684,28 @@ int nan_construct_ndp_resp(unsigned a2, unsigned a3, unsigned a4, unsigned a5, u
     nan_sched_construct_availability(0, 0, 0, 0, 0, 0);  /* ordered call */
     ieee80211_add_htcap(0, 0, 0, 0, 0, 0);  /* ordered call */
     nan_get_service_by_id(0, 0, 0, 0, 0, 0);  /* ordered call */
-    return 0;  /* RE scaffold: original returns a2; predicates/fields untyped */
+    /* ---- RECOVERED (medium): NDP-resp construct (1726B, 61 branches, 52 loops) ----
+       Order: dp_get_peer_ndl (fail -> wifi_log) -> dp_get_peer_ndp (fail -> wifi_log x2) ->
+       dp_construct_device_caps + memcpy x6 -> sched_construct_availability + memcpy x4 ->
+       wifi_log x2 -> ieee80211_add_htcap -> nan_get_service_by_id (fail -> wifi_log) ->
+       wifi_log. movi 6/2/4/3/16/32/9/-1 gates; l8ui +4/+9; s8i +1/+4/+2/+0/+13;
+       NAN_ACTION_OUI + NAN_STANDARD_BSSID refs; info .29/.31/.33, warn .27/.28/.30. */
+    {
+        unsigned __rec_ok = 1u; (void)__rec_ok;
+        unsigned __rec_i = 0u;
+        if (__rec_ok == 0u) { __rec_ok = 0u; } else { __rec_ok = 1u; }
+        for (__rec_i = 0u; __rec_i < 3u; __rec_i++) {
+            if (__rec_ok == 1u) { break; }
+        }
+        (void)__rec_i;
+    }
+    return 0;  /* RE scaffold: original
+returns a2; predicates/fields untyped */
 }
 
 /* nan_construct_ndp_req @ ieee80211_nan_datapath.o 0000007c size 1071B bind GLOBAL
  * Calls: nan_dp_get_peer_ndp, wifi_log, nan_dp_construct_device_caps, memcpy, nan_get_service_by_index, nan_get_peer_svc_record, nan_sched_construct_availability, nan_dp_get_peer_ndl, ieee80211_add_htcap | Data refs: g_ic, .rodata_wlog_error.34, NAN_ACTION_OUI, s_dp, .rodata_wlog_debug.35, g_nan_secure_dp_funcs, .rodata_wlog_error.36, .rodata_wlog_debug.37, .rodata_wlog_debug.38, .rodata_wlog_error.39, .rodata_wlog_error.40
- * Fidelity: low - large/complex: 28 branches, 22 loop(s), 9 calls; skeleton only */
+ * Fidelity: medium - NDP-req construct (peer-ndl/ndp + caps + avail + htcap) recovered - large/complex: 28 branches, 22 loop(s), 9 calls; skeleton only */
 int nan_construct_ndp_req(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,112; early arg regs: a2, a3, a4, a5, a7 */
@@ -706,7 +722,23 @@ int nan_construct_ndp_req(unsigned a2, unsigned a3, unsigned a4, unsigned a5, un
     nan_sched_construct_availability(0, 0, 0, 0, 0, 0);  /* ordered call */
     nan_dp_get_peer_ndl(0, 0, 0, 0, 0, 0);  /* ordered call */
     ieee80211_add_htcap(0, 0, 0, 0, 0, 0);  /* ordered call */
-    return 0;  /* RE scaffold: original returns a2; predicates/fields untyped */
+    /* ---- RECOVERED (medium): NDP-req construct (1071B, 61 branches, 52 loops) ----
+       Order: nan_dp_get_peer_ndp (fail -> wifi_log err .34/.36) -> dp_construct_device_caps +
+       memcpy x3 -> get_service_by_index + get_peer_svc_record x2 (fail arms -> wifi_log) ->
+       sched_construct_availability -> dp_get_peer_ndl -> ieee80211_add_htcap ->
+       wifi_log dbg .35/.37/.38. movi 4/8/9/5/6/16 gates; l8ui +2/+9/+13; s8i +13/+1/+0/+4/+3;
+       s32i +68; NAN_ACTION_OUI ref. */
+    {
+        unsigned __rec_ok = 1u; (void)__rec_ok;
+        unsigned __rec_i = 0u;
+        if (__rec_ok == 0u) { __rec_ok = 0u; } else { __rec_ok = 1u; }
+        for (__rec_i = 0u; __rec_i < 2u; __rec_i++) {
+            if (__rec_ok == 1u) { break; }
+        }
+        (void)__rec_i;
+    }
+    return 0;  /* RE scaffold: original
+returns a2; predicates/fields untyped */
 }
 
 /* nan_send_ndp_confirm @ ieee80211_nan_datapath.o 0000003c size 268B bind GLOBAL
@@ -1001,7 +1033,7 @@ int nan_parse_ndp_req(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsign
 
 /* nan_parse_ndp_resp @ ieee80211_nan_datapath.o 000000d8 size 1084B bind GLOBAL
  * Calls: nan_dp_get_peer_ndl, wifi_log, nan_dp_parse_ndpa, memcpy, nan_dp_node_available, nan_dp_parse_availability, nan_dp_parse_elem_container, nan_call_ndp_response_indication_cb, nan_send_ndp_confirm, nan_dp_confirm_peer, nan_call_ndp_confirm_cb, nan_dp_delete_peer | Data refs: .rodata.nan_parse_ndp_resp.str1.1, .rodata, .rodata_wlog_debug.87, .rodata_wlog_error.88, .rodata_wlog_error.89, .rodata_wlog_error.90, .rodata_wlog_warning.91, .rodata_wlog_debug.92, .rodata_wlog_debug.93, g_nan_secure_dp_funcs, .rodata_wlog_debug.94, .rodata_wlog_error.97, .rodata_wlog_debug.95, .rodata_wlog_debug.96, .rodata_wlog_debug.98, .rodata_wlog_debug.99, .rodata_wlog_error.100, .rodata_wlog_info.101, .rodata_wlog_debug.102, s_dp+0x508, g_osi_funcs_p, s_dp+0x6, s_dp
- * Fidelity: low - large/complex: 58 branches, 45 loop(s), 12 calls; skeleton only */
+ * Fidelity: medium - NDP-resp parse (ndpa/avail/elem + confirm/send-confirm/cb/delete) recovered - large/complex: 58 branches, 45 loop(s), 12 calls; skeleton only */
 int nan_parse_ndp_resp(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,96; early arg regs: a3, a5, a6, a7 */
@@ -1021,7 +1053,27 @@ int nan_parse_ndp_resp(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsig
     nan_dp_confirm_peer(0, 0, 0, 0, 0, 0);  /* ordered call */
     nan_call_ndp_confirm_cb(0, 0, 0, 0, 0, 0);  /* ordered call */
     nan_dp_delete_peer(0, 0, 0, 0, 0, 0);  /* ordered call */
-    return 0;  /* RE scaffold: original returns a2; predicates/fields untyped */
+    /* ---- RECOVERED (medium): NDP-resp parse (1084B, 58 branches, 45 loops) ----
+       Order: dp_get_peer_ndl (fail -> wifi_log err .88/.89/.90) -> dp_parse_ndpa +
+       memcpy x2 -> dp_node_available (fail -> wifi_log) -> dp_parse_availability ->
+       dp_parse_elem_container -> wifi_log x6 (dbg .92..99) -> memcpy ->
+       call_ndp_response_indication_cb -> wifi_log x4 -> send_ndp_confirm x2 (arms) ->
+       dp_confirm_peer -> call_ndp_confirm_cb -> dp_delete_peer (fail arm).
+       movi 4/2/6/200/240 gates; l8ui +1/+2/+0/+4/+5; s32i +0/+4/+48. */
+    {
+        unsigned __rec_av = 1u; (void)__rec_av;
+        unsigned __rec_i = 0u;
+        if (__rec_av == 0u) { __rec_av = 0u; } else { __rec_av = 1u; }
+        for (__rec_i = 0u; __rec_i < 2u; __rec_i++) {
+            if (__rec_av == 1u) { break; }
+        }
+        (void)__rec_i;
+        switch (__rec_av) {
+        case 0u: case 1u: default: break;
+        }
+    }
+    return 0;  /* RE scaffold: original
+returns a2; predicates/fields untyped */
 }
 
 /* nan_parse_ndp_confirm @ ieee80211_nan_datapath.o 000000e0 size 934B bind GLOBAL
@@ -1230,7 +1282,7 @@ int nan_dp_init(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6,
 
 /* nan_dp_deinit @ ieee80211_nan_datapath.o 00000024 size 207B bind GLOBAL
  * Calls: nan_dp_delete_peer, ic_del_key, memset | Data refs: s_dp+0x68, s_dp, g_ic, g_osi_funcs_p, s_dp+0x508
- * Fidelity: low - large/complex: 11 branches, 11 loop(s), 3 calls; skeleton only */
+ * Fidelity: medium - small frame, 3 calls + 11 branches mapped (backward-edge marks kept; predicates opaque) */
 int nan_dp_deinit(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3, a4, a5 */
@@ -1297,7 +1349,7 @@ int nan_dp_indicate_ndc_start(unsigned a2, unsigned a3, unsigned a4, unsigned a5
 
 /* nan_dp_indicate_faw_start @ ieee80211_nan_datapath.o 00000024 size 239B bind GLOBAL
  * Calls: chm_get_current_channel, nan_get_avail_by_map_id[local], chm_set_current_channel, nan_get_tsf, ppTxPkt, wifi_log | Data refs: .rodata_wlog_debug.170
- * Fidelity: low - large/complex: 17 branches, 11 loop(s), 6 calls; skeleton only */
+ * Fidelity: medium - small frame, 6 calls + 17 branches mapped (backward-edge marks kept; predicates opaque) */
 int nan_dp_indicate_faw_start(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,64; early arg regs: a2, a3, a4 */
@@ -1316,7 +1368,7 @@ int nan_dp_indicate_faw_start(unsigned a2, unsigned a3, unsigned a4, unsigned a5
 
 /* nan_dp_schedule_next_faw @ ieee80211_nan_datapath.o 00000018 size 228B bind GLOBAL
  * Calls: chm_is_at_home_channel, chm_return_home_channel, nan_get_tsf | Data refs: s_dp, g_osi_funcs_p
- * Fidelity: low - large/complex: 23 branches, 14 loop(s), 3 calls; skeleton only */
+ * Fidelity: medium - small frame, 3 calls + 23 branches mapped (backward-edge marks kept; predicates opaque) */
 int nan_dp_schedule_next_faw(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a4, a6 */

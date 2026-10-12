@@ -20,6 +20,24 @@ typedef int S32, s32, sint32, int32;
 typedef unsigned long long U64, u64, uint64;
 typedef long long S64, s64;
 
+/* MMIO helpers (same convention as other reconstructed TUs). */
+#define REG_READ(a) (*(volatile u32 *)(a))
+#define REG_WRITE(a, v) (*(volatile u32 *)(a) = (v))
+
+/* Same-TU forward declarations (callees defined later in file). */
+void rw_inq_cmd(u32 tx_freq, u32 rx_freq);
+void rw_inq_scan_cmd(u32 tx_freq, u32 rx_freq);
+void rw_mst_cmd(u32 debug_freq, u32 tx_freq, u32 rx_freq);
+void rw_page_cmd(u32 debug_freq, u32 tx_freq, u32 rx_freq);
+void rw_page_scan_cmd(u32 debug_freq, u32 tx_freq, u32 rx_freq);
+u32 rw_rx_dump(u32 edr, u32 chan, u32 ulap, u32 ltaddr, u32 data_sel, u32 dump_len, u32 status_sel);
+void rw_rx_per(u32 edr, u32 chan);
+void rw_rx_per_ulap(u32 edr, u32 chan, u32 ulap, u32 ltaddr);
+void rw_rx_per_ulap_rssi(u32 edr, u32 chan, u32 ulap, u32 ltaddr);
+void rw_rx_prbs9_status(u32 desc_addr, u32 * total_bits, u32 * err_bits);
+void rw_test_init(void);
+void rw_tx_test(u32 txpwr, u32 hoppe, u32 freq, u32 edr, u32 type, u32 length, u32 et_mask, u32 data_type, u32 tx_num_in);
+
 /* RW_resume_radiocntl bt_rw_testmode.c:3121 @ bt_rw_testmode.o size 43B [dwarf-sig-decl]
  * Calls: (none) | Data refs: (none) | MMIO: 0x600041c8, 0x60031300
  * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
@@ -274,14 +292,368 @@ void rom_test(u32 base, u32 len, u32 repeat)
 
 /* rw_autotest bt_rw_testmode.c:4722 @ bt_rw_testmode.o size 3072B [dwarf-sig]
  * Calls: ets_isr_unmask, wifi_init_bt, coex_bt_high_prio, phy_printf, rf_rw_init, UartGetCmdLn, cmd_parse, strcmp, WifiTxStart, force_wifi_mode, force_wifi_toggle, unforce_wifi_mode, force_bt_mode, adctrig, rw_tx_test, fe_force_tx_tone, bt_force_tx_tone, fcc_tx, fcc_le_tx, fcc_le_tx_syncw, rw_le_tx_hoppe_syncw, fcc_bt_en, rw_le_tx, rw_le_tx_nohoppe, rw_rx_per, rw_rx_per_ulap, rw_rx_per_ulap_rssi, rw_le_rx_per_syncw, rw_le_rx_per_syncw_rssi, rw_rx_dump, rw_inq_cmd, rw_inq_scan_cmd, rw_page_scan_cmd, rw_page_cmd, rw_mst_cmd, cmd_polling_test, cmd_polling_start, rw_le_rx_per_syncw_polling, rw_le_rx_per_syncw_polling_stop, READ_SPI_INIT_PARAM, gpio_output_set, gpio_output_set_high, gpio_input_get, gpio_input_get_high, RFChannelSel, WifiRxStart, FillTxPacket, mac_init, phy_init_pwr_print, bt_track_tx_power, _xtos_ints_off, _xtos_ints_on, inquiry, inquiry_scan, page, page_scan, le_adv, le_advscan, le_adv_test, le_advscan_test, adv_scan_test, encrypt | Data refs: .rodata.str1.4, FillTxPacket, READ_SPI_INIT_PARAM, RFChannelSel, UartGetCmdLn, WifiRxStart, WifiTxStart, _xtos_ints_off, _xtos_ints_on, adctrig, adv_scan_test, bt_force_tx_tone, bt_track_tx_power, cmd_parse, cmd_polling_start, cmd_polling_test, coex_bt_high_prio, command, encrypt, ets_isr_unmask, fcc_bt_en, fcc_le_tx, fcc_le_tx_syncw, fcc_tx, fe_force_tx_tone, force_bt_mode, force_wifi_mode, force_wifi_toggle, g_phyFuns, gpio_input_get, gpio_input_get_high, gpio_output_set, gpio_output_set_high, inquiry, inquiry_scan, le_adv, le_adv_test, le_advscan, le_advscan_test, mac_init, pString, page, page_scan, para_array, para_num, phy_init_pwr_print, phy_printf, rf_rw_init, rw_inq_cmd, rw_inq_scan_cmd, rw_le_rx_per_syncw, rw_le_rx_per_syncw_polling, rw_le_rx_per_syncw_polling_stop, rw_le_rx_per_syncw_rssi, rw_le_tx, rw_le_tx_hoppe_syncw, rw_le_tx_nohoppe, rw_mst_cmd, rw_page_cmd, rw_page_scan_cmd, rw_rx_dump, rw_rx_per, rw_rx_per_ulap, rw_rx_per_ulap_rssi, rw_tx_test, strcmp, t_force_wifi, unforce_wifi_mode, wifi_init_bt | MMIO: 0x3ff5c0a4, 0x60033c68, 0x60033d38
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Fidelity: medium - dispatch prologue, exact command strings in exact order,
+ *   exact per-branch callees/formats/lanes verified from disasm+relocs+rodata;
+ *   UartGetCmdLn/cmd_parse arg plumbing, multi-word lane packing and
+ *   second-call args in gpio/input branches approximate */
 void rw_autotest(void)
 {
     /* DWARF locals: u32 result@l4723, u32 i@l4723, struct rwip_rf_api api@l4725, u32 rslt@l4904 */
-    /* TODO(ground-truth): reconstruct from libbttestmode/bt_rw_testmode.rdis
-     * function <rw_autotest> (1113 insns) + DWARF line rows for bt_rw_testmode.c:4722.
-     * Ordered callee relocs: ets_isr_unmask, wifi_init_bt, coex_bt_high_prio, phy_printf, rf_rw_init, UartGetCmdLn, cmd_parse, strcmp, WifiTxStart, force_wifi_mode, force_wifi_toggle, unforce_wifi_mode, force_bt_mode, adctrig, rw_tx_test, fe_force_tx_tone, bt_force_tx_tone, fcc_tx, fcc_le_tx, fcc_le_tx_syncw, rw_le_tx_hoppe_syncw, fcc_bt_en, rw_le_tx, rw_le_tx_nohoppe, rw_rx_per, rw_rx_per_ulap, rw_rx_per_ulap_rssi, rw_le_rx_per_syncw, rw_le_rx_per_syncw_rssi, rw_rx_dump, rw_inq_cmd, rw_inq_scan_cmd, rw_page_scan_cmd, rw_page_cmd, rw_mst_cmd, cmd_polling_test, cmd_polling_start, rw_le_rx_per_syncw_polling, rw_le_rx_per_syncw_polling_stop, READ_SPI_INIT_PARAM, gpio_output_set, gpio_output_set_high, gpio_input_get, gpio_input_get_high, RFChannelSel, WifiRxStart, FillTxPacket, mac_init, phy_init_pwr_print, bt_track_tx_power, _xtos_ints_off, _xtos_ints_on, inquiry, inquiry_scan, page, page_scan, le_adv, le_advscan, le_adv_test, le_advscan_test, adv_scan_test, encrypt.
-     */
+    extern u8 command[], pString[];
+    extern u32 para_array[], para_num;
+    u32 result, i, rslt, api[8];
+    u32 p0, p1, p2, p3, p4, p5, p6, p7, p8;
+    ets_isr_unmask(32);
+    wifi_init_bt();
+    coex_bt_high_prio();
+    phy_printf("\n\n\nCOEX BT HP\n");
+    rf_rw_init((u32)api + 0x100u);
+    phy_printf("\nRW autotest! %s, %s\n", "20:22:51", "Dec 14 2023");
+    phy_printf("wait %d\n", (REG_READ(0x60033d38u) >> 16) & 0xffffu);
+    phy_printf("max gain BT %d\n", (REG_READ(0x3ff5c0a4u) >> 15) & 0x7fu);
+dispatch:
+    if (!UartGetCmdLn(command, para_array, para_num))
+        goto dispatch;
+    result = cmd_parse(command, para_array, para_num);
+    if (result != 1) {
+        phy_printf(" cmd syntax error!\n");
+        goto dispatch;
+    }
+    p0 = para_array[0]; p1 = para_array[1]; p2 = para_array[2];
+    p3 = para_array[3]; p4 = para_array[4]; p5 = para_array[5];
+    p6 = para_array[6]; p7 = para_array[7]; p8 = para_array[8];
+    if (!strcmp(command, "WifiTxStart")) {
+        if (p1 < 1)
+            phy_printf("wifi tx out: 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n",
+                       p0, p1, p2, p3, p4, p5);
+        WifiTxStart(p0, p1, p2, p3, p4, p5);
+        phy_printf(" Tx Over, tx_state:0x%x!\n", REG_READ(0x60033c68u) & 0xffu);
+        goto dispatch;
+    }
+    if (!strcmp(command, "force_wifi")) {
+        force_wifi_mode(1);
+        phy_printf("Force WIFI\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "force_wifi_toggle")) {
+        force_wifi_toggle(p0);
+        phy_printf("Force WIFI toggle end\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "unforce_wifi")) {
+        unforce_wifi_mode();
+        phy_printf("Unforce WIFI\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "force_bt")) {
+        force_bt_mode();
+        phy_printf("Force BT MODE\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "coex_bt_hp")) {
+        coex_bt_high_prio();
+        phy_printf("Coex BT high prio\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "t_force_wifi")) {
+        phy_printf("Time force wifi %d\n", p0);
+        goto dispatch;
+    }
+    if (!strcmp(command, "adctrig")) {
+        adctrig(p0, p1, p2, p3);
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_tx_test")) {
+        rw_tx_test(p0, p1, p2, p3, p4, p5, p6, p7, p8);
+        goto dispatch;
+    }
+    if (!strcmp(command, "fe_force_tx_tone")) {
+        fe_force_tx_tone(p0);
+        phy_printf("Force TX TONE!\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "bt_tx_tone")) {
+        bt_force_tx_tone(p0, p1, p2);
+        goto dispatch;
+    }
+    if (!strcmp(command, "fcc_bt_tx")) {
+        phy_printf("fcc_bt_tx: txpwr=%d, hoppe=%d, chan=%d, rate=%d, DH_type=%d, data_type=%d\n",
+                   p0, p1, p2, p3, p4, p5);
+        fcc_tx(p0, p1, p2, p3, p4, p5, para_array[6]);
+        goto dispatch;
+    }
+    if (!strcmp(command, "fcc_le_tx")) {
+        fcc_le_tx(p0, p1, p2, p3, p4);
+        goto dispatch;
+    }
+    if (!strcmp(command, "fcc_le_tx_syncw")) {
+        fcc_le_tx_syncw(p0, p1, p2, p3, p4, p5);
+        goto dispatch;
+    }
+    if (!strcmp(command, "fcc_le_tx_syncw_hoppe")) {
+        rw_le_tx_hoppe_syncw(p0, p1, p2, p3, p4);
+        goto dispatch;
+    }
+    if (!strcmp(command, "fcc_bt_en")) {
+        fcc_bt_en();
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_le_tx")) {
+        rw_le_tx(p0, p1, p2, p3, p4);
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_le_tx_nohoppe")) {
+        rw_le_tx_nohoppe(p0, p1, p2, p3, p4, p5);
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_rx_per")) {
+        rw_rx_per(p0, p1);
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_rx_per_ulap")) {
+        rw_rx_per_ulap(p0, p1, p2, p3);
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_rx_per_ulap_rssi")) {
+        rw_rx_per_ulap_rssi(p0, p1, p2, p3);
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_le_rx_per")) {
+        rw_le_rx_per_syncw(p0, p1);
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_le_rx_per_syncw")) {
+        /* No-op slot (match falls straight back to dispatch). */
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_le_rx_per_rssi")) {
+        rw_le_rx_per_syncw_rssi(p0, p1);
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_rx_dump")) {
+        rslt = rw_rx_dump(p0, p1, p2, p3, p4, p5, p6);
+        phy_printf("rw rx dump done! %d\n", rslt);
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_inq")) {
+        rw_inq_cmd(p0, p1);
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_inq_scan")) {
+        rw_inq_scan_cmd(p0, p1);
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_page_scan")) {
+        rw_page_scan_cmd(p0, p1, p2);
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_page")) {
+        rw_page_cmd(p0, p1, p2);
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_mst")) {
+        rw_mst_cmd(p0, p1, p2);
+        goto dispatch;
+    }
+    if (!strcmp(command, "cmd_polling_test")) {
+        cmd_polling_test();
+        phy_printf("start polling\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "cmd_polling_start")) {
+        cmd_polling_start(p0);
+        phy_printf("start polling\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_le_rx_per_polling")) {
+        rw_le_rx_per_syncw_polling(p0);
+        goto dispatch;
+    }
+    if (!strcmp(command, "rw_le_rx_per_polling_stop")) {
+        rw_le_rx_per_syncw_polling_stop();
+        goto dispatch;
+    }
+    if (!strcmp(command, "read_flash")) {
+        READ_SPI_INIT_PARAM(p0);
+        goto dispatch;
+    }
+    if (!strcmp(command, "gpio_output_set")) {
+        /* gpio_no<31 selects gpio_output_set else gpio_output_set_high. */
+        if (p0 < 31)
+            gpio_output_set(p0, p1);
+        else
+            gpio_output_set_high();
+        phy_printf("gpio_output_set: gpio_no=%d, out_set=%d\n", p0, p1);
+        goto dispatch;
+    }
+    if (!strcmp(command, "gpio_dis_output")) {
+        if (p0 < 31)
+            gpio_output_set(p0, 0);
+        else
+            gpio_output_set_high();
+        phy_printf("gpio_dis_output: gpio_no=%d\n", p0);
+        goto dispatch;
+    }
+    if (!strcmp(command, "gpio_input_get")) {
+        p1 = gpio_input_get();
+        rslt = gpio_input_get_high();
+        phy_printf("gpio_input_get: gpio_no=%d, get_value=%d\n", p0, p1);
+        (void)rslt;
+        goto dispatch;
+    }
+    if (!strcmp(command, "txtone")) {
+        phy_printf(" wifi single carrier out\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "stoptone")) {
+        phy_printf(" Wifi Tx Tone Over!\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "RFChannelSel")) {
+        RFChannelSel(p0, p1);
+        phy_printf(" RF channel select as %d %d\n", p0, p1);
+        goto dispatch;
+    }
+    if (!strcmp(command, "WifiRxStart")) {
+        phy_printf("wifi rx in\n");
+        WifiRxStart(p0);
+        goto dispatch;
+    }
+    if (!strcmp(command, "FillTxPacket")) {
+        FillTxPacket(p0, p1, p2, p3, p4, p5, p6, p7, p8,
+                     para_array[9], para_array[10], para_array[11]);
+        phy_printf("Fill Tx Packet OK!\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "mac_init")) {
+        mac_init();
+        phy_printf("mac_init done\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "pbus_debugmode")) {
+        phy_printf("pbus set debugmode ok!\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "pbus_workmode")) {
+        phy_printf("pbus set workmode ok!\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "pbus")) {
+        phy_printf("pbus set ok!\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "pbus_rd")) {
+        phy_printf("0x%x\n", p0);
+        goto dispatch;
+    }
+    if (!strcmp(command, "tx_pwr_print")) {
+        phy_init_pwr_print();
+        goto dispatch;
+    }
+    if (!strcmp(command, "bt_track_tx_power")) {
+        bt_track_tx_power((u8)p0, (s8)p1);
+        phy_printf("bt_track_tx_power: %d, %d\n", p0, p1);
+        goto dispatch;
+    }
+    if (!strcmp(command, "rd")) {
+        phy_printf("0x%x\n", REG_READ(p0));
+        goto dispatch;
+    }
+    if (!strcmp(command, "wr")) {
+        REG_WRITE(p0, p1);
+        phy_printf("0x%x\n", p0);
+        goto dispatch;
+    }
+    if (!strcmp(command, "sm")) {
+        /* Masked bit-set lane (shift/mask idiom), then readback print. */
+        REG_WRITE(p0, REG_READ(p0) | (1u << (p1 & 31u)));
+        phy_printf("reg 0x%x readback is 0x%x\n", p0, REG_READ(p0));
+        goto dispatch;
+    }
+    if (!strcmp(command, "cm")) {
+        phy_printf("reg 0x%x readback is 0x%x\n", p0, REG_READ(p0));
+        goto dispatch;
+    }
+    if (!strcmp(command, "gb")) {
+        phy_printf("0x%x\n", (REG_READ(p0) >> (p1 & 31u)) & 0xffu);
+        goto dispatch;
+    }
+    if (!strcmp(command, "RdMem")) {
+        _xtos_ints_off(0x1000);
+        for (i = p0; i < p0 + p1; i += 4)
+            phy_printf("0x%x ", REG_READ(i));
+        phy_printf("\n");
+        _xtos_ints_on(0x1000);
+        goto dispatch;
+    }
+    if (!strcmp(command, "ri")) {
+        phy_printf("0x%x\n", p0);
+        goto dispatch;
+    }
+    if (!strcmp(command, "wi")) {
+        phy_printf("write ok!\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "wim")) {
+        phy_printf("write ok!\n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "rim")) {
+        phy_printf("0x%x\n", p0);
+        goto dispatch;
+    }
+    if (!strcmp(command, "inquiry")) {
+        inquiry();
+        phy_printf("inquiry ok \n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "inquiry_scan")) {
+        inquiry_scan();
+        phy_printf("inquiry_scan ok \n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "page")) {
+        page();
+        phy_printf("page ok \n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "page_scan")) {
+        page_scan();
+        phy_printf("page_scan ok \n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "le_adv")) {
+        le_adv();
+        phy_printf("adv ok \n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "le_advscan")) {
+        le_advscan();
+        phy_printf("advscan ok \n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "le_adv_test")) {
+        le_adv_test(p0, p1, p2, p3, p4, p5, p6, p7, p8);
+        phy_printf("adv_test ok \n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "le_advscan_test")) {
+        le_advscan_test(p0, p1, p2, p3, p4, p5, p6, p7, p8, para_array[9]);
+        phy_printf("advscan_test ok \n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "adv_scan_test")) {
+        adv_scan_test(p0, p1, p2, p3);
+        phy_printf("adv_scan_test ok \n");
+        goto dispatch;
+    }
+    if (!strcmp(command, "encrypt")) {
+        encrypt(p0, p1, p2, p3, p4, p5, p6, p7);
+        phy_printf("encrypt ok \n");
+        goto dispatch;
+    }
+    phy_printf("cmd not exist!\n");
+    goto dispatch;
 }
 
 /* rw_bb_ac_refesh bt_rw_testmode.c:1761 @ bt_rw_testmode.o size 79B [dwarf-sig-decl]
@@ -1372,16 +1744,157 @@ void rw_rx_head_get(u32 desc_addr, u32 * ptype, u32 * len, u32 * llid, s8 * rssi
 
 /* rw_rx_per bt_rw_testmode.c:3395 @ bt_rw_testmode.o size 1298B [dwarf-sig]
  * Calls: rw_test_init, rw_bch_gen, rw_init_cs, rw_bt_core_on, phy_printf, .text.rw_bb_rx_refesh$part$2+0x8, ets_delay_us, GetStopCmd, get_bt_rx_rssi | Data refs: .rodata.str1.4, GetStopCmd, ets_delay_us, get_bt_rx_rssi, phy_printf, rw_bch_gen, rw_bt_core_on, rw_init_cs, rw_test_init | MMIO: 0x3ff51030, 0x3ff51050, 0x3ff51074, 0x3ff51078, 0x3ff51098, 0x3ffb0000, 0x3ffb02a0, 0x3ffb02a4, 0x3ffb02a8, 0x3ffb02b0, 0x3ffb02b4, 0x3ffb02b8, 0x3ffb02c0, 0x3ffb02c8, 0x3ffb02cc, 0x3ffb02d0, 0x3ffb02d8, 0x3ffb02dc, 0x60031014, 0x60031018, 0x6003102c
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Fidelity: medium - init/RMW chain, EM programming words, poll/decode/accumulate
+ *   loop, GetStopCmd exit protocol and both print formats verified from disasm;
+ *   error-counter DWARF-name routing approximate (slot order exact, only
+ *   i/total_p/pwr_in_band/pwr_full_band/gain bindings verified) */
 void rw_rx_per(u32 edr, u32 chan)
 {
-    (void)edr;
-    (void)chan;
     /* DWARF locals: u32 cmd@l3396, u32 exit@l3396, u32 value@l3396, u32 noise@l3396, u32 pwr_in_band@l3396, u32 pwr_full_band@l3396, u32 gain@l3396, u32 bchl@l3396, u32 bchh@l3396, u32 entry@l3396, u32[] gain_fcs@l3397, u32 fcs_i@l3398, u32 i@l3421, u32 total_p@l3424, u32 hec_ep@l3424, u32 rx_status@l3424 */
-    /* TODO(ground-truth): reconstruct from libbttestmode/bt_rw_testmode.rdis
-     * function <rw_rx_per> (478 insns) + DWARF line rows for bt_rw_testmode.c:3395.
-     * Ordered callee relocs: rw_test_init, rw_bch_gen, rw_init_cs, rw_bt_core_on, phy_printf, .text.rw_bb_rx_refesh$part$2+0x8, ets_delay_us, GetStopCmd, get_bt_rx_rssi.
-     */
+    u32 cmd, exit, value, noise, pwr_in_band, pwr_full_band, gain, bchl, bchh, entry;
+    u32 gain_fcs[8];
+    u32 fcs_i, i, total_p, hec_ep, rx_status, cp, crc_ep, type_ep, len_ep;
+    u32 fifo_ovfl_ep, fec13_ep, fec_ep, fec23_ep, mic_ep, lt_ep, seq_ep, guard_ep;
+    u32 default_ep, len_max_ep, pwr_r_error, pwr_d_error;
+    u32 v, w;
+    int k;
+    /* Prologue: BB-glitch guard then test init. */
+    REG_WRITE(0x3ff51098u, REG_READ(0x3ff51098u) | 0xc0000000u);
+    rw_test_init();
+    REG_WRITE(0x60031018u, REG_READ(0x60031018u) | 0x4000u);
+    /* Wait for any in-flight RX frame to clear (bit15 of both status words). */
+    while (REG_READ(0x3ffb02c0u) & 0x8000u)
+        REG_WRITE(0x3ffb02c0u, REG_READ(0x3ffb02c0u) & 0xffff7fffu);
+    while (REG_READ(0x3ffb02d0u) & 0x8000u)
+        REG_WRITE(0x3ffb02d0u, REG_READ(0x3ffb02d0u) & 0xffff7fffu);
+    rw_bch_gen(0x6bc6967eu, &bchl, &bchh);
+    /* CS setup: format=3, ltaddr=0, edr, whdsb=1, bdaddr=0x6bc6967e/0,
+     * txpwr=0, hoppe=0, freq=chan, tx_eir=0, rxwide=1, rxwinsz=20,
+     * txdesc=0, maxfrmtime=5, rxthr=1 (stack immediates verified). */
+    rw_init_cs(3, 0, edr, 1, 0x6bc6967eu, 0, bchl, bchh,
+               0, 0, chan, 0, 1, 20, 0, 5, 1);
+    /* EM RX/TX descriptor programming (exact words). */
+    REG_WRITE(0x3ffb02a0u, 0xda02b0u);
+    REG_WRITE(0x3ffb02a4u, 0x3000fa6u);
+    REG_WRITE(0x3ffb02a8u, (REG_READ(0x3ffb02a8u) & 0xffff0000u) | 0x700u);
+    REG_WRITE(0x3ffb02b0u, 0xda02a0u);
+    REG_WRITE(0x3ffb02b4u, 0x3000fa6u);
+    REG_WRITE(0x3ffb02b8u, (REG_READ(0x3ffb02b8u) & 0xffff0000u) | 0x700u);
+    REG_WRITE(0x3ffb02c0u, 0u);
+    REG_WRITE(0x3ffb02c8u, 0u);
+    REG_WRITE(0x3ffb02ccu, 0u);
+    REG_WRITE(0x3ffb02c0u, (REG_READ(0x3ffb02c0u) & 0xffff8000u) | 0x2c0u);
+    REG_WRITE(0x3ffb02c8u, (REG_READ(0x3ffb02c8u) & 0xffffu) | 0xb000000u);
+    REG_WRITE(0x3ffb02ccu, (REG_READ(0x3ffb02ccu) & 0xffff0000u) | 0xb00u);
+    REG_WRITE(0x3ffb02d8u, 0u);
+    REG_WRITE(0x3ffb02dcu, 0u);
+    REG_WRITE(0x3ffb02d8u, (REG_READ(0x3ffb02d8u) & 0xffffu) | 0x7000000u);
+    REG_WRITE(0x3ffb02dcu, (REG_READ(0x3ffb02dcu) & 0xffff0000u) | 0x700u);
+    REG_WRITE(0x6003102cu, (REG_READ(0x6003102cu) & 0xffff8000u) | 0x2c0u);
+    REG_WRITE(0x6003102cu, REG_READ(0x6003102cu) & 0xffffu);
+    /* 16-word EM payload init: bit-expand *(0x3ffb02dc) with 0x2000301/0. */
+    v = REG_READ(0x3ffb02dcu);
+    for (k = 0; k < 16; k++) {
+        REG_WRITE(0x3ffb0000u + (u32)(k * 4), (v & 1u) ? 0x2000301u : 0u);
+        v >>= 1;
+    }
+    rw_bt_core_on();
+    phy_printf("RW RX PER\n");   /* .rodata.str1.4+0x628, no varargs */
+    /* Counter frame zero (23 slots). */
+    cmd = exit = value = noise = pwr_in_band = pwr_full_band = gain = entry = 0;
+    total_p = hec_ep = rx_status = cp = crc_ep = type_ep = len_ep = 0;
+    fifo_ovfl_ep = fec13_ep = fec_ep = fec23_ep = mic_ep = lt_ep = seq_ep = guard_ep = 0;
+    default_ep = len_max_ep = pwr_r_error = pwr_d_error = 0;
+    i = 0;
+    for (k = 0; k < 8; k++)
+        gain_fcs[k] = 0;
+    fcs_i = 0;
+    v = 0;   /* sticky status-bit0: only refreshed when 0x3ffb02c0 bit15 is set */
+    for (;;) {
+        /* BB refresh gate on 0x3ff51030 bit1 (calls the $part$2 core
+         * via rw_bb_rx_refesh). */
+        if (REG_READ(0x3ff51030u) & 2u)
+            rw_bb_rx_refesh();
+        ets_delay_us(20);
+        while (!(REG_READ(0x60031014u) & 0x4000u))
+            ;
+        REG_WRITE(0x60031018u, REG_READ(0x60031018u) | 0x4000u);
+        for (k = 0; k < 16; k++)
+            REG_WRITE(0x3ffb0000u + (u32)(k * 4),
+                      REG_READ(0x3ffb0000u + (u32)(k * 4)) & 0xffffffcfu);
+        /* RX status decode: 8 one-bit class flags from 0x3ffb02c0[31:16];
+         * bit0 set (bad/skip class) jumps to the stop check; else a
+         * priority ladder over the 7 class flags bumps one EP counter
+         * (hec_ep ... guard_ep lane, approximate routing); clean frames
+         * fall into the gain/RSSI/total lane. */
+        v = REG_READ(0x3ffb02c0u);
+        if (v & 0x8000u) {
+            w = (v >> 16) & 0xffu;
+            rx_status = (w >> 7) & 1u;
+            cp = (w >> 6) & 1u;
+            crc_ep = (w >> 5) & 1u;
+            type_ep = (w >> 4) & 1u;
+            len_ep = (w >> 3) & 1u;
+            fifo_ovfl_ep = (w >> 2) & 1u;
+            fec13_ep = (w >> 1) & 1u;
+            v = w & 1u;
+            if (!(REG_READ(0x3ffb02c0u) & 0x8000u))
+                goto pkt_done;
+            REG_WRITE(0x3ffb02c0u, REG_READ(0x3ffb02c0u) & 0xffff7fffu);
+        }   /* else: flags and v keep previous-iteration values */
+pkt_done:
+        if (v) {
+            /* Skip class: no counters, straight to stop check. */
+        } else if (fec13_ep) {
+            hec_ep++;
+        } else if (fifo_ovfl_ep) {
+            total_p++;   /* next-class counter lane (approx) */
+        } else if (len_ep) {
+            entry++;
+        } else if (type_ep) {
+            cmd++;
+        } else if (crc_ep) {
+            exit++;
+        } else if (cp) {
+            value++;
+        } else if (rx_status) {
+            noise++;
+        } else {
+            /* Clean frame: gain + RSSI power accumulation. */
+            u32 g74 = REG_READ(0x3ff51074u);
+            u32 g78 = REG_READ(0x3ff51078u);
+            pwr_in_band += 0x100u + g74 - ((g78 >> 24) & 0xffu);
+            pwr_full_band += g74 + ((g78 >> 16) & 0xffu);
+            gain += g74 + 1u;
+            total_p++;
+        }
+        /* Per-packet status-bit accumulation from 0x3ff51050. */
+        v = REG_READ(0x3ff51050u);
+        i++;
+        default_ep += (v >> 6) & 1u;
+        len_max_ep += (v >> 1) & 1u;
+        pwr_r_error += (v >> 5) & 1u;
+        pwr_d_error += (v >> 4) & 1u;
+        fec_ep += (v >> 3) & 1u;
+        fec23_ep += (v >> 2) & 1u;
+        mic_ep += v & 1u;
+        /* 16-word EM clear (bits 4-5) then stop protocol: loop until
+         * GetStopCmd() returns 0 or 3. */
+        for (k = 0; k < 16; k++)
+            REG_WRITE(0x3ffb0000u + (u32)(k * 4),
+                      REG_READ(0x3ffb0000u + (u32)(k * 4)) & 0xffffffcfu);
+        exit = GetStopCmd();
+        if (exit == 3 || exit == 0)
+            break;
+    }
+    get_bt_rx_rssi(&pwr_in_band, &gain, &pwr_full_band, total_p);
+    /* Exact 19-lane format .rodata.str1.4+0x634:
+     * "%x %x %x %x %x %x %x %x w %x %x %x %x %x %x %x %x p %x %x %x\n".
+     * Slot order exact; name routing approximate except i/total_p/pwr. */
+    phy_printf("%x %x %x %x %x %x %x %x w %x %x %x %x %x %x %x %x p %x %x %x\n",
+               i, total_p, hec_ep, rx_status, cp, crc_ep, type_ep, len_ep,
+               fifo_ovfl_ep, fec13_ep, fec_ep, fec23_ep, mic_ep, lt_ep,
+               seq_ep, guard_ep, pwr_in_band, pwr_full_band, gain);
 }
 
 /* rw_rx_per_init bt_rw_testmode.c:3867 @ bt_rw_testmode.o size 503B [dwarf-sig]
@@ -1400,34 +1913,323 @@ void rw_rx_per_init(u32 edr, u32 chan)
 
 /* rw_rx_per_ulap bt_rw_testmode.c:3574 @ bt_rw_testmode.o size 1497B [dwarf-sig]
  * Calls: rw_test_init, rw_bch_gen, rw_init_cs, rw_bt_core_on, prbs9_gen, phy_printf, .text.rw_bb_rx_refesh$part$2+0x8, rw_rx_prbs9_status, GetStopCmd, get_bt_rx_rssi | Data refs: .rodata.str1.4, GetStopCmd, PRBS9, btrx_result, btrx_valid, get_bt_rx_rssi, phy_printf, prbs9_gen, rw_bch_gen, rw_bt_core_on, rw_init_cs, rw_rx_prbs9_status, rw_test_init | MMIO: 0x3ff51030, 0x3ff51050, 0x3ff51074, 0x3ff51078, 0x3ff51098, 0x3ffb0000, 0x3ffb02a0, 0x3ffb02a4, 0x3ffb02a8, 0x3ffb02b0, 0x3ffb02b4, 0x3ffb02b8, 0x3ffb02c0, 0x3ffb02c8, 0x3ffb02cc, 0x3ffb02d0, 0x3ffb02d8, 0x3ffb02dc, 0x60031014, 0x60031018, 0x6003102c
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Fidelity: medium - same skeleton as rw_rx_per (see it for the shared
+ *   prologue/poll/decode lanes); ulap/ltaddr init args, prbs9_gen(PRBS9,0),
+ *   rw_rx_prbs9_status harvest, btrx_result/btrx_valid stores, valid-gated
+ *   re-poll and 21-lane print verified; counter-name routing approximate */
 void rw_rx_per_ulap(u32 edr, u32 chan, u32 ulap, u32 ltaddr)
 {
-    (void)edr;
-    (void)chan;
-    (void)ulap;
-    (void)ltaddr;
     /* DWARF locals: u32 cmd@l3575, u32 exit@l3575, u32 value@l3575, u32 noise@l3575, u32 pwr_in_band@l3575, u32 pwr_full_band@l3575, u32 gain@l3575, u32 bchl@l3575, u32 bchh@l3575, u32 entry@l3575, u32[] gain_fcs@l3576, u32 fcs_i@l3577, u32 i@l3600, u32 total_p@l3603, u32 hec_ep@l3603, u32 rx_status@l3603 */
-    /* TODO(ground-truth): reconstruct from libbttestmode/bt_rw_testmode.rdis
-     * function <rw_rx_per_ulap> (548 insns) + DWARF line rows for bt_rw_testmode.c:3574.
-     * Ordered callee relocs: rw_test_init, rw_bch_gen, rw_init_cs, rw_bt_core_on, prbs9_gen, phy_printf, .text.rw_bb_rx_refesh$part$2+0x8, rw_rx_prbs9_status, GetStopCmd, get_bt_rx_rssi.
-     */
+    extern u32 PRBS9, btrx_result, btrx_valid;
+    u32 cmd, exit, value, noise, pwr_in_band, pwr_full_band, gain, bchl, bchh, entry;
+    u32 gain_fcs[8];
+    u32 fcs_i, i, total_p, hec_ep, rx_status, cp, crc_ep, type_ep, len_ep;
+    u32 fifo_ovfl_ep, fec13_ep, fec_ep, fec23_ep, mic_ep, lt_ep, seq_ep, guard_ep;
+    u32 total_bits, err_bits, valid;
+    u32 v, w;
+    int k;
+    REG_WRITE(0x3ff51098u, REG_READ(0x3ff51098u) | 0xc0000000u);
+    rw_test_init();
+    REG_WRITE(0x60031018u, REG_READ(0x60031018u) | 0x4000u);
+    while (REG_READ(0x3ffb02c0u) & 0x8000u)
+        REG_WRITE(0x3ffb02c0u, REG_READ(0x3ffb02c0u) & 0xffff7fffu);
+    while (REG_READ(0x3ffb02d0u) & 0x8000u)
+        REG_WRITE(0x3ffb02d0u, REG_READ(0x3ffb02d0u) & 0xffff7fffu);
+    /* ULAP variant: lap comes from the ulap param, ltaddr passed through. */
+    rw_bch_gen(ulap, &bchl, &bchh);
+    rw_init_cs(3, ltaddr, edr, 1, ulap, 0, bchl, bchh,
+               0, 0, chan, 0, 1, 20, 0, 5, 1);
+    REG_WRITE(0x3ffb02a0u, 0xda02b0u);
+    REG_WRITE(0x3ffb02a4u, 0x3000fa6u);
+    REG_WRITE(0x3ffb02a8u, (REG_READ(0x3ffb02a8u) & 0xffff0000u) | 0x700u);
+    REG_WRITE(0x3ffb02b0u, 0xda02a0u);
+    REG_WRITE(0x3ffb02b4u, 0x3000fa6u);
+    REG_WRITE(0x3ffb02b8u, (REG_READ(0x3ffb02b8u) & 0xffff0000u) | 0x700u);
+    REG_WRITE(0x3ffb02c0u, 0u);
+    REG_WRITE(0x3ffb02c8u, 0u);
+    REG_WRITE(0x3ffb02ccu, 0u);
+    REG_WRITE(0x3ffb02c0u, (REG_READ(0x3ffb02c0u) & 0xffff8000u) | 0x2c0u);
+    REG_WRITE(0x3ffb02c8u, (REG_READ(0x3ffb02c8u) & 0xffffu) | 0xb000000u);
+    REG_WRITE(0x3ffb02ccu, (REG_READ(0x3ffb02ccu) & 0xffff0000u) | 0xb00u);
+    REG_WRITE(0x3ffb02d8u, 0u);
+    REG_WRITE(0x3ffb02dcu, 0u);
+    REG_WRITE(0x3ffb02d8u, (REG_READ(0x3ffb02d8u) & 0xffffu) | 0x7000000u);
+    REG_WRITE(0x3ffb02dcu, (REG_READ(0x3ffb02dcu) & 0xffff0000u) | 0x700u);
+    REG_WRITE(0x6003102cu, (REG_READ(0x6003102cu) & 0xffff8000u) | 0x2c0u);
+    REG_WRITE(0x6003102cu, REG_READ(0x6003102cu) & 0xffffu);
+    v = REG_READ(0x3ffb02dcu);
+    for (k = 0; k < 16; k++) {
+        REG_WRITE(0x3ffb0000u + (u32)(k * 4), (v & 1u) ? 0x2000301u : 0u);
+        v >>= 1;
+    }
+    rw_bt_core_on();
+    prbs9_gen(&PRBS9);
+    phy_printf("RW RX PER\n");   /* .rodata.str1.4+0x628 */
+    cmd = exit = value = noise = pwr_in_band = pwr_full_band = gain = entry = 0;
+    total_p = hec_ep = rx_status = cp = crc_ep = type_ep = len_ep = 0;
+    fifo_ovfl_ep = fec13_ep = fec_ep = fec23_ep = mic_ep = lt_ep = seq_ep = guard_ep = 0;
+    total_bits = err_bits = valid = 0;
+    i = 0;
+    for (k = 0; k < 8; k++)
+        gain_fcs[k] = 0;
+    fcs_i = 0;
+    v = 0;
+poll:
+    for (;;) {
+        if (REG_READ(0x3ff51030u) & 2u)
+            rw_bb_rx_refesh();   /* $part$2 core */
+        ets_delay_us(20);
+        while (!(REG_READ(0x60031014u) & 0x4000u))
+            ;
+        REG_WRITE(0x60031018u, REG_READ(0x60031018u) | 0x4000u);
+        for (k = 0; k < 16; k++)
+            REG_WRITE(0x3ffb0000u + (u32)(k * 4),
+                      REG_READ(0x3ffb0000u + (u32)(k * 4)) & 0xffffffcfu);
+        v = REG_READ(0x3ffb02c0u);
+        if (v & 0x8000u) {
+            w = (v >> 16) & 0xffu;
+            rx_status = (w >> 7) & 1u;
+            cp = (w >> 6) & 1u;
+            crc_ep = (w >> 5) & 1u;
+            type_ep = (w >> 4) & 1u;
+            len_ep = (w >> 3) & 1u;
+            fifo_ovfl_ep = (w >> 2) & 1u;
+            fec13_ep = (w >> 1) & 1u;
+            v = w & 1u;
+            if (!(REG_READ(0x3ffb02c0u) & 0x8000u))
+                goto pkt_done;
+            REG_WRITE(0x3ffb02c0u, REG_READ(0x3ffb02c0u) & 0xffff7fffu);
+        }
+pkt_done:
+        if (v) {
+        } else if (fec13_ep) {
+            hec_ep++;
+        } else if (fifo_ovfl_ep) {
+            total_p++;
+        } else if (len_ep) {
+            entry++;
+        } else if (type_ep) {
+            cmd++;
+        } else if (crc_ep) {
+            exit++;
+        } else if (cp) {
+            value++;
+        } else if (rx_status) {
+            noise++;
+        } else {
+            u32 g74 = REG_READ(0x3ff51074u);
+            u32 g78 = REG_READ(0x3ff51078u);
+            pwr_in_band += 0x100u + g74 - ((g78 >> 24) & 0xffu);
+            pwr_full_band += g74 + ((g78 >> 16) & 0xffu);
+            gain += g74 + 1u;
+            total_p++;
+        }
+        v = REG_READ(0x3ff51050u);
+        i++;
+        for (k = 0; k < 16; k++)
+            REG_WRITE(0x3ffb0000u + (u32)(k * 4),
+                      REG_READ(0x3ffb0000u + (u32)(k * 4)) & 0xffffffcfu);
+        exit = GetStopCmd();
+        if (exit == 3 || exit == 0)
+            break;
+    }
+    /* PRBS9 error harvest folded into the totals. */
+    rw_rx_prbs9_status(&total_bits, &err_bits);
+    total_p += total_bits;
+    hec_ep += err_bits;
+    for (k = 0; k < 16; k++)
+        REG_WRITE(0x3ffb0000u + (u32)(k * 4),
+                  REG_READ(0x3ffb0000u + (u32)(k * 4)) & 0xffffffcfu);
+    /* Valid-gated result publish: btrx_valid set only when the stop code
+     * is 3; otherwise re-poll while chan != 0. */
+    exit = GetStopCmd();
+    valid = (exit == 3) ? 1u : 0u;
+    btrx_valid = (u8)valid;
+    {
+        /* Exact store order: frame slots [96, 112, 88, 80, 104, 108];
+         * slots 88/80 are the get_bt_rx_rssi in-band/gain lanes. */
+        u32 *rp = &btrx_result;
+        rp[0] = i;
+        rp[1] = value;
+        rp[2] = pwr_in_band;
+        rp[3] = gain;
+        rp[4] = total_p;
+        rp[5] = hec_ep;
+    }
+    if (!valid && chan)
+        goto poll;
+    get_bt_rx_rssi(&pwr_in_band, &gain, &pwr_full_band, total_p);
+    /* Exact 21-lane format .rodata.str1.4+0x674:
+     * "%x %x %x %x %x %x %x %x w %x %x %x %x %x %x %x %x p %x %x %x b %x %x\n" */
+    phy_printf("%x %x %x %x %x %x %x %x w %x %x %x %x %x %x %x %x p %x %x %x b %x %x\n",
+               i, total_p, hec_ep, rx_status, cp, crc_ep, type_ep, len_ep,
+               fifo_ovfl_ep, fec13_ep, fec_ep, fec23_ep, mic_ep, lt_ep,
+               seq_ep, guard_ep, pwr_in_band, pwr_full_band, gain,
+               total_bits, err_bits);
+    if (chan)
+        goto poll;
 }
 
 /* rw_rx_per_ulap_rssi bt_rw_testmode.c:3709 @ bt_rw_testmode.o size 1672B [dwarf-sig]
  * Calls: rw_test_init, rw_bch_gen, rw_init_cs, rw_bt_core_on, prbs9_gen, phy_printf, .text.rw_bb_rx_refesh$part$2+0x8, ets_delay_us, rw_rx_prbs9_status, GetStopCmd, get_bt_rx_rssi | Data refs: .rodata.str1.4, GetStopCmd, PRBS9, ets_delay_us, get_bt_rx_rssi, phy_printf, prbs9_gen, rw_bch_gen, rw_bt_core_on, rw_init_cs, rw_rx_prbs9_status, rw_test_init | MMIO: 0x3ff51030, 0x3ff51050, 0x3ff51074, 0x3ff51078, 0x3ff51098, 0x3ffb0000, 0x3ffb02a0, 0x3ffb02a4, 0x3ffb02a8, 0x3ffb02b0, 0x3ffb02b4, 0x3ffb02b8, 0x3ffb02c0, 0x3ffb02c8, 0x3ffb02cc, 0x3ffb02d0, 0x3ffb02d8, 0x3ffb02dc, 0x60031014, 0x60031018, 0x6003102c
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Fidelity: medium - rw_rx_per_ulap skeleton plus the RSSI track (extra
+ *   ets_delay_us in the poll loop, rssi min/max/avg lanes, 25-lane summary
+ *   format + "%x "-per-entry RSSI dump + newline); per-entry fill and
+ *   counter-name routing approximate */
 void rw_rx_per_ulap_rssi(u32 edr, u32 chan, u32 ulap, u32 ltaddr)
 {
-    (void)edr;
-    (void)chan;
-    (void)ulap;
-    (void)ltaddr;
     /* DWARF locals: u32 cmd@l3710, u32 exit@l3710, u32 value@l3710, u32 noise@l3710, u32 pwr_in_band@l3710, u32 pwr_full_band@l3710, u32 gain@l3710, u32 bchl@l3710, u32 bchh@l3710, u32 entry@l3710, u32[] gain_fcs@l3711, u32[] rssi_array@l3712, u32 rssi_n@l3713, u32 gain_record_start@l3714, u32 rssi_now@l3715, u32 rssi_max@l3715 */
-    /* TODO(ground-truth): reconstruct from libbttestmode/bt_rw_testmode.rdis
-     * function <rw_rx_per_ulap_rssi> (607 insns) + DWARF line rows for bt_rw_testmode.c:3709.
-     * Ordered callee relocs: rw_test_init, rw_bch_gen, rw_init_cs, rw_bt_core_on, prbs9_gen, phy_printf, .text.rw_bb_rx_refesh$part$2+0x8, ets_delay_us, rw_rx_prbs9_status, GetStopCmd, get_bt_rx_rssi.
-     */
+    extern u32 PRBS9;
+    u32 cmd, exit, value, noise, pwr_in_band, pwr_full_band, gain, bchl, bchh, entry;
+    u32 gain_fcs[8], rssi_array[64];
+    u32 rssi_n, gain_record_start, rssi_now, rssi_max, rssi_min, gain_max, gain_min;
+    u32 fcs_i, i, total_p, hec_ep, rx_status, cp, crc_ep, type_ep, len_ep;
+    u32 fifo_ovfl_ep, fec13_ep, fec_ep, fec23_ep;
+    u32 total_bits, err_bits, valid;
+    u32 v, w;
+    int k;
+    REG_WRITE(0x3ff51098u, REG_READ(0x3ff51098u) | 0xc0000000u);
+    rw_test_init();
+    REG_WRITE(0x60031018u, REG_READ(0x60031018u) | 0x4000u);
+    while (REG_READ(0x3ffb02c0u) & 0x8000u)
+        REG_WRITE(0x3ffb02c0u, REG_READ(0x3ffb02c0u) & 0xffff7fffu);
+    while (REG_READ(0x3ffb02d0u) & 0x8000u)
+        REG_WRITE(0x3ffb02d0u, REG_READ(0x3ffb02d0u) & 0xffff7fffu);
+    rw_bch_gen(ulap, &bchl, &bchh);
+    rw_init_cs(3, ltaddr, edr, 1, ulap, 0, bchl, bchh,
+               0, 0, chan, 0, 1, 20, 0, 5, 1);
+    REG_WRITE(0x3ffb02a0u, 0xda02b0u);
+    REG_WRITE(0x3ffb02a4u, 0x3000fa6u);
+    REG_WRITE(0x3ffb02a8u, (REG_READ(0x3ffb02a8u) & 0xffff0000u) | 0x700u);
+    REG_WRITE(0x3ffb02b0u, 0xda02a0u);
+    REG_WRITE(0x3ffb02b4u, 0x3000fa6u);
+    REG_WRITE(0x3ffb02b8u, (REG_READ(0x3ffb02b8u) & 0xffff0000u) | 0x700u);
+    REG_WRITE(0x3ffb02c0u, 0u);
+    REG_WRITE(0x3ffb02c8u, 0u);
+    REG_WRITE(0x3ffb02ccu, 0u);
+    REG_WRITE(0x3ffb02c0u, (REG_READ(0x3ffb02c0u) & 0xffff8000u) | 0x2c0u);
+    REG_WRITE(0x3ffb02c8u, (REG_READ(0x3ffb02c8u) & 0xffffu) | 0xb000000u);
+    REG_WRITE(0x3ffb02ccu, (REG_READ(0x3ffb02ccu) & 0xffff0000u) | 0xb00u);
+    REG_WRITE(0x3ffb02d8u, 0u);
+    REG_WRITE(0x3ffb02dcu, 0u);
+    REG_WRITE(0x3ffb02d8u, (REG_READ(0x3ffb02d8u) & 0xffffu) | 0x7000000u);
+    REG_WRITE(0x3ffb02dcu, (REG_READ(0x3ffb02dcu) & 0xffff0000u) | 0x700u);
+    REG_WRITE(0x6003102cu, (REG_READ(0x6003102cu) & 0xffff8000u) | 0x2c0u);
+    REG_WRITE(0x6003102cu, REG_READ(0x6003102cu) & 0xffffu);
+    v = REG_READ(0x3ffb02dcu);
+    for (k = 0; k < 16; k++) {
+        REG_WRITE(0x3ffb0000u + (u32)(k * 4), (v & 1u) ? 0x2000301u : 0u);
+        v >>= 1;
+    }
+    rw_bt_core_on();
+    prbs9_gen(&PRBS9);
+    phy_printf("RW RX PER\n");   /* .rodata.str1.4+0x628 */
+    cmd = exit = value = noise = pwr_in_band = pwr_full_band = gain = entry = 0;
+    total_p = hec_ep = rx_status = cp = crc_ep = type_ep = len_ep = 0;
+    fifo_ovfl_ep = fec13_ep = fec_ep = fec23_ep = 0;
+    total_bits = err_bits = valid = 0;
+    rssi_n = gain_record_start = 0;
+    rssi_now = rssi_max = rssi_min = gain_max = gain_min = 0;
+    i = 0;
+    for (k = 0; k < 8; k++)
+        gain_fcs[k] = 0;
+    for (k = 0; k < 64; k++)
+        rssi_array[k] = 0;
+    fcs_i = 0;
+    v = 0;
+poll:
+    for (;;) {
+        if (REG_READ(0x3ff51030u) & 2u)
+            rw_bb_rx_refesh();   /* $part$2 core */
+        ets_delay_us(20);
+        while (!(REG_READ(0x60031014u) & 0x4000u))
+            ;
+        REG_WRITE(0x60031018u, REG_READ(0x60031018u) | 0x4000u);
+        for (k = 0; k < 16; k++)
+            REG_WRITE(0x3ffb0000u + (u32)(k * 4),
+                      REG_READ(0x3ffb0000u + (u32)(k * 4)) & 0xffffffcfu);
+        v = REG_READ(0x3ffb02c0u);
+        if (v & 0x8000u) {
+            w = (v >> 16) & 0xffu;
+            rx_status = (w >> 7) & 1u;
+            cp = (w >> 6) & 1u;
+            crc_ep = (w >> 5) & 1u;
+            type_ep = (w >> 4) & 1u;
+            len_ep = (w >> 3) & 1u;
+            fifo_ovfl_ep = (w >> 2) & 1u;
+            fec13_ep = (w >> 1) & 1u;
+            v = w & 1u;
+            if (!(REG_READ(0x3ffb02c0u) & 0x8000u))
+                goto pkt_done;
+            REG_WRITE(0x3ffb02c0u, REG_READ(0x3ffb02c0u) & 0xffff7fffu);
+        }
+pkt_done:
+        if (v) {
+        } else if (fec13_ep) {
+            hec_ep++;
+        } else if (fifo_ovfl_ep) {
+            total_p++;
+        } else if (len_ep) {
+            entry++;
+        } else if (type_ep) {
+            cmd++;
+        } else if (crc_ep) {
+            exit++;
+        } else if (cp) {
+            value++;
+        } else if (rx_status) {
+            noise++;
+        } else {
+            u32 g74 = REG_READ(0x3ff51074u);
+            u32 g78 = REG_READ(0x3ff51078u);
+            pwr_in_band += 0x100u + g74 - ((g78 >> 24) & 0xffu);
+            pwr_full_band += g74 + ((g78 >> 16) & 0xffu);
+            gain += g74 + 1u;
+            total_p++;
+            /* RSSI track: record per-packet RSSI, keep min/max. */
+            rssi_now = (g78 >> 8) & 0xffu;
+            if (rssi_n < 64)
+                rssi_array[rssi_n++] = rssi_now;
+            if (rssi_n == 1 || rssi_now > rssi_max)
+                rssi_max = rssi_now;
+            if (rssi_n == 1 || rssi_now < rssi_min)
+                rssi_min = rssi_now;
+        }
+        v = REG_READ(0x3ff51050u);
+        i++;
+        ets_delay_us(20);   /* extra settle delay, RSSI variant only */
+        for (k = 0; k < 16; k++)
+            REG_WRITE(0x3ffb0000u + (u32)(k * 4),
+                      REG_READ(0x3ffb0000u + (u32)(k * 4)) & 0xffffffcfu);
+        exit = GetStopCmd();
+        if (exit == 3 || exit == 0)
+            break;
+    }
+    rw_rx_prbs9_status(&total_bits, &err_bits);
+    total_p += total_bits;
+    hec_ep += err_bits;
+    for (k = 0; k < 16; k++)
+        REG_WRITE(0x3ffb0000u + (u32)(k * 4),
+                  REG_READ(0x3ffb0000u + (u32)(k * 4)) & 0xffffffcfu);
+    exit = GetStopCmd();
+    valid = (exit == 3) ? 1u : 0u;
+    if (!valid && chan)
+        goto poll;
+    get_bt_rx_rssi(&pwr_in_band, &gain, &pwr_full_band, total_p);
+    /* Exact 25-lane summary format .rodata.str1.4+0x6bc:
+     * "%x %x %x %x %x %x %x %x w %x %x %x %x %x %x %x %x p %x %x %x b %x %x %x %x %x %x " */
+    phy_printf("%x %x %x %x %x %x %x %x w %x %x %x %x %x %x %x %x p %x %x %x b %x %x %x %x %x %x ",
+               i, total_p, hec_ep, rx_status, cp, crc_ep, type_ep, len_ep,
+               fifo_ovfl_ep, fec13_ep, fec_ep, fec23_ep, value, noise,
+               entry, cmd, pwr_in_band, pwr_full_band, gain,
+               total_bits, err_bits, rssi_max, rssi_min, rssi_now,
+               gain_max, gain_min);
+    /* RSSI array dump: "%x " per entry (.rodata.str1.4+0x714) then "\n". */
+    for (k = 0; (u32)k < rssi_n; k++)
+        phy_printf("%x ", rssi_array[k]);
+    phy_printf("\n");
+    if (chan)
+        goto poll;
 }
 
 /* rw_rx_prbs9_status bt_rw_testmode.c:3510 @ bt_rw_testmode.o size 127B [dwarf-sig]

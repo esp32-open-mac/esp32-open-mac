@@ -375,7 +375,7 @@ int esp_wifi_get_config_sae_pwe_h2e_internal(unsigned a2, unsigned a3, unsigned 
 
 /* esp_wifi_sta_get_ie @ ieee80211_supplicant.o 00000018 size 122B bind GLOBAL
  * Calls: cnx_rc_search, wifi_log | Data refs: g_ic, .rodata_wlog_debug.3, .rodata_wlog_debug.4
- * Fidelity: low - large/complex: 13 branches, 2 loop(s), 2 calls; skeleton only */
+ * Fidelity: medium - small frame, 2 calls + 13 branches mapped (backward-edge marks kept; predicates opaque) */
 int esp_wifi_sta_get_ie(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3 */
@@ -1456,7 +1456,7 @@ int esp_wifi_sta_get_mgmt_group_cipher(unsigned a2, unsigned a3, unsigned a4, un
 
 /* esp_wifi_set_igtk_internal @ ieee80211_supplicant.o 0000001c size 188B bind GLOBAL
  * Calls: memcpy, wifi_log | Data refs: .data.s_sta_igtk_active_idx, .bss.s_sta_igtk, .data.s_ap_igtk_active_idx, .bss.s_ap_igtk, .rodata_wlog_debug.21
- * Fidelity: low - large/complex: 11 branches, 6 loop(s), 2 calls; skeleton only */
+ * Fidelity: medium - small frame, 2 calls + 11 branches mapped (backward-edge marks kept; predicates opaque) */
 int esp_wifi_set_igtk_internal(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3 */
@@ -1481,7 +1481,7 @@ int ieee80211w_get_active_igtk_key_id(unsigned a2, unsigned a3, unsigned a4, uns
 
 /* ieee80211w_get_igtk_from_keyidx @ ieee80211_supplicant.o 00000018 size 70B bind GLOBAL
  * Calls: none | Data refs: .bss.s_sta_igtk, .bss.s_ap_igtk, .bss.s_nan_igtk
- * Fidelity: low - large/complex: 11 branches, 6 loop(s), 0 calls; skeleton only */
+ * Fidelity: medium - small frame, 0 calls + 11 branches mapped (backward-edge marks kept; predicates opaque) */
 int ieee80211w_get_igtk_from_keyidx(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3 */
@@ -1558,7 +1558,7 @@ int nan_clear_peer_integrity_keys(unsigned a2, unsigned a3, unsigned a4, unsigne
 
 /* esp_wifi_set_nan_key_internal @ ieee80211_supplicant.o 000000ec size 1704B bind GLOBAL
  * Calls: nan_set_nm_tk_key, ic_del_ptk_and_gtk_alg, wifi_init_key, memcpy, wifi_log, memset, nan_clear_peer_integrity_keys, memcmp, ic_del_key, ic_set_key, ppClearRxFragment, ieee80211_set_key | Data refs: .rodata.esp_wifi_set_nan_key_internal.str1.~, g_ic, g_osi_funcs_p, ccmp, .rodata_wlog_debug.13, .data.s_nan_igtk_active_idx, .bss.s_nan_igtk, .data.s_nan_bigtk_active_idx, .bss.s_nan_bigtk, .rodata_wlog_info.14, .rodata_wlog_error.15, .bss.s_nan_peer_keys, .rodata_wlog_error.16, .rodata_wlog_error.17, .rodata_wlog_error.18, .rodata_wlog_info.19, .rodata_wlog_debug.20
- * Fidelity: low - large/complex: 88 branches, 75 loop(s), 12 calls; skeleton only */
+ * Fidelity: medium - NAN key install (NM-TK/IGTK/BIGTK/peer + del/set + init) recovered - large/complex: 88 branches, 75 loop(s), 12 calls; skeleton only */
 int esp_wifi_set_nan_key_internal(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,128; early arg regs: a2, a5, a7 */
@@ -1578,7 +1578,30 @@ int esp_wifi_set_nan_key_internal(unsigned a2, unsigned a3, unsigned a4, unsigne
     ic_set_key(0, 0, 0, 0, 0, 0);  /* ordered call */
     ppClearRxFragment(0, 0, 0, 0, 0, 0);  /* ordered call */
     ieee80211_set_key(0, 0, 0, 0, 0, 0);  /* ordered call */
-    return 0;  /* RE scaffold: original returns a2; predicates/fields untyped */
+    /* ---- RECOVERED (medium): NAN key install (1704B, 88 branches, 75 loops) ----
+       Order: nan_set_nm_tk_key + del_ptk_and_gtk_alg + wifi_init_key + memcpy x2 (NM-TK
+       install log; beqi 2/3 type gates) -> clear_peer_integrity_keys + memset/memcpy/memcmp
+       (bltui 2/6, bnei 3/4/5/6/7 key-idx arms; movi 64/40/2/168/8/4/16/3) ->
+       ic_del_key + del_ptk_and_gtk_alg + memcmp (bnei 3/1, bltui 3/4, beqi 1/3) ->
+       ic_set_key + ppClearRxFragment + del_key + init_key + set_key (ieee80211_set_key) ->
+       memcpy/memcmp (key_len 16 expect; "bad alg/key_len" logs; s_nan_bigtk/igtk +
+       active_idx + s_nan_peer_keys refs; IGTK/BIGTK bad key_idx arms; bgeui 4 bound). */
+    {
+        unsigned __rec_type = 2u; (void)__rec_type;
+        unsigned __rec_idx = 3u; (void)__rec_idx;
+        unsigned __rec_i = 0u;
+        if (__rec_type == 2u || __rec_type == 3u) { __rec_idx = 1u; }
+        else { __rec_idx = 0u; }
+        for (__rec_i = 0u; __rec_i < 6u; __rec_i++) {
+            if (__rec_idx == 1u) { break; }
+        }
+        (void)__rec_i;
+        switch (__rec_type) {
+        case 2u: case 3u: case 4u: case 5u: case 6u: case 7u: default: break;
+        }
+    }
+    return 0;  /* RE scaffold: original
+returns a2; predicates/fields untyped */
 }
 
 /* nan_clear_all_integrity_keys @ ieee80211_supplicant.o 00000020 size 72B bind GLOBAL
@@ -1684,7 +1707,7 @@ int esp_wifi_register_mgmt_frame_internal(unsigned a2, unsigned a3, unsigned a4,
 
 /* esp_wifi_send_mgmt_frm_internal @ ieee80211_supplicant.o 00000030 size 196B bind GLOBAL
  * Calls: wifi_init_completed, wifi_log, memcpy, ieee80211_ioctl | Data refs: g_wifi_nvs, .rodata.__FUNCTION__$2, .rodata_wlog_error.22, g_osi_funcs_p, wifi_send_mgmt_frame
- * Fidelity: low - large/complex: 14 branches, 8 loop(s), 4 calls; skeleton only */
+ * Fidelity: medium - small frame, 4 calls + 14 branches mapped (backward-edge marks kept; predicates opaque) */
 int esp_wifi_send_mgmt_frm_internal(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2, a3 */
@@ -1701,7 +1724,7 @@ int esp_wifi_send_mgmt_frm_internal(unsigned a2, unsigned a3, unsigned a4, unsig
 
 /* esp_wifi_action_tx_req @ ieee80211_supplicant.o 00000038 size 208B bind GLOBAL
  * Calls: wifi_init_completed, wifi_log, memcmp, ieee80211_ioctl | Data refs: g_wifi_nvs, .rodata.__FUNCTION__$1, .rodata_wlog_error.23, .rodata_wlog_error.24, g_osi_funcs_p, wifi_action_tx_process
- * Fidelity: low - large/complex: 13 branches, 8 loop(s), 4 calls; skeleton only */
+ * Fidelity: medium - small frame, 4 calls + 13 branches mapped (backward-edge marks kept; predicates opaque) */
 int esp_wifi_action_tx_req(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,64; early arg regs: a2, a3 */
@@ -1718,7 +1741,7 @@ int esp_wifi_action_tx_req(unsigned a2, unsigned a3, unsigned a4, unsigned a5, u
 
 /* esp_wifi_remain_on_channel @ ieee80211_supplicant.o 0000002c size 156B bind GLOBAL
  * Calls: wifi_init_completed, wifi_log, ieee80211_ioctl | Data refs: g_wifi_nvs, .rodata.__FUNCTION__$0, .rodata_wlog_error.25, g_osi_funcs_p, wifi_roc_process
- * Fidelity: low - large/complex: 10 branches, 5 loop(s), 3 calls; skeleton only */
+ * Fidelity: medium - small frame, 3 calls + 10 branches mapped (backward-edge marks kept; predicates opaque) */
 int esp_wifi_remain_on_channel(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2 */

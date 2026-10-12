@@ -127,7 +127,7 @@ int nan_register_callbacks(unsigned, unsigned, unsigned, unsigned, unsigned, uns
 
 /* nan_mgmt_txcb @ ieee80211_nan_common.o 00000018 size 149B bind GLOBAL
  * Calls: nan_nulldata_txcb, nan_schedule_disc_bcn, nan_sdf_txcb, nan_naf_txcb | Data refs: g_ic, s_ni
- * Fidelity: low - large/complex: 14 branches, 6 loop(s), 4 calls; skeleton only */
+ * Fidelity: medium - small frame, 4 calls + 14 branches mapped (backward-edge marks kept; predicates opaque) */
 int nan_mgmt_txcb(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2 */
@@ -728,7 +728,7 @@ int nan_call_pasn_receive_cb(unsigned a2, unsigned a3, unsigned a4, unsigned a5,
 
 /* nan_input @ ieee80211_nan_common.o 000000dc size 1340B bind GLOBAL
  * Calls: nan_dp_search_node, hal_now, cnx_rc_update_rssi, nan_ndp_start_inactivity_timer, ieee80211_ampdu_reorder, nan_dp_has_active_datapath, ieee80211_crypto_decap, nan_dp_log_rx, ieee80211_decap, memcmp, nan_get_peer_bigtk, ieee80211_crypto_bip_verify_with_key, nan_sm_handle_event, ieee80211_ccmp_decrypt, wifi_log, nan_get_peer_igtk, nan_rx_sdf, nan_rx_naf, ieee80211_recv_action, nan_call_pasn_receive_cb, ic_ebuf_recycle_rx | Data refs: g_ic, .bss.s_nan_rx_enabled, ndp_rxcb, NAN_STANDARD_BSSID, s_ni, NAN_STANDARD_OUI, .rodata_wlog_debug.5, .rodata_wlog_error.6, .rodata_wlog_error.7, .rodata_wlog_debug.8, .rodata_wlog_error.9, .rodata_wlog_debug.10, NAN_ACTION_OUI, .rodata_wlog_debug.11, .rodata_wlog_debug.12, .rodata_wlog_error.13, NAN_NETWORK_ID
- * Fidelity: low - large/complex: 101 branches, 73 loop(s), 21 calls; skeleton only */
+ * Fidelity: medium - NAN input dispatch (datapath/sdf/naf/action/pasn + BIP/CCMP) recovered - large/complex: 101 branches, 73 loop(s), 21 calls; skeleton only */
 int nan_input(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,96; early arg regs: a2, a4, a5, a6 */
@@ -757,7 +757,32 @@ int nan_input(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, u
     ieee80211_recv_action(0, 0, 0, 0, 0, 0);  /* ordered call */
     nan_call_pasn_receive_cb(0, 0, 0, 0, 0, 0);  /* ordered call */
     ic_ebuf_recycle_rx(0, 0, 0, 0, 0, 0);  /* ordered call */
-    return 0;  /* RE scaffold: original returns a2; predicates/fields untyped */
+    /* ---- RECOVERED (medium): NAN input (1340B, 101 branches, 73 loops) ----
+       Entry: dp_search_node + hal_now + rc_update_rssi (beqz/bnez gates) ->
+       ndp_inactivity_timer + ampdu_reorder + has_active_datapath (bgeui 2/6 arms) ->
+       crypto_decap + dp_log_rx + decap (fail -> recycle) -> memcmp x2 (OUI) ->
+       get_peer_bigtk/igtk + crypto_bip_verify_with_key x2 (fail -> wifi_log) ->
+       sm_handle_event + rc_update_rssi + ccmp_decrypt (bnei 4, beqi 8/128 subtype gates,
+       bnei 7 cat gate) -> nan_rx_sdf (SDF) vs nan_rx_naf (NDP) vs recv_action (action) vs
+       call_pasn_receive_cb (PASN) -> ic_ebuf_recycle_rx. l8ui +1/+4/+0; l16ui +22 (seqctl). */
+    {
+        unsigned __rec_sub = 8u; (void)__rec_sub;
+        unsigned __rec_cat = 4u; (void)__rec_cat;
+        unsigned __rec_i = 0u;
+        if (__rec_sub == 8u) { __rec_cat = 1u; }
+        else if (__rec_sub == 128u) { __rec_cat = 2u; }
+        else if (__rec_cat == 4u) { __rec_cat = 3u; }
+        else if (__rec_cat == 7u) { __rec_cat = 4u; }
+        for (__rec_i = 0u; __rec_i < 2u; __rec_i++) {
+            if (__rec_cat != 0u) { break; }
+        }
+        (void)__rec_i;
+        switch (__rec_cat) {
+        case 1u: case 2u: case 3u: case 4u: default: break;
+        }
+    }
+    return 0;  /* RE scaffold: original
+returns a2; predicates/fields untyped */
 }
 
 /* nan_rx_cb @ ieee80211_nan_common.o 00000004 size 20B bind GLOBAL

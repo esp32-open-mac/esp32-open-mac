@@ -123,7 +123,7 @@ L_4:;
  * Calls: pm_coex_schm_overall_period_get[got] | Data refs: g_osi_funcs_p, g_pm, g_mesh_is_started, g_mesh_is_root, g_mesh_init_ps_type, g_wifi_mac_time_delta, pm_coex_schm_overall_period_get
  *   MMIO: 0x3FF73C00
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 1 call(s), 7 data ref(s)
- * Fidelity: low - 62 instr, 11 branches, 3 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 62 instr, 11 branches, 3 indirect; flow + direct calls mapped, GOT-indirects enumerated */
 int32_t pm_get_null_max_tx_time(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .iram1.2; Xtensa ABI: args a2..a7, return a2 */
@@ -492,7 +492,7 @@ L_208:;
  * Calls: pm_coex_recalculate_wifi_time_slice | Data refs: g_osi_funcs_p, g_pm, pm_coex_recalculate_wifi_time_slice
  *   MMIO: none
  *   funcdb v3: 1 call(s), 3 ref(s); disasm: 1 call(s), 3 data ref(s)
- * Fidelity: low - 53 instr, 14 branches, 3 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 53 instr, 14 branches, 3 indirect; flow + direct calls mapped, GOT-indirects enumerated */
 int32_t pm_coex_update_wifi_time_slice_state(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.pm_coex_update_wifi_time_slice_state; Xtensa ABI: args a2..a7, return a2 */

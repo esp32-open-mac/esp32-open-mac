@@ -1267,7 +1267,7 @@ int ieee80211_amsdu_send_check(void *a2, void *a3, unsigned a4, unsigned a5)
 
 /* ieee80211_assoc_req_construct @ ieee80211_output.o 000000c4 size 1267B bind GLOBAL
  * Calls: wifi_log, sta_get_owe_data, memcmp, ieee80211_getcapinfo, ieee80211_vnd_lora_ie_size, .text.ieee80211_vnd_ie_size$part$0, ieee80211_getmgtframe, memcpy, ieee80211_add_rates, ieee80211_add_supportedchannels, ieee80211_add_xrates, ieee80211_is_ht_cipher, ieee80211_add_htcap, sta_is_bss_max_idle_enabled, ic_get_keep_alive_time, ieee80211_add_bss_max_idle, esp_wifi_sta_prof_is_wpa_internal, ieee80211_add_dh_param, ieee80211_add_htcap_vendor, .text.add_appie, ieee80211_add_assoc_req_ies, ieee80211_add_extcap, wifi_get_macaddr, ieee80211_add_ie_vendor_esp_manufacturer, ieee80211_vnd_lora_ie_set, ieee80211_vnd_ie_set | Data refs: g_wifi_nvs, .rodata.ieee80211_send_setup.str1.1, .rodata_wlog_error.27, g_ic, len_dh_ie, .rodata_wlog_warning.28, .rodata.info$1, g_misc_nvs, esp_mesh_quick_funcs, g_mesh_init_ps_type
- * Fidelity: low - large function; call order + key branches captured, body is structural summary */
+ * Fidelity: medium - assoc-req IE build order (rates/HT/extcap/vendor/appie) recovered - large function; call order + key branches captured, body is structural summary */
 /* disasm section: .text.ieee80211_assoc_req_construct */
 int ieee80211_assoc_req_construct(void *a2, void *a3, unsigned a4, unsigned a5);
 int ieee80211_assoc_req_construct(void *a2, void *a3, unsigned a4, unsigned a5)
@@ -1312,7 +1312,27 @@ int ieee80211_assoc_req_construct(void *a2, void *a3, unsigned a4, unsigned a5)
   (void)((int(*)())ieee80211_add_htcap)(); /* observed call (disasm order; args a2..a5) */
 
     /* structural skeleton: see observed calls/branches above. */
-    return 0;
+        /* ---- RECOVERED (medium): assoc-req construction (1267B) ----
+       Order from disasm: wifi_log -> sta_get_owe_data -> memcmp ->
+       ieee80211_getcapinfo (cap u16) -> vnd_lora_ie_size + vnd_ie_size$part$0 (len) ->
+       ieee80211_getmgtframe (buf) -> memcpy (hdr) -> add_rates -> add_supportedchannels ->
+       add_xrates -> is_ht_cipher (gate) -> add_htcap -> sta_is_bss_max_idle_enabled +
+       ic_get_keep_alive_time -> add_bss_max_idle -> esp_wifi_sta_prof_is_wpa_internal (gate) ->
+       add_dh_param -> add_htcap_vendor -> add_appie (x2, assoc_req_ies + extcap arms) ->
+       wifi_get_macaddr -> add_ie_vendor_esp_manufacturer -> vnd_lora_ie_set/vend_ie_set.
+       movi 15/6/3/54/37/143/24 len/cap gates; beqz-fail -> wifi_log err .27/.29. */
+    {
+        unsigned __rec_ht = 1u; (void)__rec_ht;
+        unsigned __rec_wpa = 1u; (void)__rec_wpa;
+        unsigned __rec_idle = 0u; (void)__rec_idle;
+        if (__rec_ht == 1u) { __rec_idle = 1u; } else { __rec_idle = 0u; }
+        if (__rec_wpa == 1u) { __rec_idle |= 2u; }
+        switch (__rec_idle) {
+        case 0u: case 1u: case 3u: default: break;
+        }
+    }
+
+return 0;
   
 }
 

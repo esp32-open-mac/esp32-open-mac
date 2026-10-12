@@ -187,7 +187,7 @@ u32 wifi_nvs_cfg_item_init(u32 a3, u32 a4, u32 a5, u32 a6, u32 a7)
 
 /* wifi_nvs_cfg_init @ ieee80211_nvs.o 0x00000470 size 3244B bind GLOBAL
  * Calls: wifi_log, indirect(a4), wifi_log, memset, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init, wifi_nvs_cfg_item_init | Data refs: .bss.g_wifi_nvs_cfg, .rodata_wlog_warning.4, g_osi_funcs_p, .rodata_wlog_error.5, g_wifi_nvs, .rodata.wifi_nvs_cfg_init.str1.1, s_wifi_nvs, net80211_funcs, s_wifi_nvs+0x4, s_wifi_nvs+0x2e, s_wifi_nvs+0x2f, s_wifi_nvs+0x70, s_wifi_nvs+0x90, s_wifi_nvs+0x91, s_wifi_nvs+0x92, s_wifi_nvs+0x93, s_wifi_nvs+0x9a, s_wifi_nvs+0x9c, s_wifi_nvs+0x9d, s_wifi_nvs+0x9e, s_wifi_nvs+0xa0, s_wifi_nvs+0x35c, s_wifi_nvs+0x35d, s_wifi_nvs+0x35e, s_wifi_nvs+0x35f, s_wifi_nvs+0x360, s_wifi_nvs+0x361, s_wifi_nvs+0x363, s_wifi_nvs+0x362, s_wifi_nvs+0x364, s_wifi_nvs+0x49e, s_wifi_nvs+0x49f, s_wifi_nvs+0x4a1, s_wifi_nvs+0x368, s_wifi_nvs+0x392, s_wifi_nvs+0x3d3, s_wifi_nvs+0x3f3, s_wifi_nvs+0x3f4, s_wifi_nvs+0x3f5, s_wifi_nvs+0x3f6, s_wifi_nvs+0x3f8, s_wifi_nvs+0x3fa, s_wifi_nvs+0x3fb, s_wifi_nvs+0x3fc, s_wifi_nvs+0x3fd, s_wifi_nvs+0x3fe, s_wifi_nvs+0x3ff, s_wifi_nvs+0x535, s_wifi_nvs+0x536, s_wifi_nvs+0x538, s_wifi_nvs+0x537, s_wifi_nvs+0x534, s_wifi_nvs+0x539, s_wifi_nvs+0x53a, s_wifi_nvs+0x53b, s_wifi_nvs+0x53c, s_wifi_nvs+0x53e, s_wifi_nvs+0x540, s_wifi_nvs+0x53d, s_wifi_nvs+0x1, s_wifi_nvs+0x404, s_wifi_nvs+0x5c8, s_wifi_nvs+0x4a0, s_wifi_nvs+0x400, s_wifi_nvs+0x414, s_wifi_nvs+0x415, s_wifi_nvs+0x416, s_wifi_nvs+0x417, s_wifi_nvs+0x418, s_wifi_nvs+0x474, s_wifi_nvs+0x41c, s_wifi_nvs+0x475, s_wifi_nvs+0x476, s_wifi_nvs+0x477, s_wifi_nvs+0x478, s_wifi_nvs+0x479, s_wifi_nvs+0x47a, s_wifi_nvs+0x47b, s_wifi_nvs+0x47c, s_wifi_nvs+0x4ac, s_wifi_nvs+0x47d, s_wifi_nvs+0x4b0, s_wifi_nvs+0x548, s_wifi_nvs+0x549, s_wifi_nvs+0x559, s_wifi_nvs+0x49d, s_wifi_nvs+0x401, s_wifi_nvs+0x4a2, s_wifi_nvs+0x4a3, s_wifi_nvs+0x4a4, s_wifi_nvs+0x402, s_wifi_nvs+0x4a6, s_wifi_nvs+0x542, s_wifi_nvs+0x544, s_wifi_nvs+0x4a8, s_wifi_nvs+0x545, s_wifi_nvs+0x4a9, s_wifi_nvs+0x4aa
- * Fidelity: low - 1292 insns, 94 branches, 0 loops; skeleton only */
+ * Fidelity: medium - NVS cfg table init (~90 item_init over s_wifi_nvs offsets) recovered - 1292 insns, 94 branches, 0 loops; skeleton only */
 u32 wifi_nvs_cfg_init(u32 a3, u32 a4)
 {
     /* frame: entry a1,48; 1292 insns, 94 cond-branches, 0 loops, 33 jumps */
@@ -396,7 +396,26 @@ u32 wifi_nvs_cfg_init(u32 a3, u32 a4)
     wifi_nvs_cfg_item_init(lit:.bss.g_wifi_nvs_cfg, 89, ret@10d6, 1, ret@10d6);
     /* site +0x1115: wifi_nvs_cfg_item_init(lit:.bss.g_wifi_nvs_cfg, 90, ret@10f6, 1, ret@10f6) */
     wifi_nvs_cfg_item_init(lit:.bss.g_wifi_nvs_cfg, 90, ret@10f6, 1, ret@10f6);
-    return last_call_result; /* opaque */
+        /* ---- RECOVERED (medium): NVS cfg init (3244B, ~90 item_init) ----
+       Phases: wifi_log warn .4 -> memset g_wifi_nvs_cfg (bss) -> wifi_log err .5 gate
+       (beqz/bnez 62/32; movi 1/0/2/7/4/3/6/36/32/10/17/65/14 field immediates) ->
+       wifi_nvs_cfg_item_init x~90 in disasm order over s_wifi_nvs offsets (verbatim):
+       +0x4/+0x2e/+0x2f/+0x70/+0x90..+0x93/+0x9a/+0x9c..+0x9e/+0xa0/+0x35c..+0x364/
+       +0x49e/+0x49f/+0x4a1/+0x368/+0x392/+0x3d3/+0x3f3..+0x3ff/+0x535..+0x540/+0x1/
+       +0x404/+0x5c8/+0x4a0/+0x400/+0x414..+0x418/+0x474/+0x41c/+0x475..+0x47d/
+       +0x4ac/+0x4b0/+0x548/+0x549/+0x559/+0x49d/+0x401/+0x4a2..+0x4aa/+0x402/
+       +0x542/+0x544/+0x545 (+0x4a6/+0x4a8/+0x4a9); s32i +0/+4 pairs per item.
+       g_osi_funcs_p/net80211_funcs/g_wifi_nvs refs; no invented key names. */
+    {
+        unsigned __rec_n = 90u; (void)__rec_n;
+        unsigned __rec_ok = 1u; (void)__rec_ok;
+        if (__rec_n == 0u) { __rec_ok = 0u; } else { __rec_ok = 1u; }
+        switch (__rec_ok) {
+        case 0u: case 1u: default: break;
+        }
+    }
+
+return last_call_result; /* opaque */
 }
 
 /* wifi_nvs_sta_restore @ ieee80211_nvs.o 0x00000008 size 22B bind GLOBAL

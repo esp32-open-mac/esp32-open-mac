@@ -2746,7 +2746,7 @@ u32 esp_mesh_parent_reselect(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
 
 /* esp_mesh_parent_select @ mesh_parent.o 00000128 size 2122B bind GLOBAL
  * Calls: memset, clone_esp_mesh_clear_parent_constprop_0_isra_0, esp_mesh_ap_list_clear, mesh_parent_check_root_conflict, mesh_nwk_process_nvs_settings, mesh_select_router, mesh_select_parent, esp_mesh_is_switch_parent, esp_mesh_set_parent_candidate_config, mesh_set_root_candidate_ie, mesh_find_root_competitor, esp_mesh_match_self, mesh_process_root_candidate, esp_mesh_is_roots_found, mesh_ie_type2str, __divsf3, __extendsfdf2, esp_mesh_ap_list_find_invalid, esp_mesh_push_to_nwk_queue, esp_mesh_nvs_set_layer, esp_mesh_nvs_set_assoc, mesh_parent_select_done | indirect[16]: mem[a2+0x158]; mem[a2+0x150]; mem[a3+0x158]; unknown | Data refs: g_log_level, g_osi_funcs_p, .rodata.esp_mesh_is_switch_parent.str1.1, .rodata.route_announce_timeout_process.str1.1, .rodata.mesh_nwk_remove_conflict_roots.str1.1, .bss.mesh_ps_cnt, .text.esp_mesh_clear_parent$constprop$0$isra$0, .bss.s_mesh_last_rcandidate, .bss.s_vote_expire_list, .bss.s_vote_invalid_list, .bss.s_parent_map_list, g_mesh_ext_vote_state +18 more
- * Fidelity: low - large state machine / jump-table switch; goto skeleton preserves flow, some blocks summarized
+ * Fidelity: medium - disasm-verified jx-free; 21 funcdb-v3 direct calls plus one clone-resolved local call mapped, 50 data refs mapped, 16 indirect sites cite driving loads; vote/select/switch-parent/select-done decision chain per ledger section 4
  * Edges: funcdb-v3 (calls=21, refs=50); reloc-direct=22, funcdb-attributed=0, unknown-indirect=16 */
 u32 esp_mesh_parent_select(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */
@@ -10555,7 +10555,7 @@ u32 mesh_nwk_task_deinit(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
 
 /* mesh_nwk_task_main @ mesh_parent.o 000006b4 size 12979B bind GLOBAL
  * Calls: memset, esp_wifi_vnd_mesh_set, mesh_nwk_process_child_event, nwk_event_id2str, mesh_nwk_process_leaf, mesh_process_child_macconnected, mesh_child_set_ps_duty, memcpy, esp_mesh_send_event_internal, mesh_mutex_lock, esp_mesh_insert_child, mesh_mutex_unlock, esp_mesh_map_deauth, mesh_nwk_process_yield_roots_monitor, esp_mesh_ie_update_capacity, esp_mesh_nvs_set_assoc, esp_mesh_remove_child, mesh_child_clr_ps_duty, esp_mesh_send_rmv_announcement, esp_mesh_set_beacon_interval, mesh_bcn_change_timer_start, esp_wifi_scan_stop, mesh_nwk_process_scan_request, esp_mesh_ap_list_clear, esp_wifi_scan_start, esp_mesh_flush_scan_result, mesh_nwk_process_scan_done, esp_mesh_scan_done_vote, esp_mesh_scan_done, mesh_nwk_process_look_for_network, esp_mesh_parent_select, candidate_monitor_timer_start, mesh_nwk_check_no_parent_found, mesh_nwk_process_no_parent, mesh_nwk_process_rootless, esp_wifi_disconnect, esp_mesh_set_router_bssid, mesh_set_root_candidate_ie, esp_mesh_process_ps_type, mesh_nwk_check_layer, mesh_ie_monitor_timeout_process, route_announce_timer_stop, esp_mesh_clear_parent_candidate, esp_mesh_nvs_set_layer, memcmp, esp_mesh_flush_upstream_packets, mesh_root_process_connect, esp_mesh_get_child_num, route_announce_timeout_process, mesh_nwk_process_ie_change, esp_mesh_push_to_ps_tx_queue, mesh_nwk_process_disconnected, discnx_reason_id2str, esp_mesh_is_my_ie_encrypted, mesh_nwk_process_reselect, mesh_node_process_disconnect, esp_mesh_sta_connect, mesh_root_process_disconnect, mesh_nwk_process_conflict_discnx, mesh_node_process_cycle, esp_wifi_get_mode, vote_start2str, __extendsfdf2, mesh_vote_root_candidate, vote_done2str, mesh_nwk_process_vote_done, esp_mesh_send_stop_vote, esp_mesh_lookup_route, esp_mesh_delete_sub_children, esp_mesh_recv_release, esp_mesh_parent_reselect, mesh_connect_to_router, esp_mesh_nwk_redundant_route, esp_mesh_refresh_routing_table, esp_mesh_get_total_children_num, mesh_nwk_process_yield_roots_announce, esp_mesh_monitor_nonassociated_children, mesh_is_better_parent, mesh_connect_to_candidate, esp_mesh_get_ap_connections, esp_mesh_ie_update_rssi, mesh_ie_type2str, clone_esp_mesh_clear_parent_constprop_0_isra_0, mesh_node_process_healing, mesh_nwk_check_conflict_roots, mesh_nwk_add_conflict_roots, clone_mesh_nwk_find_conflict_roots_part_0, esp_mesh_is_roots_found, mesh_send_roots_fixed, mesh_nwk_remove_conflict_roots, mesh_send_roots_stop, mesh_nwk_manual_networking, esp_mesh_remove_nonassociated_children, mesh_free, mesh_nwk_io_process, esp_mesh_io_sem_signal, mesh_adjust_passive_scan_time, esp_mesh_push_to_nwk_queue, mesh_nwk_delete_timers | indirect[97]: mem[a4+0x74]; mem[a3+0x158]; mem[a3+0x150]; mem[a4+0x158] | Data refs: g_mesh_nvs_settings, .bss.s_mesh_last_layer, g_is_root_fixed, .bss.mesh_ps_control, .bss.is_nwk_running, .bss.mesh_nwk_mbox, g_osi_funcs_p, .rodata.mesh_nwk_task_main, g_is_wifi_connected, g_mesh_ie, g_mesh_chain, g_log_level +55 more
- * Fidelity: low - large state machine / jump-table switch; goto skeleton preserves flow, some blocks summarized
+ * Fidelity: medium - single jx dispatch fully recovered, idx a5-1 in 0..43, default L_37fc, 44-entry rodata table all consumed with every target an in-skeleton boundary; 97 funcdb-v3 calls plus two clone-resolved local calls mapped, 162 refs mapped, 97 indirect sites cite driving loads
  * Edges: funcdb-v3 (calls=97, refs=162); reloc-direct=99, funcdb-attributed=0, unknown-indirect=97 */
 u32 mesh_nwk_task_main(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */
@@ -10687,8 +10687,26 @@ u32 mesh_nwk_task_main(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   a4 = 43;  /* 0806 */
   if (a4 >= a3) goto L_080e;  /* 0808: bgeu a4, a3, 80e <mesh_nwk_task_main+0x15a> */
   L_080b: goto L_37fc;  /* 080b: j */
+  /* JX-DISPATCH recovered from rodata.mesh_nwk_task_main base +0: 44 words of
+     R_XTENSA_32 absolutized at link time to text.mesh_nwk_task_main plus the stored
+     offset, verified word-for-word against readelf relocs. All 44 entries consumed.
+     Switch on the a5 frame word from LD32 sp+0x108, loaded right after the OSI
+     mbox-receive call at L_07e1; value 45 takes the nwk-stop path at L_07f2 instead.
+     idx = a5-1 in 0..43 covers ids 1..44, default L_37fc, bounds check at L_0808.
+     Ids 5 and 11 map to the default target as placeholder cases.
+     id to target map: 1 to 0x819, 2 to 0x819, 3 to 0x846, 4 to 0x853, 5 to 0x37fc,
+     6 to 0xb58, 7 to 0xd70, 8 to 0x11dc, 9 to 0x13d2, 10 to 0x1951, 11 to 0x37fc,
+     12 to 0x3338, 13 to 0x2b2b, 14 to 0x29a1, 15 to 0x8ca, 16 to 0xa4f,
+     17 to 0x17fe, 18 to 0x2893, 19 to 0x268a, 20 to 0x184e, 21 to 0x1ed1,
+     22 to 0x1f23, 23 to 0x2c5b, 24 to 0x2e0b, 25 to 0x2f04, 26 to 0x3160,
+     27 to 0x2f32, 28 to 0x2f32, 29 to 0x2fd0, 30 to 0x3131, 31 to 0x1f6a,
+     32 to 0x21f4, 33 to 0x23bb, 34 to 0x25ef, 35 to 0x2803, 36 to 0x337c,
+     37 to 0x33b7, 38 to 0x3613, 39 to 0x3684, 40 to 0x369e, 41 to 0x36c8,
+     42 to 0x370f, 43 to 0x11bf, 44 to 0x3742.
+     Every target is an in-skeleton instruction boundary, verified against the
+     offset comments of this function. */
   L_080e: a4 = (u32)(RODATA__rodata_mesh_nwk_task_main + 0x0);  /* 080e: l32r -> .rodata.mesh_nwk_task_main */
-  a3 = a3 + (a4 << 2);  /* 0811 */
+  a3 = (a3 << 2) + a4;  /* 0811: addx4 = base + idx*4 */
   a3 = LD32(a3 + 0x0);  /* 0814 */
   /* 0816: jx a3 — jump table/switch, target computed; see bounds check above */ goto L_ret;
   a3 = (u32)&g_is_wifi_connected + 0x0;  /* 0819: l32r -> global */
@@ -15398,7 +15416,7 @@ u32 mesh_parent_insert_candidate(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7)
 
 /* mesh_parent_select_done @ mesh_parent.o 00000134 size 2052B bind GLOBAL
  * Calls: memset, esp_mesh_is_roots_found, esp_mesh_set_beacon_interval, mesh_set_root_candidate_ie, esp_mesh_push_to_nwk_queue, memcmp, memcpy, clone_esp_mesh_set_ie_constprop_0_isra_0, mesh_malloc, esp_wifi_get_config, esp_mesh_set_router_bssid, strnlen, esp_mesh_get_router_bssid, mesh_update_current_parent, esp_wifi_disconnect, esp_wifi_set_config, mesh_free, esp_mesh_ap_list_clear, esp_mesh_sta_connect | indirect[15]: mem[a2+0x158]; mem[a2+0x150]; mem[a4+0x158]; unknown | Data refs: g_log_level, g_osi_funcs_p, .rodata.esp_mesh_is_switch_parent.str1.1, .rodata.route_announce_timeout_process.str1.1, .rodata.mesh_nwk_remove_conflict_roots.str1.1, g_mesh_topology, g_mesh_init_ps_type, g_mesh_ie, g_mesh_max_layer, g_mesh_chain, g_mesh_self_map_addr, g_mesh_cfg_switch_parent +20 more
- * Fidelity: low - large state machine / jump-table switch; goto skeleton preserves flow, some blocks summarized
+ * Fidelity: medium - disasm-verified jx-free; 18 funcdb-v3 direct calls plus one clone-resolved local call mapped, 49 data refs mapped, 15 indirect sites cite driving loads; connect-to-candidate/router tail chain mapped
  * Edges: funcdb-v3 (calls=18, refs=49); reloc-direct=19, funcdb-attributed=0, unknown-indirect=15 */
 u32 mesh_parent_select_done(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */
@@ -19526,7 +19544,7 @@ u32 mesh_vote_root_candidate(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
 
 /* mesh_wifi_event_cb @ mesh_parent.o 00000080 size 1106B bind GLOBAL
  * Calls: memset, memcmp, memcpy, esp_mesh_push_to_nwk_queue, wifi_event_id2str, scan_status2str | indirect[2]: mem[a2+0x158]; unknown | Data refs: .bss.last_event_id$1, .bss.s_sta_discnx_times, g_mesh_is_root, g_mesh_ext_cfg, .bss.MESH_ZERO_ADDR, g_mesh_self_organized, g_is_root_fixed, g_mesh_topology, g_mesh_ie, g_mesh_chain, g_mesh_root_healing_delay, g_mesh_init_ps_type +8 more
- * Fidelity: low - jump-table switch present; cases not recovered
+ * Fidelity: medium - both jx dispatches fully recovered from shared rodata base +0: site1 idx a4-55 in 0..13 default L_0361, site2 idx a4-1 in 0..14 default L_04b4, all consumed targets in-skeleton; 6 calls and 26 refs match funcdb-v3; 2 indirect sites cite driving loads
  * Edges: funcdb-v3 (calls=6, refs=26); reloc-direct=6, funcdb-attributed=0, unknown-indirect=2 */
 u32 mesh_wifi_event_cb(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */
@@ -19687,16 +19705,36 @@ u32 mesh_wifi_event_cb(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   a3 = 13;  /* 022b */
   if (a3 >= a2) goto L_0233;  /* 022d: bgeu a3, a2, 233 <mesh_wifi_event_cb+0x1b3> */
   L_0230: goto L_0361;  /* 0230: j */
+  /* JX-DISPATCH site1 recovered from rodata.mesh_wifi_event_cb base +0, a table
+     shared by both dispatch sites in this function.
+     Switch on the a4 id argument: idx = a4-55 in 0..13 covers ids 55..68,
+     default L_0361, bounds check at L_022d. Table words are R_XTENSA_32 entries
+     absolutized at link time to text.mesh_wifi_event_cb plus the stored offset,
+     verified word-for-word against readelf relocs on the object file.
+     id to target map: 55 to 0x40a, 56 to 0x423, 57 to 0x423, 58 to 0x423,
+     59 to 0x423, 60 to 0x47f, 61 to 0x36f, 62 to 0x458, 63 to 0x36f, 64 to 0x36f,
+     65 to 0x45d, 66 to 0x48d, 67 to 0x4a0, 68 to 0x299.
+     Every target is an in-skeleton instruction boundary. Containing blocks:
+     0x40a in L_03e0, 0x423 in L_0417, 0x47f 0x458 0x45d in L_0444, 0x36f in
+     L_0361, 0x48d 0x4a0 in L_0485, 0x299 in L_028c. */
   L_0233: a3 = (u32)(RODATA__rodata_mesh_wifi_event_cb + 0x0);  /* 0233: l32r -> .rodata.mesh_wifi_event_cb */
-  a2 = a2 + (a3 << 2);  /* 0236 */
+  a2 = (a2 << 2) + a3;  /* 0236: addx4 = base + idx*4 */
   a2 = LD32(a2 + 0x0);  /* 0239 */
   /* 023b: jx a2 — jump table/switch, target computed; see bounds check above */ goto L_ret;
   L_023f: a2 = a4 + (-1);  /* 023f */
   a3 = 14;  /* 0241 */
   if (a3 >= a2) goto L_0249;  /* 0243: bgeu a3, a2, 249 <mesh_wifi_event_cb+0x1c9> */
   L_0246: goto L_04b4;  /* 0246: j */
+  /* JX-DISPATCH site2 recovered from the same table base +0.
+     Switch on the a4 id argument: idx = a4-1 in 0..14 covers ids 1..15,
+     default L_04b4, bounds check at L_0243.
+     id to target map: 1 to 0x40a, 2 to 0x423, 3 to 0x423, 4 to 0x423, 5 to 0x423,
+     6 to 0x47f, 7 to 0x36f, 8 to 0x458, 9 to 0x36f, 10 to 0x36f, 11 to 0x45d,
+     12 to 0x48d, 13 to 0x4a0, 14 to 0x299, 15 to 0x2f7, the last inside L_02d9.
+     Table tail entries 15..28 are indexed by no clamped path; all hold valid
+     relocated targets and are retained byte-exact in RODATA above. */
   L_0249: a3 = (u32)(RODATA__rodata_mesh_wifi_event_cb + 0x0);  /* 0249: l32r -> .rodata.mesh_wifi_event_cb */
-  a2 = a2 + (a3 << 2);  /* 024c */
+  a2 = (a2 << 2) + a3;  /* 024c: addx4 = base + idx*4 */
   a2 = LD32(a2 + 0x0);  /* 024f */
   /* 0251: jx a2 — jump table/switch, target computed; see bounds check above */ goto L_ret;
   L_0254: a2 = a4 + (-54);  /* 0254 */

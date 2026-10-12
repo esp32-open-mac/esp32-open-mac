@@ -20,6 +20,13 @@ typedef int S32, s32, sint32, int32;
 typedef unsigned long long U64, u64, uint64;
 typedef long long S64, s64;
 
+/* MMIO helpers (same convention as other reconstructed TUs). */
+#define REG_READ(a) (*(volatile u32 *)(a))
+#define REG_WRITE(a, v) (*(volatile u32 *)(a) = (v))
+
+/* Same-TU forward declarations (callees defined later in file). */
+void rw_le_rxstat_unpack(u32 desc_addr, u32 * rxlinklbl, u32 * rxpriverr, u32 * rxtimeerr, u32 * rxbdaddrmatch, u32 * rxnesnerr, u32 * rxsnerr, u32 * rxmicerr, u32 * rxcrcerr, u32 * rxlenerr, u32 * rxtyperr, u32 * rxsyncerr, s8 * rxrssi);
+
 /* esp_get_lerx_result bt_rw_le_testmode.c:1726 @ bt_rw_le_testmode.o size 28B [dwarf-sig]
  * Calls: (none) | Data refs: esp_rx_result, esp_rx_valid | MMIO: (none)
  * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
@@ -425,15 +432,153 @@ void rw_le_init_tx_descriptor(u32 is_connevt, u32 ptr, u32 nxt_ptr, u32 llid, u3
 
 /* rw_le_rx_per bt_rw_le_testmode.c:1592 @ bt_rw_le_testmode.o size 1390B [dwarf-sig]
  * Calls: rw_le_core_off, rw_init_em_radio_table, rw_dm_activate, rw_le_init_cs, rw_le_core_on, phy_printf, ets_delay_us, rw_bb_rx_refesh, GetStopCmd, rw_le_rxstat_unpack | Data refs: .rodata.str1.4, GetStopCmd, ets_delay_us, phy_printf, rw_bb_rx_refesh, rw_dm_activate, rw_init_em_radio_table, rw_le_core_off, rw_le_core_on, rw_le_init_cs, rw_le_rxstat_unpack | MMIO: 0x3ff51050, 0x3ff51074, 0x3ff51078, 0x3ff51098, 0x3ffb0000, 0x3ffb02c0, 0x3ffb02c4, 0x3ffb02c8, 0x3ffb02d0, 0x3ffb02d4, 0x3ffb02d8, 0x60031200, 0x60031214, 0x60031218, 0x60031224, 0x60031228, 0x6003122c, 0x600312a0, 0x600312e0, 0x600312f0
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Fidelity: medium - LE init/RMW chain, EM programming, refresh/stop poll,
+ *   dual-descriptor unpack, error ladder, gain accumulate and 21-lane print
+ *   verified; counter-name routing approximate (slot order exact) */
 void rw_le_rx_per(u32 chan)
 {
-    (void)chan;
     /* DWARF locals: u32 cmd@l1593, u32 exit@l1593, u32 value@l1593, u32 noise@l1593, u32 pwr_in_band@l1593, u32 pwr_full_band@l1593, u32 gain@l1593, u32 bchl@l1593, u32 bchh@l1593, u32 entry@l1593, u32[] gain_fcs@l1594, u32 fcs_i@l1595, u32 i@l1625, u32 total_p@l1628, u32 hec_ep@l1628, u32 rx_status@l1628 */
-    /* TODO(ground-truth): reconstruct from libbttestmode/bt_rw_le_testmode.rdis
-     * function <rw_le_rx_per> (512 insns) + DWARF line rows for bt_rw_le_testmode.c:1592.
-     * Ordered callee relocs: rw_le_core_off, rw_init_em_radio_table, rw_dm_activate, rw_le_init_cs, rw_le_core_on, phy_printf, ets_delay_us, rw_bb_rx_refesh, GetStopCmd, rw_le_rxstat_unpack.
-     */
+    u32 cmd, exit, value, noise, pwr_in_band, pwr_full_band, gain, bchl, bchh, entry;
+    u32 gain_fcs[8];
+    u32 fcs_i, i, total_p, hec_ep, rx_status, cp, crc_ep, type_ep, len_ep;
+    u32 fifo_ovfl_ep, fec13_ep, fec_ep, fec23_ep, mic_ep, lt_ep, seq_ep, guard_ep;
+    u32 default_ep, len_max_ep, pwr_r_error, pwr_d_error;
+    u32 rxlinklbl, rxpriverr, rxtimeerr, rxbdmatch, rxnesnerr, rxsnerr;
+    u32 rxmicerr, rxcrcerr, rxlenerr, rxtyperr, rxsyncerr;
+    s8 rxrssi;
+    u32 v;
+    int k;
+    REG_WRITE(0x3ff51098u, REG_READ(0x3ff51098u) | 0xc0000000u);
+    rw_le_core_off();
+    rw_init_em_radio_table();
+    rw_dm_activate();
+    REG_WRITE(0x6003122cu, REG_READ(0x6003122cu) & 0xffffu);
+    /* 16-word EM init: bit-expand 0xffff with 0x2000302/0. */
+    v = 0xffffu;
+    for (k = 0; k < 16; k++) {
+        REG_WRITE(0x3ffb0000u + (u32)(k * 4), (v & 1u) ? 0x2000302u : 0u);
+        v >>= 1;
+    }
+    REG_WRITE(0x60031224u, 0xdeadbeefu);
+    REG_WRITE(0x60031228u, REG_READ(0x60031228u) & 0xffff0000u);
+    REG_WRITE(0x60031228u, REG_READ(0x60031228u) | 0x10000u);
+    REG_WRITE(0x600312a0u, (REG_READ(0x600312a0u) & 0xffffc000u) | 0x5dcu);
+    REG_WRITE(0x60031200u, REG_READ(0x60031200u) | 0x40000u);
+    /* LE CS: format=29, sync=0x71764129, crc=0x555555, no RAL/filtering,
+     * ch=chan, hopint=11, fh=0, txpwr=0, rxwide=1, rxwinsz=0x3fff,
+     * txdesc=0, maxevtime=0 (stack immediates verified). */
+    rw_le_init_cs(29, 0x71764129u, 0x555555u, 0, 0, 0, 0, chan, 11, 0, 0, 1, 0x3fffu, 0, 0);
+    REG_WRITE(0x3ffb02c0u, 0u);
+    REG_WRITE(0x3ffb02c4u, 0u);
+    REG_WRITE(0x3ffb02c8u, 0u);
+    REG_WRITE(0x3ffb02c0u, (REG_READ(0x3ffb02c0u) & 0xffff8000u) | 0x2d0u);
+    REG_WRITE(0x3ffb02c8u, (REG_READ(0x3ffb02c8u) & 0xffff0000u) | 0xb00u);
+    REG_WRITE(0x3ffb02c8u, REG_READ(0x3ffb02c8u) | 0xc000000u);
+    REG_WRITE(0x3ffb02d0u, 0u);
+    REG_WRITE(0x3ffb02d4u, 0u);
+    REG_WRITE(0x3ffb02d8u, 0u);
+    REG_WRITE(0x3ffb02d0u, (REG_READ(0x3ffb02d0u) & 0xffff8000u) | 0x2c0u);
+    REG_WRITE(0x3ffb02d8u, (REG_READ(0x3ffb02d8u) & 0xffff0000u) | 0xb00u);
+    REG_WRITE(0x3ffb02d8u, REG_READ(0x3ffb02d8u) | 0xc000000u);
+    REG_WRITE(0x6003122cu, (REG_READ(0x6003122cu) & 0xffff8000u) | 0x2d0u);
+    REG_WRITE(0x60031228u, REG_READ(0x60031228u) & 0x7fffffffu);
+    REG_WRITE(0x600312f0u, REG_READ(0x600312f0u) & 0x7fffffffu);
+    REG_WRITE(0x600312e0u, REG_READ(0x600312e0u) | 0x8000000u);
+    REG_WRITE(0x60031218u, REG_READ(0x60031218u) | 8u);
+    rw_le_core_on();
+    phy_printf("RW RX PER\n");   /* .rodata.str1.4+0x278 */
+    cmd = exit = value = noise = pwr_in_band = pwr_full_band = gain = entry = 0;
+    bchl = bchh = 0;
+    total_p = hec_ep = rx_status = cp = crc_ep = type_ep = len_ep = 0;
+    fifo_ovfl_ep = fec13_ep = fec_ep = fec23_ep = mic_ep = lt_ep = seq_ep = guard_ep = 0;
+    default_ep = len_max_ep = pwr_r_error = pwr_d_error = 0;
+    rxlinklbl = rxpriverr = rxtimeerr = rxbdmatch = rxnesnerr = rxsnerr = 0;
+    rxmicerr = rxcrcerr = rxlenerr = rxtyperr = rxsyncerr = 0;
+    rxrssi = 0;
+    i = 0;
+    for (k = 0; k < 8; k++)
+        gain_fcs[k] = 0;
+    fcs_i = 0;
+    exit = 0;
+    ets_delay_us(20);
+poll:
+    rw_bb_rx_refesh();
+    v = GetStopCmd();
+    if (v == 3 || v == 0) {
+        /* Latch exit; kick the LE engine once more. */
+        exit = 1;
+        REG_WRITE(0x60031200u, REG_READ(0x60031200u) | 0x4000000u);
+    }
+    /* Wait until either RX descriptor reports ready (bit15). */
+    if (!(REG_READ(0x3ffb02c0u) & 0x8000u) && !(REG_READ(0x3ffb02d0u) & 0x8000u))
+        goto poll;
+    if (REG_READ(0x3ffb02c0u) & 0x8000u) {
+        rw_le_rxstat_unpack(0x3ffb02c0u, &rxlinklbl, &rxpriverr, &rxtimeerr,
+                            &rxbdmatch, &rxnesnerr, &rxsnerr, &rxmicerr,
+                            &rxcrcerr, &rxlenerr, &rxtyperr, &rxsyncerr, &rxrssi);
+        REG_WRITE(0x3ffb02c0u, REG_READ(0x3ffb02c0u) & 0xffff7fffu);
+    }
+    if (REG_READ(0x3ffb02d0u) & 0x8000u) {
+        rw_le_rxstat_unpack(0x3ffb02d0u, &rxlinklbl, &rxpriverr, &rxtimeerr,
+                            &rxbdmatch, &rxnesnerr, &rxsnerr, &rxmicerr,
+                            &rxcrcerr, &rxlenerr, &rxtyperr, &rxsyncerr, &rxrssi);
+        REG_WRITE(0x3ffb02d0u, REG_READ(0x3ffb02d0u) & 0xffff7fffu);
+    }
+    /* Error-class ladder over the unpacked flags (name routing approx). */
+    if (rxlenerr) {
+        goto poll;
+    } else if (rxtyperr) {
+        total_p++;
+    } else if (rxsyncerr) {
+        hec_ep++;
+    } else if (rxcrcerr) {
+        rx_status++;
+    } else if (rxsnerr) {
+        cp++;
+    } else if (rxnesnerr) {
+        crc_ep++;
+    } else if (rxtimeerr) {
+        type_ep++;
+    } else if (rxpriverr) {
+        len_ep++;
+    } else {
+        default_ep++;
+    }
+    /* Gain/power accumulate from 0x3ff51050/74/78. */
+    v = REG_READ(0x3ff51050u);
+    {
+        u32 g74 = REG_READ(0x3ff51074u);
+        u32 g78 = REG_READ(0x3ff51078u);
+        len_max_ep = (v >> 6) & 1u;
+        pwr_r_error = (v >> 5) & 1u;
+        pwr_d_error = (v >> 4) & 1u;
+        fifo_ovfl_ep = g78;
+        pwr_in_band += 0x100u - (g74 & 0xffu);
+        pwr_full_band += 0x100u - ((g78 >> 24) & 0xffu);
+        gain += (g78 >> 16) & 0xffu;
+        i++;
+        value += 0u + ((v >> 2) & 1u);
+        noise += v & 1u;
+        entry += (v >> 7) & 1u;
+        cmd += (v >> 3) & 1u;
+    }
+    /* TX-ready gate: re-poll until 0x60031214 bit3, then re-arm. */
+    if (!(REG_READ(0x60031214u) & 8u))
+        goto poll;
+    REG_WRITE(0x60031218u, REG_READ(0x60031218u) | 8u);
+    for (k = 0; k < 16; k++)
+        REG_WRITE(0x3ffb0000u + (u32)(k * 4),
+                  REG_READ(0x3ffb0000u + (u32)(k * 4)) & 0xffffffcfu);
+    if (!exit)
+        goto poll;
+    rw_le_core_off();
+    /* Exact 21-lane format .rodata.str1.4+0x284:
+     * "%x %x %x %x %x %x %x %x %x %x w %x %x %x %x %x %x %x %x p %x %x %x\n".
+     * Slot order exact; name routing approximate except i. */
+    phy_printf("%x %x %x %x %x %x %x %x %x %x w %x %x %x %x %x %x %x %x p %x %x %x\n",
+               i, default_ep, total_p, hec_ep, rx_status, fifo_ovfl_ep,
+               cp, crc_ep, type_ep, len_ep, mic_ep, lt_ep, seq_ep, guard_ep,
+               fec_ep, fec23_ep, fec13_ep, pwr_r_error, pwr_d_error, value, noise);
 }
 
 /* rw_le_rx_per_init bt_rw_le_testmode.c:2067 @ bt_rw_le_testmode.o size 466B [dwarf-sig]
@@ -451,16 +596,158 @@ void rw_le_rx_per_init(u32 chan)
 
 /* rw_le_rx_per_syncw bt_rw_le_testmode.c:1750 @ bt_rw_le_testmode.o size 1451B [dwarf-sig]
  * Calls: rw_le_core_off, rw_init_em_radio_table, rw_dm_activate, rw_le_init_cs, rw_le_core_on, phy_printf, ets_delay_us, rw_bb_rx_refesh, GetStopCmd, rw_le_rxstat_unpack, get_bt_rx_rssi | Data refs: .rodata.str1.4, GetStopCmd, esp_rx_result, esp_rx_valid, ets_delay_us, get_bt_rx_rssi, phy_printf, rw_bb_rx_refesh, rw_dm_activate, rw_init_em_radio_table, rw_le_core_off, rw_le_core_on, rw_le_init_cs, rw_le_rxstat_unpack, short_log_en | MMIO: 0x3ff51050, 0x3ff51074, 0x3ff51078, 0x3ff51098, 0x3ffb0000, 0x3ffb02c0, 0x3ffb02c4, 0x3ffb02c8, 0x3ffb02d0, 0x3ffb02d4, 0x3ffb02d8, 0x60031200, 0x60031214, 0x60031218, 0x60031224, 0x60031228, 0x6003122c, 0x600312a0, 0x600312e0, 0x600312f0
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Fidelity: medium - rw_le_rx_per skeleton with sync-word init, RSSI result
+ *   publish (esp_rx_result/esp_rx_valid), conditional "rx_num/rx_rssi" print
+ *   and shared 21-lane summary verified; counter-name routing approximate */
 void rw_le_rx_per_syncw(u32 chan, u32 syncw)
 {
-    (void)chan;
-    (void)syncw;
     /* DWARF locals: u32 cmd@l1751, u32 exit@l1751, u32 value@l1751, u32 noise@l1751, u32 pwr_in_band@l1751, u32 pwr_full_band@l1751, u32 gain@l1751, u32 bchl@l1751, u32 bchh@l1751, u32 entry@l1751, u32[] gain_fcs@l1752, u32 fcs_i@l1753, s32 avg_rssi@l1754, u32 i@l1783, u32 total_p@l1786, u32 hec_ep@l1786 */
-    /* TODO(ground-truth): reconstruct from libbttestmode/bt_rw_le_testmode.rdis
-     * function <rw_le_rx_per_syncw> (533 insns) + DWARF line rows for bt_rw_le_testmode.c:1750.
-     * Ordered callee relocs: rw_le_core_off, rw_init_em_radio_table, rw_dm_activate, rw_le_init_cs, rw_le_core_on, phy_printf, ets_delay_us, rw_bb_rx_refesh, GetStopCmd, rw_le_rxstat_unpack, get_bt_rx_rssi.
-     */
+    extern u32 esp_rx_result, esp_rx_valid;
+    extern u8 short_log_en;
+    u32 cmd, exit, value, noise, pwr_in_band, pwr_full_band, gain, bchl, bchh, entry;
+    u32 gain_fcs[8];
+    u32 fcs_i, i, total_p, hec_ep, rx_status, cp, crc_ep, type_ep, len_ep;
+    u32 fifo_ovfl_ep, fec13_ep, fec_ep, fec23_ep, mic_ep, lt_ep, seq_ep, guard_ep;
+    u32 default_ep, len_max_ep, pwr_r_error, pwr_d_error;
+    u32 rxlinklbl, rxpriverr, rxtimeerr, rxbdmatch, rxnesnerr, rxsnerr;
+    u32 rxmicerr, rxcrcerr, rxlenerr, rxtyperr, rxsyncerr;
+    s8 rxrssi;
+    s32 avg_rssi;
+    u32 v;
+    int k;
+    REG_WRITE(0x3ff51098u, REG_READ(0x3ff51098u) | 0xc0000000u);
+    rw_le_core_off();
+    rw_init_em_radio_table();
+    rw_dm_activate();
+    REG_WRITE(0x6003122cu, REG_READ(0x6003122cu) & 0xffffu);
+    v = 0xffffu;
+    for (k = 0; k < 16; k++) {
+        REG_WRITE(0x3ffb0000u + (u32)(k * 4), (v & 1u) ? 0x2000302u : 0u);
+        v >>= 1;
+    }
+    REG_WRITE(0x60031224u, 0xdeadbeefu);
+    REG_WRITE(0x60031228u, REG_READ(0x60031228u) & 0xffff0000u);
+    REG_WRITE(0x60031228u, REG_READ(0x60031228u) | 0x10000u);
+    REG_WRITE(0x600312a0u, (REG_READ(0x600312a0u) & 0xffffc000u) | 0x5dcu);
+    REG_WRITE(0x60031200u, REG_READ(0x60031200u) | 0x40000u);
+    /* Sync-word variant: sync comes from the syncw param. */
+    rw_le_init_cs(29, syncw, 0x555555u, 0, 0, 0, 0, chan, 11, 0, 0, 1, 0x3fffu, 0, 0);
+    REG_WRITE(0x3ffb02c0u, 0u);
+    REG_WRITE(0x3ffb02c4u, 0u);
+    REG_WRITE(0x3ffb02c8u, 0u);
+    REG_WRITE(0x3ffb02c0u, (REG_READ(0x3ffb02c0u) & 0xffff8000u) | 0x2d0u);
+    REG_WRITE(0x3ffb02c8u, (REG_READ(0x3ffb02c8u) & 0xffff0000u) | 0xb00u);
+    REG_WRITE(0x3ffb02c8u, REG_READ(0x3ffb02c8u) | 0xc000000u);
+    REG_WRITE(0x3ffb02d0u, 0u);
+    REG_WRITE(0x3ffb02d4u, 0u);
+    REG_WRITE(0x3ffb02d8u, 0u);
+    REG_WRITE(0x3ffb02d0u, (REG_READ(0x3ffb02d0u) & 0xffff8000u) | 0x2c0u);
+    REG_WRITE(0x3ffb02d8u, (REG_READ(0x3ffb02d8u) & 0xffff0000u) | 0xb00u);
+    REG_WRITE(0x3ffb02d8u, REG_READ(0x3ffb02d8u) | 0xc000000u);
+    REG_WRITE(0x6003122cu, (REG_READ(0x6003122cu) & 0xffff8000u) | 0x2d0u);
+    REG_WRITE(0x60031228u, REG_READ(0x60031228u) & 0x7fffffffu);
+    REG_WRITE(0x600312f0u, REG_READ(0x600312f0u) & 0x7fffffffu);
+    REG_WRITE(0x600312e0u, REG_READ(0x600312e0u) | 0x8000000u);
+    REG_WRITE(0x60031218u, REG_READ(0x60031218u) | 8u);
+    rw_le_core_on();
+    phy_printf("RW RX PER\n");   /* .rodata.str1.4+0x278 */
+    cmd = exit = value = noise = pwr_in_band = pwr_full_band = gain = entry = 0;
+    bchl = bchh = 0;
+    total_p = hec_ep = rx_status = cp = crc_ep = type_ep = len_ep = 0;
+    fifo_ovfl_ep = fec13_ep = fec_ep = fec23_ep = mic_ep = lt_ep = seq_ep = guard_ep = 0;
+    default_ep = len_max_ep = pwr_r_error = pwr_d_error = 0;
+    rxlinklbl = rxpriverr = rxtimeerr = rxbdmatch = rxnesnerr = rxsnerr = 0;
+    rxmicerr = rxcrcerr = rxlenerr = rxtyperr = rxsyncerr = 0;
+    rxrssi = 0;
+    avg_rssi = 0;
+    i = 0;
+    for (k = 0; k < 8; k++)
+        gain_fcs[k] = 0;
+    fcs_i = 0;
+    exit = 0;
+    ets_delay_us(20);
+poll:
+    rw_bb_rx_refesh();
+    v = GetStopCmd();
+    if (v == 3 || v == 0) {
+        exit = 1;
+        REG_WRITE(0x60031200u, REG_READ(0x60031200u) | 0x4000000u);
+    }
+    if (!(REG_READ(0x3ffb02c0u) & 0x8000u) && !(REG_READ(0x3ffb02d0u) & 0x8000u))
+        goto poll;
+    if (REG_READ(0x3ffb02c0u) & 0x8000u) {
+        rw_le_rxstat_unpack(0x3ffb02c0u, &rxlinklbl, &rxpriverr, &rxtimeerr,
+                            &rxbdmatch, &rxnesnerr, &rxsnerr, &rxmicerr,
+                            &rxcrcerr, &rxlenerr, &rxtyperr, &rxsyncerr, &rxrssi);
+        REG_WRITE(0x3ffb02c0u, REG_READ(0x3ffb02c0u) & 0xffff7fffu);
+    }
+    if (REG_READ(0x3ffb02d0u) & 0x8000u) {
+        rw_le_rxstat_unpack(0x3ffb02d0u, &rxlinklbl, &rxpriverr, &rxtimeerr,
+                            &rxbdmatch, &rxnesnerr, &rxsnerr, &rxmicerr,
+                            &rxcrcerr, &rxlenerr, &rxtyperr, &rxsyncerr, &rxrssi);
+        REG_WRITE(0x3ffb02d0u, REG_READ(0x3ffb02d0u) & 0xffff7fffu);
+    }
+    if (rxlenerr) {
+        goto poll;
+    } else if (rxtyperr) {
+        total_p++;
+    } else if (rxsyncerr) {
+        hec_ep++;
+    } else if (rxcrcerr) {
+        rx_status++;
+    } else if (rxsnerr) {
+        cp++;
+    } else if (rxnesnerr) {
+        crc_ep++;
+    } else if (rxtimeerr) {
+        type_ep++;
+    } else if (rxpriverr) {
+        len_ep++;
+    } else {
+        default_ep++;
+    }
+    v = REG_READ(0x3ff51050u);
+    {
+        u32 g74 = REG_READ(0x3ff51074u);
+        u32 g78 = REG_READ(0x3ff51078u);
+        len_max_ep = (v >> 6) & 1u;
+        pwr_r_error = (v >> 5) & 1u;
+        pwr_d_error = (v >> 4) & 1u;
+        fifo_ovfl_ep = g78;
+        pwr_in_band += 0x100u - (g74 & 0xffu);
+        pwr_full_band += 0x100u - ((g78 >> 24) & 0xffu);
+        gain += (g78 >> 16) & 0xffu;
+        i++;
+        value += (v >> 2) & 1u;
+        noise += v & 1u;
+        entry += (v >> 7) & 1u;
+        cmd += (v >> 3) & 1u;
+        avg_rssi += rxrssi;
+    }
+    if (!(REG_READ(0x60031214u) & 8u))
+        goto poll;
+    REG_WRITE(0x60031218u, REG_READ(0x60031218u) | 8u);
+    for (k = 0; k < 16; k++)
+        REG_WRITE(0x3ffb0000u + (u32)(k * 4),
+                  REG_READ(0x3ffb0000u + (u32)(k * 4)) & 0xffffffcfu);
+    if (!exit)
+        goto poll;
+    rw_le_core_off();
+    get_bt_rx_rssi(&pwr_in_band, &gain, &pwr_full_band, total_p);
+    /* Publish LE RX results, then the conditional count/RSSI line. */
+    esp_rx_valid = 0;
+    {
+        u32 *rp = &esp_rx_result;
+        rp[0] = i;
+        rp[1] = gain;
+        rp[2] = total_p;
+    }
+    if (short_log_en)
+        phy_printf("rx_num: %d rx_rssi: %d\n", i, avg_rssi);
+    phy_printf("%x %x %x %x %x %x %x %x %x %x w %x %x %x %x %x %x %x %x p %x %x %x\n",
+               i, default_ep, total_p, hec_ep, rx_status, fifo_ovfl_ep,
+               cp, crc_ep, type_ep, len_ep, mic_ep, lt_ep, seq_ep, guard_ep,
+               fec_ep, fec23_ep, fec13_ep, pwr_r_error, pwr_d_error, value, noise);
 }
 
 /* rw_le_rx_per_syncw_polling bt_rw_le_testmode.c:2237 @ bt_rw_le_testmode.o size 30B [dwarf-sig]
@@ -488,16 +775,152 @@ void rw_le_rx_per_syncw_polling_stop(void)
 
 /* rw_le_rx_per_syncw_rssi bt_rw_le_testmode.c:1901 @ bt_rw_le_testmode.o size 1566B [dwarf-sig]
  * Calls: rw_le_core_off, rw_init_em_radio_table, rw_dm_activate, rw_le_init_cs, rw_le_core_on, phy_printf, ets_delay_us, rw_bb_rx_refesh, GetStopCmd, rw_le_rxstat_unpack, get_bt_rx_rssi | Data refs: .rodata.str1.4, GetStopCmd, ets_delay_us, get_bt_rx_rssi, phy_printf, rw_bb_rx_refesh, rw_dm_activate, rw_init_em_radio_table, rw_le_core_off, rw_le_core_on, rw_le_init_cs, rw_le_rxstat_unpack | MMIO: 0x3ff51050, 0x3ff51074, 0x3ff51078, 0x3ff51098, 0x3ffb0000, 0x3ffb02c0, 0x3ffb02c4, 0x3ffb02c8, 0x3ffb02d0, 0x3ffb02d4, 0x3ffb02d8, 0x60031200, 0x60031214, 0x60031218, 0x60031224, 0x60031228, 0x6003122c, 0x600312a0, 0x600312e0, 0x600312f0
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Fidelity: medium - rw_le_rx_per_syncw skeleton; RSSI epilogue
+ *   (get_bt_rx_rssi into shifted lanes, sign-extended RSSI "r" lanes,
+ *   25-lane summary format) verified; counter-name routing approximate */
 void rw_le_rx_per_syncw_rssi(u32 chan, u32 syncw)
 {
-    (void)chan;
-    (void)syncw;
     /* DWARF locals: u32 cmd@l1902, u32 exit@l1902, u32 value@l1902, u32 noise@l1902, u32 pwr_in_band@l1902, u32 pwr_full_band@l1902, u32 gain@l1902, u32 bchl@l1902, u32 bchh@l1902, u32 entry@l1902, u32[] gain_fcs@l1903, u32 fcs_i@l1904, u32 i@l1934, u32 total_p@l1937, u32 hec_ep@l1937, u32 rx_status@l1937 */
-    /* TODO(ground-truth): reconstruct from libbttestmode/bt_rw_le_testmode.rdis
-     * function <rw_le_rx_per_syncw_rssi> (568 insns) + DWARF line rows for bt_rw_le_testmode.c:1901.
-     * Ordered callee relocs: rw_le_core_off, rw_init_em_radio_table, rw_dm_activate, rw_le_init_cs, rw_le_core_on, phy_printf, ets_delay_us, rw_bb_rx_refesh, GetStopCmd, rw_le_rxstat_unpack, get_bt_rx_rssi.
-     */
+    u32 cmd, exit, value, noise, pwr_in_band, pwr_full_band, gain, bchl, bchh, entry;
+    u32 gain_fcs[8];
+    u32 fcs_i, i, total_p, hec_ep, rx_status, cp, crc_ep, type_ep, len_ep;
+    u32 fifo_ovfl_ep, fec13_ep, fec_ep, fec23_ep, mic_ep, lt_ep, seq_ep, guard_ep;
+    u32 default_ep, len_max_ep, pwr_r_error, pwr_d_error;
+    u32 rxlinklbl, rxpriverr, rxtimeerr, rxbdmatch, rxnesnerr, rxsnerr;
+    u32 rxmicerr, rxcrcerr, rxlenerr, rxtyperr, rxsyncerr;
+    s8 rxrssi;
+    s32 rssi0, rssi1, rssi2, rssi3;
+    u32 v;
+    int k;
+    REG_WRITE(0x3ff51098u, REG_READ(0x3ff51098u) | 0xc0000000u);
+    rw_le_core_off();
+    rw_init_em_radio_table();
+    rw_dm_activate();
+    REG_WRITE(0x6003122cu, REG_READ(0x6003122cu) & 0xffffu);
+    v = 0xffffu;
+    for (k = 0; k < 16; k++) {
+        REG_WRITE(0x3ffb0000u + (u32)(k * 4), (v & 1u) ? 0x2000302u : 0u);
+        v >>= 1;
+    }
+    REG_WRITE(0x60031224u, 0xdeadbeefu);
+    REG_WRITE(0x60031228u, REG_READ(0x60031228u) & 0xffff0000u);
+    REG_WRITE(0x60031228u, REG_READ(0x60031228u) | 0x10000u);
+    REG_WRITE(0x600312a0u, (REG_READ(0x600312a0u) & 0xffffc000u) | 0x5dcu);
+    REG_WRITE(0x60031200u, REG_READ(0x60031200u) | 0x40000u);
+    rw_le_init_cs(29, syncw, 0x555555u, 0, 0, 0, 0, chan, 11, 0, 0, 1, 0x3fffu, 0, 0);
+    REG_WRITE(0x3ffb02c0u, 0u);
+    REG_WRITE(0x3ffb02c4u, 0u);
+    REG_WRITE(0x3ffb02c8u, 0u);
+    REG_WRITE(0x3ffb02c0u, (REG_READ(0x3ffb02c0u) & 0xffff8000u) | 0x2d0u);
+    REG_WRITE(0x3ffb02c8u, (REG_READ(0x3ffb02c8u) & 0xffff0000u) | 0xb00u);
+    REG_WRITE(0x3ffb02c8u, REG_READ(0x3ffb02c8u) | 0xc000000u);
+    REG_WRITE(0x3ffb02d0u, 0u);
+    REG_WRITE(0x3ffb02d4u, 0u);
+    REG_WRITE(0x3ffb02d8u, 0u);
+    REG_WRITE(0x3ffb02d0u, (REG_READ(0x3ffb02d0u) & 0xffff8000u) | 0x2c0u);
+    REG_WRITE(0x3ffb02d8u, (REG_READ(0x3ffb02d8u) & 0xffff0000u) | 0xb00u);
+    REG_WRITE(0x3ffb02d8u, REG_READ(0x3ffb02d8u) | 0xc000000u);
+    REG_WRITE(0x6003122cu, (REG_READ(0x6003122cu) & 0xffff8000u) | 0x2d0u);
+    REG_WRITE(0x60031228u, REG_READ(0x60031228u) & 0x7fffffffu);
+    REG_WRITE(0x600312f0u, REG_READ(0x600312f0u) & 0x7fffffffu);
+    REG_WRITE(0x600312e0u, REG_READ(0x600312e0u) | 0x8000000u);
+    REG_WRITE(0x60031218u, REG_READ(0x60031218u) | 8u);
+    rw_le_core_on();
+    phy_printf("RW RX PER\n");   /* .rodata.str1.4+0x278 */
+    cmd = exit = value = noise = pwr_in_band = pwr_full_band = gain = entry = 0;
+    bchl = bchh = 0;
+    total_p = hec_ep = rx_status = cp = crc_ep = type_ep = len_ep = 0;
+    fifo_ovfl_ep = fec13_ep = fec_ep = fec23_ep = mic_ep = lt_ep = seq_ep = guard_ep = 0;
+    default_ep = len_max_ep = pwr_r_error = pwr_d_error = 0;
+    rxlinklbl = rxpriverr = rxtimeerr = rxbdmatch = rxnesnerr = rxsnerr = 0;
+    rxmicerr = rxcrcerr = rxlenerr = rxtyperr = rxsyncerr = 0;
+    rxrssi = 0;
+    rssi0 = rssi1 = rssi2 = rssi3 = 0;
+    i = 0;
+    for (k = 0; k < 8; k++)
+        gain_fcs[k] = 0;
+    fcs_i = 0;
+    exit = 0;
+    ets_delay_us(20);
+poll:
+    rw_bb_rx_refesh();
+    v = GetStopCmd();
+    if (v == 3 || v == 0) {
+        exit = 1;
+        REG_WRITE(0x60031200u, REG_READ(0x60031200u) | 0x4000000u);
+    }
+    if (!(REG_READ(0x3ffb02c0u) & 0x8000u) && !(REG_READ(0x3ffb02d0u) & 0x8000u))
+        goto poll;
+    if (REG_READ(0x3ffb02c0u) & 0x8000u) {
+        rw_le_rxstat_unpack(0x3ffb02c0u, &rxlinklbl, &rxpriverr, &rxtimeerr,
+                            &rxbdmatch, &rxnesnerr, &rxsnerr, &rxmicerr,
+                            &rxcrcerr, &rxlenerr, &rxtyperr, &rxsyncerr, &rxrssi);
+        REG_WRITE(0x3ffb02c0u, REG_READ(0x3ffb02c0u) & 0xffff7fffu);
+    }
+    if (REG_READ(0x3ffb02d0u) & 0x8000u) {
+        rw_le_rxstat_unpack(0x3ffb02d0u, &rxlinklbl, &rxpriverr, &rxtimeerr,
+                            &rxbdmatch, &rxnesnerr, &rxsnerr, &rxmicerr,
+                            &rxcrcerr, &rxlenerr, &rxtyperr, &rxsyncerr, &rxrssi);
+        REG_WRITE(0x3ffb02d0u, REG_READ(0x3ffb02d0u) & 0xffff7fffu);
+    }
+    if (rxlenerr) {
+        goto poll;
+    } else if (rxtyperr) {
+        total_p++;
+    } else if (rxsyncerr) {
+        hec_ep++;
+    } else if (rxcrcerr) {
+        rx_status++;
+    } else if (rxsnerr) {
+        cp++;
+    } else if (rxnesnerr) {
+        crc_ep++;
+    } else if (rxtimeerr) {
+        type_ep++;
+    } else if (rxpriverr) {
+        len_ep++;
+    } else {
+        default_ep++;
+    }
+    v = REG_READ(0x3ff51050u);
+    {
+        u32 g74 = REG_READ(0x3ff51074u);
+        u32 g78 = REG_READ(0x3ff51078u);
+        len_max_ep = (v >> 6) & 1u;
+        pwr_r_error = (v >> 5) & 1u;
+        pwr_d_error = (v >> 4) & 1u;
+        fifo_ovfl_ep = g78;
+        pwr_in_band += 0x100u - (g74 & 0xffu);
+        pwr_full_band += 0x100u - ((g78 >> 24) & 0xffu);
+        gain += (g78 >> 16) & 0xffu;
+        i++;
+        value += (v >> 2) & 1u;
+        noise += v & 1u;
+        entry += (v >> 7) & 1u;
+        cmd += (v >> 3) & 1u;
+    }
+    if (!(REG_READ(0x60031214u) & 8u))
+        goto poll;
+    REG_WRITE(0x60031218u, REG_READ(0x60031218u) | 8u);
+    for (k = 0; k < 16; k++)
+        REG_WRITE(0x3ffb0000u + (u32)(k * 4),
+                  REG_READ(0x3ffb0000u + (u32)(k * 4)) & 0xffffffcfu);
+    if (!exit)
+        goto poll;
+    rw_le_core_off();
+    get_bt_rx_rssi(&pwr_in_band, &gain, &pwr_full_band, total_p);
+    /* Sign-extended RSSI lanes for the trailing "r %d %d %d %d". */
+    rssi0 = (s32)(s8)(pwr_in_band & 0xffu);
+    rssi1 = (s32)(s8)(pwr_full_band & 0xffu);
+    rssi2 = (s32)(s8)(gain & 0xffu);
+    rssi3 = (s32)(s8)(total_p & 0xffu);
+    /* Exact 25-lane format .rodata.str1.4+0x2e0:
+     * "%x %x %x %x %x %x %x %x %x %x w %x %x %x %x %x %x %x %x p %x %x %x r %d %d %d %d\n" */
+    phy_printf("%x %x %x %x %x %x %x %x %x %x w %x %x %x %x %x %x %x %x p %x %x %x r %d %d %d %d\n",
+               i, default_ep, total_p, hec_ep, rx_status, fifo_ovfl_ep,
+               cp, crc_ep, type_ep, len_ep, mic_ep, lt_ep, seq_ep, guard_ep,
+               fec_ep, fec23_ep, fec13_ep, pwr_r_error, pwr_d_error, value, noise,
+               rssi0, rssi1, rssi2, rssi3);
 }
 
 /* rw_le_rx_per_syncw_service_polling bt_rw_le_testmode.c:2124 @ bt_rw_le_testmode.o size 722B [dwarf-sig]

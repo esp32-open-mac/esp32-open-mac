@@ -49,7 +49,7 @@ u32 esp_test_sta_create_addba(u32 a2)
 
 /* esp_test_ap_create_addba @ test.o 0x0000001c size 158B bind GLOBAL
  * Calls: cnx_node_search, wifi_log, ieee80211_ampdu_request, wifi_log | Data refs: g_ic, .rodata_wlog_warning.3, .rodata_wlog_warning.4
- * Fidelity: low - 61 insns, 5 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 esp_test_ap_create_addba(u32 a2, u32 a3)
 {
     /* frame: entry a1,64; 61 insns, 5 cond-branches, 0 loops, 2 jumps */

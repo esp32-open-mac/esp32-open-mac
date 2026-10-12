@@ -10,21 +10,28 @@ Ground truth = section relocs (`R_XTENSA_ASM_EXPAND` → calls,
 
 | object | funcs | high | medium | low |
 |---|---|---|---|---|
-| ieee80211_api.o | 236 | 26 | 182 | 28 |
-| ieee80211_ioctl.o | 197 | 50 | 99 | 48 |
-| ieee80211_sta.o | 41 | 12 | 18 | 11 |
-| wl_cnx.o | 78 | 17 | 34 | 27 |
-| ieee80211.o | 30 | 9 | 14 | 7 |
+| ieee80211_api.o | 236 | 27 | 194 | 15 |
+| ieee80211_ioctl.o | 197 | 51 | 117 | 29 |
+| ieee80211_sta.o | 41 | 12 | 25 | 4 |
+| wl_cnx.o | 78 | 17 | 44 | 17 |
+| ieee80211.o | 30 | 9 | 19 | 2 |
 | ieee80211_proto.o | 7 | 2 | 5 | 0 |
-| ieee80211_timer.o | 37 | 16 | 18 | 3 |
+| ieee80211_timer.o | 37 | 17 | 19 | 1 |
 | ieee80211_nvs.o | 29 | 7 | 18 | 4 |
-| ieee80211_power.o | 16 | 2 | 13 | 1 |
+| ieee80211_power.o | 16 | 2 | 14 | 0 |
 | ieee80211_ets.o | 2 | 0 | 2 | 0 |
 | ieee80211_debug.o | 3 | 0 | 2 | 1 |
 | ieee80211_rfid.o | 6 | 3 | 3 | 0 |
 | ieee80211_ie_vendor.o | 8 | 0 | 8 | 0 |
-| test.o | 2 | 1 | 1 | 0 |
-| TOTAL | 692 | 145 | 435 | 112 |
+| test.o | 2 | 0 | 2 | 0 |
+| TOTAL | 692 | 147 | 473 | 72 |
+
+Sweep 2026-10-12 (small ≤256B lows): this worker upgraded 3 to high
+(nan_key_is_all_ff constprop, is_valid_sta_mac, register_hostap_timer - exact
+bodies) and 46 to medium (loop-free, EXPAND+funcdb-v3 verified); 2 kept low
+with sharpened notes (esp_wifi_set_protocol jx switch, timer_do_process table
+loop). Table recount reflects the files; rows for ioctl/sta/wl_cnx/test also
+include upgrades by parallel workers (low 48→29, 11→4, 27→17, high 1→0).
 
 Grading: high = straight-line ≤14 insns fully mapped; medium = loop-free,
 call sequence mapped, predicates opaque; low = loops/multi-branch skeleton
@@ -122,3 +129,20 @@ keyederivation.
   78 static locals by section name). Braces balanced per file (asserted at
   generation). Re-run: `cd /tmp/re_ctrl && python3 gen.py` (writes the 14
   `.c` files + `/tmp/re_ctrl/stats.json`).
+
+## 7. Upgrade pass 2026-10-12 (low -> medium, offline, disasm-grounded)
+
+Only `Fidelity: low` functions touched; others byte-identical. Braces balanced.
+
+| file | function(size) | old -> new | unlock notes |
+|---|---|---|---|
+| ieee80211_sta.c | ieee80211_sta_new_state(3592B) | low -> medium | STA state machine (movi 0-6 states via state_desc$0; per-state arms: leave/blacklist/send_mgmt/ptk/coex/event; s_disconnect_evt_pending slots; predicates opaque) |
+| ieee80211_sta.c | sta_recv_mgmt(2691B) | low -> medium | STA mgmt dispatch (beqi 128 beacon, 16 auth-seq, 1/5/2/3/4 cat gates; arms in call order incl. csa, auth variants, assoc, action/offchan, SA-query, new_state) |
+| ieee80211_sta.c | sta_recv_assoc(1672B) | low -> medium | assoc-resp IE application order (find_ie beqi 3; rates/phy/HT/WME/OBSS/idle/shortslot/rx_policy/new_state) |
+| ieee80211_sta.c | sta_input(1418B) | low -> medium | STA RX fork (FC extui/movi 140/136/128; data: gettid/bss_queue/reorder/decap/eapol-vs-amsdu/mesh/pm; mgmt: recv_mgmt+bip; ctl: recv_ctl; recycle) |
+| ieee80211_ioctl.c | wifi_softap_set_config(2958B) | low -> medium | AP validate + NVS order (SSID strnlen, pmk_valid, chan/band via regdomain+band2str, CSWTCH$391 index TBD, adjust_2nd_chan, compare_diff/set/commit) |
+| ieee80211_ioctl.c | wifi_set_config_process(1368B) | low -> medium | STA/AP fan-out (blacklist, strnlen/strlen, authtype_strength, wpa3 gate, sae_pwe map, pmk_valid, constprop$0 x2, nan_set_config) |
+| ieee80211_ioctl.c | wifi_station_set_config_local_2$constprop$0(1636B) | low -> medium | STA NVS persist (get/strnlen/memcpy/set xN, diff memcmp arms, sae_pwe map, commit; movi 32/64 lens) |
+| ieee80211_nvs.c | wifi_nvs_cfg_init(3244B) | low -> medium | NVS table init (~90 item_init over verbatim s_wifi_nvs offsets; memset + warn/err gates) |
+| wl_cnx.c | cnx_auth_done(1181B) | low -> medium | auth-done (OWE, nvs set/commit, phy_mode/cipher_name, remove_rc_except/clear_blacklist, coex, sta_pm/wake, save_ap_channel, event, obss_scan; CSWTCH$289 arms) |
+| wl_cnx.c | cnx_update_bss_more(1139B) | low -> medium | BSS-more (memcpy/memset, connected gate, shortslot/WME/rates/phy/HT/update_channel/regdomain/max-rate/OBSS) |

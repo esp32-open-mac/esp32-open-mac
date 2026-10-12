@@ -26,6 +26,14 @@ edges invisible to relocs: pp_timer wrappers, RC_GetDuration, pm_set_state, ...)
 
 - funcdb functions: 706 (706 expected) | emitted C functions (incl. LOCAL statics): 751
 - Every emitted file: braces balanced (asserted at generation).
+- Sweep 2026-10-12 (small ≤256B lows): 8 moved to medium
+  (`esf_buf_free_static`, `pm_beacon_monitor_tbtt_start`, `pm_update_params`,
+  `pm_deattach`, `pm_set_sleep_type`, `pm_get_null_max_tx_time`,
+  `pm_coex_update_wifi_time_slice_state`, `wDev_SnifferRxAmpdu` - flow + direct
+  calls mapped, GOT-indirects enumerated); 5 kept low with sharpened notes
+  (`esf_buf_recycle`, `TRC_AMPDU_PER_DOWN_THRESHOLD`,
+  `TRC_AMPDU_PER_UP_THRESHOLD`, `trc_NeedRTS`, `rc11NRate2SchedIdx` - jx
+  computed tail dispatch, case decode is the resolver).
 - LOCAL statics (e.g. pm.o `pm_set_state`, pp_timer wrappers' siblings) emitted as
   `static` functions; stubs (0 code sections) recorded below.
 
@@ -443,3 +451,11 @@ Notes:
   addresses; hook the base with a range covering 8 entries (480B).
 - 0x3FF7xxxx = WiFi MAC region; 0x6001C8xx = modem/system control;
   0x3FFAXXXX = DRAM heap/buffers (esf_buf, not MMIO - excluded where identified).
+
+## Upgrade pass 2026-10-12 (low -> medium, offline, disasm-grounded)
+
+Only `Fidelity: low` function touched; all others byte-identical. Braces balanced.
+
+| file | function(size) | old -> new | unlock notes |
+|---|---|---|---|
+| pp.c | ppRxFragmentProc(1109B, .wifirxiram.26) | low -> medium | fragment reassembly (s_fragment null -> recycle/clear; mesh gates is_started/is_root/init_ps + osi+0x110 indirect; REG32(0x3FF73C00 MMIO)+time_delta vs lmacConfMib window bgeu; ptk_alg + TID/seq extui chain; hdrsize FC arms bnei 2/4; frag link + gettid x2 + memcmp + seq gates; TKIP-MIC via obtain_key/CalTkipMic/memcmp + mic-fail cb) |

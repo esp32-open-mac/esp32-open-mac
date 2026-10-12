@@ -35,7 +35,7 @@ by symbol name only.
 | ht40_lock_channel | H | 1..13 vote, >=2 confirm |
 | ht40_scanning_sync_frame | M | window (164,1098], sync table, RSSI/filter gates |
 | sc_ht40_get_qos_auth_group_info | M | vote counters; exact slots approximate |
-| sc_recv_callback_ht40_ctrl | L | 494-insn mimo machine; phases/logs observed |
+| sc_recv_callback_ht40_ctrl | M | 494-insn mimo machine; dispatch/gates/windows transcribed, slot polynomials approximate |
 
 ### sc_broadcast.o (5)
 | func | fid | note |
@@ -44,7 +44,7 @@ by symbol name only.
 | sc_is_sync_frame | M | apinfo/channel-lock phases; +0xa00 layout approximate |
 | sc_try_to_sync_pos | M | strides 4/8/32, seed 100, +2/+44/+46 slot checks |
 | sc_try_to_replace_same_pos | M-H | lane-vote loop transcribed; addr polynomials approximate |
-| sc_recv_callback_broadcast | L | 641-insn machine; call order + logs observed |
+| sc_recv_callback_broadcast | M | 641-insn machine; sync/bssid/score/group phases + 0x190/0x137/0x3e7 windows transcribed |
 
 ### sc_esptouch_v2.o (31 + 1 static)
 | func | fid | note |
@@ -67,11 +67,11 @@ by symbol name only.
 | sc_dec_to_bin | M-H | self-recursive; log args approximate |
 | sc_get_encode_len | H | muluh 0xcccccccd/0xaaaaaaab codec transcribed |
 | sc_get_data_len | H | 0->8, >311->303 clamp |
-| sc_recv_completed | L | 1114-insn voter; crc/len/AP checks observed |
+| sc_recv_completed | M | 1114-insn voter; crc(0x577)/len/AP phases + call order transcribed, slot polynomials approximate |
 | sc_set_mask_status | H | mask_data=(old&~m)\|v |
 | TOUCH_v2_init_glob | M | 16B + 0xb08B allocs; mask/lock init |
 | TOUCH_v2_free_glob | M-H | +0xa8b/33 +0xa4a/65 +0xaac/65 memsets exact |
-| sc_get_ssid_passwd | L | 1500-insn decrypt/assembly; checks observed |
+| sc_get_ssid_passwd | M | 1500-insn decrypt/assembly; seq/decrypt/validate phases + 0x148/0x525 windows transcribed |
 | sc_time_elapsed_ms_since | H | now-since |
 | sc_restart_switch_channel | M | timer re-arm + cfg memsets; bases approximate |
 | sc_ciper_type_transfer | H | CSWTCH {0,1,1,2,3,4}, else 0xff + warn |
@@ -96,10 +96,17 @@ all 6 init/free globs. M: Get_sequ_data (136/64..511 gates), Find_end/
 trans/direct correlators. L: Deal_with_ht20 body (calls union from v2).
 
 ### sc_esptouch.o (11 + 1 static)
-H: restart/get/set delay flags, init/free globs + guide. M-H: none.
-L: Find_sync_ht20/ht40 + constprop End + Deal_with (gates/logs observed).
+H: restart/get/set delay flags, init/free globs + guide. M: Find_sync_ht20
+(0x280/136 windows, +26/+27 guide, staging correlator), Find_sync_ht40
+(0x280/13/40 windows, shared confirm tail), Deal_with (F|/T| codec, -84
+RSSI, crc8/XOR, 216B enc_evt, band gate). L: constprop End tail only
+(channel-confirm; gates/logs observed, untouched this pass).
 
-Counts: H≈55, M≈30, L≈13 (of 98 + 4 static partitions).
+Counts: H≈55, M≈36, L≈7 (of 98 + 4 static partitions; this pass:
+TOUCH_Find_sync_ht20/ht40 + TOUCH_Deal_with + sc_recv_completed +
+sc_get_ssid_passwd + sc_recv_callback_broadcast + sc_recv_callback_ht40_ctrl
+L->M; remaining L: constprop End tail, KISS Deal_with_ht20 body, plus 5
+pre-existing medium-low borderlines).
 
 ## Protocol observations
 - ESPTOUCH_V2 (broadcast + HT40-ctrl MIMO): length-codec; start 1048 (0x418);

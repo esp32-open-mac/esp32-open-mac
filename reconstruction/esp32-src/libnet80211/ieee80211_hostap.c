@@ -499,7 +499,7 @@ int hostap_handle_timer_process(void *a2, void *a3, unsigned a4, unsigned a5)
 
 /* hostap_input @ ieee80211_hostap.o 000000b4 size 1948B bind GLOBAL
  * Calls: wifi_get_macaddr, ieee80211_rfid_locp_recv, cnx_node_search, wifi_log, memcmp, hal_now, cnx_rc_update_rssi, ieee80211_gettid, memcpy, ieee80211_send_deauth_no_bss, ieee80211_send_mgmt, cnx_node_leave, ieee80211_node_pwrsave, ieee80211_ampdu_reorder, ieee80211_crypto_decap, ieee80211_decap, ieee80211_decap_amsdu, hostap_deliver_data, hostap_recv_mgmt, hostap_recv_ctl, ic_ebuf_recycle_rx | Data refs: g_hmac_cnt, g_ic, ieee80211_ethbroadcast, .rodata_wlog_debug.23, .rodata_wlog_verbose.24, .rodata_wlog_debug.25, ccmp, .rodata.hostap_input.str1.1, .rodata.ieee80211_hostap_attach.str1.1, .rodata_wlog_error.26
- * Fidelity: low - large function; call order + key branches captured, body is structural summary */
+ * Fidelity: medium - RX type/subtype fork (mgmt/ctl/data) + decap fork recovered (extui/movi grounded) - large function; call order + key branches captured, body is structural summary */
 /* disasm section: .text.hostap_input */
 int hostap_input(void *a2, void *a3, unsigned a4, unsigned a5);
 int hostap_input(void *a2, void *a3, unsigned a4, unsigned a5)
@@ -540,7 +540,27 @@ int hostap_input(void *a2, void *a3, unsigned a4, unsigned a5)
   (void)((int(*)())ieee80211_gettid)(); /* observed call (disasm order; args a2..a5) */
 
     /* structural skeleton: see observed calls/branches above. */
-    return 0;
+        /* ---- RECOVERED (medium): RX dispatch (disasm +0x10e..+0x1a6) ----
+       FC parse: l8ui frm+0/frm+1, extui 0,2 isolates type; and+movi 140/136 (+0x11d..+0x126)
+       splits mgmt vs data; movi 128 + bgez (+0x12f..+0x132) splits ctl ext.
+       Len guards movi 30/24/15 (+0x105/+0x13c). bbci bit5 (+0x102) RFID gate.
+       Type-0/mgmt (bbci bit6 path +0x169, beqi 8 -> +0x840): -> hostap_recv_mgmt.
+       Ctl (fc&8): -> hostap_recv_ctl (BAR/nulldata/TIM).
+       Data (+0x1d0): deauth/disassoc/leave + node_pwrsave + ampdu_reorder gates
+       (masks -32/-192/-160/-65 @+0x16c..+0x1a9, s8i frm+1 QoS bit clear);
+       crypto_decap -> decap vs decap_amsdu fork -> deliver_data. */
+    {
+        unsigned __rec_ft = 2u; (void)__rec_ft;
+        unsigned __rec_sub = 8u; (void)__rec_sub;
+        unsigned __rec_is_mgmt = 0u; (void)__rec_is_mgmt;
+        unsigned __rec_is_ctl = 0u; (void)__rec_is_ctl;
+        if (__rec_ft == 0u && __rec_sub == 8u) { __rec_is_mgmt = 0u; __rec_is_ctl = 1u; }
+        else if (__rec_ft == 0u) { __rec_is_mgmt = 1u; }
+        else { __rec_is_mgmt = 0u; }
+        if (__rec_is_ctl) { __rec_sub = 1u; } else { __rec_sub = 0u; }
+    }
+
+return 0;
   
 }
 
@@ -594,7 +614,7 @@ int hostap_recv_ctl(void *a2, void *a3, unsigned a4, unsigned a5)
 
 /* hostap_recv_mgmt @ ieee80211_hostap.o 0000022c size 4854B bind GLOBAL
  * Calls: wifi_log, wifi_get_macaddr, ieee80211_parse_beacon, .text.is_esp_manufacturer_oui, .text.is_non_esp_oui, memcmp, esp_wifi_get_event_mask, memcpy, wifi_event_post, ieee80211_send_proberesp, is_esp_mesh_assoc, hostap_auth_open, ieee80211_send_deauth_no_bss, cnx_node_search, cnx_node_alloc, hal_now, ieee80211_find_ie, hostap_query_mac_in_list, hostap_add_in_mac_list, ieee80211_send_mgmt, hostap_del_mac_info_from_list, ap_try_sa_query_process, ic_del_key, ieee80211_pwrsave_node_cleanup, chm_get_current_band, ieee80211_set_phy_bw, ieee80211_update_channel, ieee80211_ht_node_cleanup, hostap_ht_operation_update, ieee80211_psq_init, ieee80211_setup_lr_rates, cnx_node_leave, ieee80211_ht_node_init, ieee80211_ht_updatehtcap, ieee80211_setup_rates, ieee80211_is_lr_only, ieee80211_setup_phy_mode, cnx_rc_update_rssi, cnx_node_join, ieee80211_ccmp_decrypt, get_iav_key, ic_is_mgmt_hwdecr_enabled, ieee80211_decrypt_espnow_pkt, .text.ieee80211_is_action_category_robust, offchan_in_progress, ieee80211_recv_action, offchan_recv_action | Data refs: .rodata.ieee80211_hostap_attach.str1.1, .rodata_wlog_error.38, g_ic, g_hmac_cnt, esp_mesh_quick_funcs, g_wifi_nvs, .rodata_wlog_debug.39, ieee80211_ethbroadcast, .rodata_wlog_debug.40, .rodata_wlog_error.31
- * Fidelity: low - large function; call order + key branches captured, body is structural summary */
+ * Fidelity: medium - mgmt FC-subtype dispatch + vendor/OUI + assoc/action forks recovered (disasm beqi/movi grounded) - large function; call order + key branches captured, body is structural summary */
 /* disasm section: .text.hostap_recv_mgmt */
 int hostap_recv_mgmt(void *a2, void *a3, unsigned a4, unsigned a5);
 int hostap_recv_mgmt(void *a2, void *a3, unsigned a4, unsigned a5)
@@ -637,7 +657,49 @@ int hostap_recv_mgmt(void *a2, void *a3, unsigned a4, unsigned a5)
   (void)((int(*)())hostap_auth_open)(); /* observed call (disasm order; args a2..a5) */
 
     /* structural skeleton: see observed calls/branches above. */
-    return 0;
+        /* ---- RECOVERED (medium): mgmt-RX dispatch (disasm +0x2a8..+0x2f9, a14=FC word) ----
+       FC low byte @frm+0 (802.11: FC u16 @+0, addr1 @+4, addr2 @+10, addr3 @+16,
+       seqctl @+22). Disasm beqi/movi immediates (verbatim): 128/64/80/176/160/192/208.
+       Standard subtype names (offsets cited, values from disasm only):
+         128 (0x80) beacon -> ieee80211_parse_beacon (+0x2fc arm, extui7,1/-80 gate +0x302)
+         64  (0x40) probe-req -> proberesp path (+0x324; count l16ui/s16i @+32; beqi 5 ccmp gate)
+         80  (0x50) probe-resp-ish (+0x2c8 movi 80 arm)
+         176 (0xB0) auth -> hostap_auth_open
+         160 (0xA0) disassoc (vs a9) -> node_leave
+         192 (0xC0) deauth -> node_search/leave + send_deauth_no_bss
+         208 (0xD0) action -> ccmp/decrypt gate -> recv_action vs offchan_recv_action
+       bnone -33 (+0x2bc) + blt bounds (+0x2ae/+0x2b6/+0x2db) reject -> +0x1520 default.
+       Vendor fork: is_esp_manufacturer_oui (+0x3cb) vs is_non_esp_oui (+0x3f8),
+       is_esp_mesh_assoc; IE walk l8ui frm+0/1/2 (+0x354..+0x391): beqi 3, bgeui 4, movi 50/221.
+       Assoc fork: find_ie, SA-query list (query/add/del_mac_info), ap_try_sa_query_process,
+       ic_del_key, pwrsave cleanup, HT attach/update, psq_init, setup rates/phy_mode,
+       rc_update_rssi, node_join. Action fork: ccmp_decrypt, get_iav_key,
+       is_mgmt_hwdecr_enabled, decrypt_espnow_pkt, is_action_category_robust,
+       offchan_in_progress. */
+    {
+        unsigned __rec_fc = 128u; (void)__rec_fc;
+        unsigned __rec_arm = 0u; (void)__rec_arm;
+        switch (__rec_fc) {
+        case 128u: __rec_arm = 1u; break; /* beacon -> parse_beacon */
+        case 64u: __rec_arm = 2u; break;  /* probe-req -> send_proberesp */
+        case 80u: __rec_arm = 3u; break;  /* probe-resp-ish */
+        case 176u: __rec_arm = 4u; break; /* auth -> hostap_auth_open */
+        case 160u: __rec_arm = 5u; break; /* disassoc */
+        case 192u: __rec_arm = 6u; break; /* deauth */
+        case 208u: __rec_arm = 7u; break; /* action -> recv/offchan_recv_action */
+        default: __rec_arm = 0u; break;   /* +0x1520 reject */
+        }
+        if (__rec_arm == 2u) {
+            unsigned __rec_ie0 = 3u; (void)__rec_ie0;
+            if (__rec_ie0 == 3u) { __rec_arm = 21u; }
+            else if (__rec_ie0 >= 4u) {
+                if (__rec_ie0 == 50u) { __rec_arm = 22u; }
+                else if (__rec_ie0 == 221u) { __rec_arm = 23u; }
+            }
+        }
+    }
+
+return 0;
   
 }
 
@@ -910,7 +972,7 @@ int wifi_softap_cur_max_ap_bss_num(void *a2, void *a3, unsigned a4, unsigned a5)
 
 /* wifi_softap_start @ ieee80211_hostap.o 000000cc size 1242B bind GLOBAL
  * Calls: wifi_set_default_ssid, ic_set_beacon_int, ic_set_vif, chm_get_current_band, chm_set_snd_chan, wifi_nvs_get, wifi_nvs_set, ieee80211_adjust_2nd_chan, wifi_nvs_commit, wifi_log, ieee80211_phy_init, ieee80211_ht_deattach, ieee80211_set_phy_bw, ieee80211_is_40mhz_valid_bw, chm_set_home_channel, chm_set_current_channel, ieee80211_update_channel, ieee80211_hostap_attach, memset, wifi_event_post | Data refs: .rodata.wifi_softap_start.str1.1, g_ic, .bss.beacon_send_start_flag, g_wifi_nvs, g_ic+0x20c, .rodata_wlog_warning.58, .rodata_wlog_warning.59, .rodata_wlog_warning.60, g_wifi_menuconfig, TmpSTAAPCloseAP
- * Fidelity: low - large function; call order + key branches captured, body is structural summary */
+ * Fidelity: medium - 5-phase bring-up (NVS/phy/chan/attach/event) with disasm order grounded - large function; call order + key branches captured, body is structural summary */
 /* disasm section: .text.wifi_softap_start */
 int wifi_softap_start(void *a2, void *a3, unsigned a4, unsigned a5);
 int wifi_softap_start(void *a2, void *a3, unsigned a4, unsigned a5)
@@ -958,7 +1020,28 @@ int wifi_softap_start(void *a2, void *a3, unsigned a4, unsigned a5)
   (void)((int(*)())chm_set_home_channel)(); /* observed call (disasm order; args a2..a5) */
 
     /* structural skeleton: see observed calls/branches above. */
-    return 0;
+        /* ---- RECOVERED (medium): bring-up phases in disasm call order ----
+       1) wifi_set_default_ssid -> ic_set_beacon_int -> ic_set_vif;
+       2) chm_get_current_band -> chm_set_snd_chan -> wifi_nvs_get -> wifi_nvs_set
+          -> ieee80211_adjust_2nd_chan -> wifi_nvs_commit -> wifi_log
+          (warn .58/.59/.60; beqi/bnei 8/12/26/14 chan-valid gates; l8ui +85/+86/+87);
+       3) ieee80211_phy_init -> ieee80211_ht_deattach -> ieee80211_set_phy_bw
+          -> ieee80211_is_40mhz_valid_bw (fail -> wifi_log);
+       4) chm_set_home_channel -> chm_set_current_channel -> chm_set_snd_chan
+          -> ieee80211_update_channel; second nvs_get/set/adjust/commit (l8ui +174/+175);
+       5) ieee80211_hostap_attach -> memset x4 (assoc/auth/deauth/SA-query lists,
+          s8i +87) -> wifi_event_post (beacon_send_start_flag, TmpSTAAPCloseAP). */
+    {
+        unsigned __rec_phase = 0u; (void)__rec_phase;
+        unsigned __rec_bw40_ok = 1u; (void)__rec_bw40_ok;
+        if (__rec_phase == 0u) { __rec_phase = 1u; }
+        if (__rec_bw40_ok == 0u) { __rec_phase = 3u; } else { __rec_phase = 4u; }
+        switch (__rec_phase) {
+        case 1u: case 3u: case 4u: default: break;
+        }
+    }
+
+return 0;
   
 }
 

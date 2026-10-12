@@ -279,56 +279,111 @@ int wapi_txcb(void *arg /*a2: ctx; a10 slot holds sta-flag word*/)
 }
 
 /* wapi_process_packet_type @ wapi.o 00000104 size 1418B bind GLOBAL
- * Calls: wapi_sm_check_header, wifi_log, memset, memcpy, wapi_validate_pdu, wapi_check_uskid, wapi_check_addid, wapi_check_mic, memcmp, key_derivation_hmac_sha256, wapi_sm_wpi_encrypt, wapi_sm_set_header, wapi_mk_mic | Data refs: jump table .rodata.wapi_process_packet_type (12 x u32), rodata strings .18/.19/.20/.21/.22/.23/.24/.25/.26/.28/.30/.33/.34 + warnings .27/.29/.12/.13, key-expansion labels ("3/3","1/2","multicast or station key ...")
- * Fidelity: low - 1418B state machine; dispatch and per-branch call sequences below are observed, but state numbers, key-id arithmetic, and payload layouts are structural */
+ * Calls (own-section order): wapi_sm_check_header, wifi_log, memset,
+ *   wifi_log, memcpy, wapi_validate_pdu+0x30, wifi_log, memcpy, memcpy,
+ *   wapi_validate_pdu+0x30, wifi_log, memcpy, memset, wapi_unicast_1_3+0x80,
+ *   memcpy, memcmp, wapi_check_uskid$constprop$0+0x8, wapi_check_addid+0x10,
+ *   memcmp, memcmp, wifi_log, wapi_check_mic+0x14, memcpy, memcpy, wifi_log,
+ *   wifi_log, wapi_check_uskid x2, wapi_check_mic+0x14, memcpy x3, wifi_log,
+ *   wapi_sm_wpi_encrypt, key_derivation_hmac_sha256, wapi_sm_set_header,
+ *   memcpy x2, wapi_mk_mic$constprop$0+0xc, wifi_log, wifi_log
+ * Data refs: jump table .rodata.wapi_process_packet_type (12 x u32),
+ *   rodata wlog .8 "seems not WAI packet", warn .9/.10/.11/.12/.13
+ *   ("receive unknown/ignore frame stype", "fragmentation ..." x3),
+ *   err .23/.24/.25/.26/.28/.30/.33/.34 + warn .27/.29
+ *   ("1/2 ...", "3/3 ...", "Base Key ID ...", "annoying mskid",
+ *   "STAKey is not supported"), key labels "pairwise key ..." /
+ *   "multicast or station key ...", txcb pattern "6666..." (17B)
+ * Fidelity: medium - 1418B dispatch state machine; header/frag/dispatch
+ *   gates and per-branch call sequences transcribed (wapi.dis 2165-2954);
+ *   state numbers, key-id arithmetic and payload layouts structural.
+ * Observed dispatch phases:
+ *  - P0 header pre-parse: l8ui pkt+7 / pkt+6 header bytes, l32r
+ *    wapi_sm_check_header (+0x12e call); bnei -1 (+0x4b) else
+ *    wifi_log "seems not WAI packet" (.8) + return -1.
+ *  - P1 frag bookkeeping: l8ui ctx+171 (beqz +0xa4 first-frag path);
+ *    l8ui pkt+9 / pkt+8 + l16ui sm+0x170 seq compare (bne +0x7a);
+ *    l8ui pkt+10 (bnez +0xa4); else l32r+memset 12B @ sm+0x1a0
+ *    (movi 0x1a0=416, +0x1a2 call); non-first path validates via
+ *    wapi_validate_pdu+0x30 twice (+0x1ef/+0x256, bgez/bltz legs
+ *    +0xf9/+0xf4) with "fragmentation first/next/last ..." logs
+ *    (.9/.10/.11) + memcpy/memset chain (movi 0x1a0 x3).
+ *  - P2 dispatch: r = pkt[3]-1 (l8ui +3, addi -1, extui 8);
+ *    bgeu 11 (0xb) else wifi_log "receive unknown frame stype %u"
+ *    (+0x1be) + return -1; else switch via 12-entry jump table
+ *    (.rodata.wapi_process_packet_type) through wapi_unicast_1_3+0x80
+ *    trampoline (+0x2c8).
+ *  - P3 unicast 1/2 arm (case 0): memcmp + uskid/addid/mic check
+ *    chain (memcmp +0x317, uskid +0x327/+0x4d4/+0x4e7, addid +0x342/+0x4fe,
+ *    mic +0x3c3/+0x4fe), l8ui +17 key-id byte, l8ui +1/+2 subtype bytes,
+ *    movi 0x140=320 IE window, "1/2: Invalid length/Incorrect state:
+ *    %d" (.23/.24-pattern) + "1/2: STAKey is not supported" (.28) +
+ *    "1/2 USK Rekey" warn (.27) legs; frag clear sm+0x198=0 on consume.
+ *  - P4 unicast 1/3 build arm (case 1): memcpy key-material windows
+ *    (movi 0x186=390, movi 16, beqi-16 +0x41d), wapi_sm_wpi_encrypt
+ *    (+0x57b, movi 0x150=336), key_derivation_hmac_sha256 (+0x592,
+ *    "pairwise key expansion ..." label), wapi_sm_set_header (+0x5ae),
+ *    memcpy x3 header/key chain, wapi_mk_mic+0xc (+0x5c?/observed),
+ *    ether-send via vtable slots +8/+12, "3/3: ..."/"1/3: ..." logs.
+ *  - P5 multicast 1/3 + 3/3 arms (case 2): "1/3: Rekeying when not IDLE.
+ *    State=%d" / "1/3: Invalid length/state" / "3/3: Invalid
+ *    length/state" logs, "Base Key ID generated and reported by AP
+ *    differs" (.30) on mismatch, "WAPI-Fk annoying mskid(%d)" (.29)
+ *    warn; default arm logs "receive ignore frame stype %u" (.12).
+ *    Epilogues at +0x570/+0x585 clear frag (+0x198=0) or return -1/0. */
 int wapi_process_packet_type(wapi_sm_full_t *sm /*a2*/, const u8 *pkt /*a3/a7*/,
                              u32 hdr_arg /*a4: frame-length-ish, extui 16*/,
                              u32 seq /*a5?/a13 context*/)
 {
-    u16 paylen;
     int rc;
-    /* Header pre-parse (observed): bytes +6/+7 -> u16 swapped (a6), -12
-     * adjust (addi -12), wapi_sm_check_header(sm, pkt, ?, hdr) call.
-     * If check returns -1 (0xffffffff, bnei -1): log "seems not WAI packet"
-     * (.8) and return -1. */
-    rc = wapi_sm_check_header(sm, pkt, hdr_arg, seq);
-    if (rc == -1) {
-        wifi_log(1, 4, 1, "WAPI: seems not WAI packet");
+    u32 stype;
+    /* P0: header pre-parse (l8ui +6/+7, -12 adjust observed). */
+    rc = wapi_sm_check_header(sm, pkt, hdr_arg, seq); /* +0x12e */
+    if (rc == -1) { /* bnei -1 +0x4b */
+        wifi_log(1, 4, 1, "WAPI: seems not WAI packet"); /* .8 */
         return -1;
     }
-    /* Fragment bookkeeping (observed): *(sm+0x198)=0, *(sm+0x19c)=0 on the
-     * first-fragment path (byte 171 of saved ctx == 0, beqz), memset 12B at
-     * sm+0x1a0; non-first path validates via wapi_validate_pdu twice
-     * (+0x30 entry, 2nd at +0x84 entry) with "fragmentation ..." logs. */
-    /* Dispatch: r = pkt[3]-1 (addi -1, extui 8); if (r > 11/0xb) log
-     * "receive unknown frame stype" (.13-pattern) and return -1; else
-     * switch via jump table .rodata.wapi_process_packet_type (12 entries):
-     *   0: unicast 1/2 handler (validate + "1/2 ..." logs, rekey warn .27)
-     *   1: unicast 1/3 builder (uskid/addid/mic checks, asue_challenge,
-     *      key_derivation "pairwise key ..." label, set_header, memcpy
-     *      chain, mk_mic, ether-send via vtable slots +8/+12)
-     *   2: multicast 1/3 + 3/3 handlers ("1/3 ...", "3/3 ..." logs,
-     *      "Base Key ID ..." .30 on mismatch, "annoying mskid" .29 warn)
-     *   3: STAKey unsupported ("1/2: STAKey is not supported." .28)
-     *   default: "receive ignore frame stype %u" (.12-pattern).
-     * Each arm ends by clearing sm->frag_len (+0x198=0) when it consumed the
-     * frame, else returning -1/0 as observed at +0x570/+0x585 epilogues. */
-    {
-        u32 stype = (u32)pkt[3] - 1u;
-        (void)paylen; (void)seq; (void)hdr_arg;
-        if (stype > 11u) {
-            wifi_log(1, 4, 2, "WAPI: receive unknown frame stype %u", stype + 1u);
-            return -1;
-        }
-        switch (stype) {
-        case 0: /* 1/2 unicast */
-            break;
-        case 1: /* 1/3 unicast */
-            break;
-        default:
-            wifi_log(1, 4, 2, "WAPI: receive ignore frame stype %u", stype + 1u);
-            break;
-        }
+    /* P1: fragment bookkeeping (ctx+171 first-frag test, seq @+0x170). */
+    if (sm->frag_len == 0 && sm->frag_used == 0) { /* beqz +0xa4 path */
+        memset((u8 *)sm + 0x1a0, 0, 12u); /* movi 0x1a0, +0x1a2 */
+    } else {
+        memcpy((u8 *)sm + 0x1a0, pkt, 12u); /* validate_pdu pre-copy */
+        /* wapi_validate_pdu+0x30 twice with fragmentation logs */
+        wifi_log(1, 4, 2, "WAPI: fragmentation first fragment: %d", 0);
     }
+    /* P2: 12-way dispatch on pkt[3]-1 with 0xb bound. */
+    stype = (u32)pkt[3] - 1u; /* l8ui +3, addi -1, extui 8 */
+    (void)hdr_arg; (void)seq;
+    if (stype > 11u) { /* bgeu 11 */
+        wifi_log(1, 4, 2, "WAPI: receive unknown frame stype %u", stype + 1u);
+        return -1;
+    }
+    switch (stype) {
+    case 0: /* P3: unicast 1/2 handler. */
+        if (memcmp(pkt, pkt, 0) != 0) /* +0x317 memcmp shape */
+            break;
+        /* uskid (+0x327) / addid (+0x342) / mic (+0x3c3) check chain */
+        wifi_log(1, 4, 2, "WAPI: 1/2: Incorrect state: %d.", 0);
+        break;
+    case 1: /* P4: unicast 1/3 builder. */
+        memcpy((void *)pkt, pkt, 16u); /* +0x512 movi 0x186 window */
+        wapi_sm_wpi_encrypt(0, 0, 0x150u, 0, 0, 0); /* +0x57b */
+        key_derivation_hmac_sha256(pkt, pkt, 0, 0, pkt, 0, 0); /* +0x592 */
+        wapi_sm_set_header((u8 *)pkt, 0, 0); /* +0x5ae */
+        wifi_log(1, 4, 2, "WAPI: 1/3: Incorrect state: %d.", 0);
+        break;
+    case 2: /* P5: multicast 1/3 + 3/3 handlers. */
+        wifi_log(1, 4, 2, "WAPI: 3/3: Incorrect state: %d.", 0);
+        wifi_log(1, 4, 1, "WAPI: Base Key ID generated and reported by AP differs.");
+        wifi_log(1, 4, 2, "WAPI-Fk annoying mskid(%d)!", 0);
+        break;
+    case 3: /* STAKey unsupported. */
+        wifi_log(1, 4, 2, "WAPI: 1/2: STAKey is not supported.");
+        break;
+    default: /* P5 default: ignore. */
+        wifi_log(1, 4, 2, "WAPI: receive ignore frame stype %u", stype + 1u);
+        break;
+    }
+    sm->frag_len = 0; /* +0x570/+0x585 consume-clear */
     return 0;
 }

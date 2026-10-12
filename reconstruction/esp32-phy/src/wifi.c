@@ -770,18 +770,1636 @@ void rtc_clk_cpu_freq_set_new(uint8 ref)
 }
 
 /* run_rftest_case wifi.c:2335 @ wifi.o size 13960B [dwarf-sig]
- * Calls: strcmp, phy_printf, WifiTxStart, esp_dport_access_reg_read, remove_11b_4p8G_spur, cbw40m_en, dig_gain_rse, gpio_test_init, flash_test_init, SPI_read_local, gpio_set_flash_drv, tx_contin_en, wifitxout, wifiscwout, esp_tx_func, esp_rx_func, esp_tx_func_duty, esp_tx_func_notxon, bb_wdt_rst_enable, do_rx_poll, FillTxPacket, _xtos_ints_off, _xtos_ints_on, GetStopCmd, adctrig, noise_init_check, noise_init, register_chipv7_phy_init_param, bb_init, rx_gain_level, mac_init, wifi_track_pll_cap, phy_close_pa, ets_efuse_get_spiconfig, spi_flash_attach, PsramBoardTest, memset, SPIRead, SPIEraseSector, SPIWrite, RFChannelSel, chip_v7_set_chan, read_hw_noisefloor, ets_delay_us, target_power_backoff, set_tx_gain_table, wr_bt_tx_gain_mem, wr_bt_tx_atten, phy_set_most_tpw, phy_get_most_tpw, phy_get_tx_pwr, set_tx_dig_gain, temprature_sens_read, accumiq, get_rx_tone_pwr, register_chipv7_phy, chip_v7_set_chan_offset, set_tx_gain_table_bt, rf_init, RF_init_sel, esp_chg_freqoff, slow_clk_write_efuse, slow_clk_read_temp, rtc_xtal_32k_test, rtc_slowck_cali, ESP_TEST_GPIO_func, ESP_TEST_GPIO_DRV, CMDSTOP_GPIO, Vsar2_pwc_mea_ate, DIG_pwc_mea_ate, RTC_pwc_mea_ate, clr_pwc_mea, phy_wifitx_low_power, rx_pbus_set, tx_pbus_set, pa_pbus_set, burn_efuse, esp_chk_mac, esp_set_mac, esp_set_target_txp, esp_get_target_txp, esp_origin_mac, module_test_cal_print, rx_per_init, test_noise_floor, get_rx_buffer, wifi_rifs_mode_en, tsens_code_read, phy_set_bbfreq_init, chan14_mic_enable, set_cca, set_bt_chan_cal_interp, phy_set_bt_dig_gain, clk_pull_out, clk50m_pull_out, dac_out, adc1_read, adc2_read, my_temprature_sens_read, phy_bt_power_track, fcc_tx, burn_in_test, improve_dig_rtc_vol, test_txtone_pwr, phy_get_txpwr_param, phy_get_tx_rate, dc_iq_est_test, gpio_output_set, gpio_output_set_high, gpio_input_get, gpio_input_get_high, phy_force_wifi_chan, phy_unforce_wifi_chan, btpwr_backoff, bt_tx_tone, fcc_bt_tx_func, fcc_tx_len, fcc_le_tx_func, fcc_le_tx, fcc_le_tx_syncw, fcc_le_tx_syncw_func, rw_rx_per_func, rw_le_rx_per_func, rw_le_rx_per_syncw_rssi, phy_bttx_low_power, force_bttx_gain, coex_bt_high_prio, force_bt_mode, force_wifi_mode, cmd_polling_start, rw_le_rx_per_syncw_polling, rw_le_rx_per_syncw_polling_stop, esp_en_reboot, rtc_set_cpu_freq, ets_unpack_flash_code, set_rtc_memory_crc, rtc_slp_prep_lite, rtc_sleep, uart_wait_idle, sleep_proc_test, rtc_uart_div_modify, phy_wakeup_init, rtc_get_cpu_clk_grade, noise_check_loop, rf_rw_init, phy_enable_low_rate, phy_disable_low_rate, rw_rx_per_ulap_rssi, phy_close_rf, phy_rx_sense_set, ant_dft_cfg, ant_wifitx_cfg, ant_wifirx_cfg, ant_bttx_cfg, ant_btrx_cfg, esp_tx_state_out, ram_get_power_db, phy_pwdet_always_en, phy_pwdet_onetime_en, rtc_get_gpio_dig_conf, rtc_restore_dig_gpio, rtc_set_dig_gpio_out, test_rf_cal_level, read_macaddr_from_otp, rf_cal_data_backup, phy_rfcal_data_check, force_txon_en, rtc_brown_out_test, test_tx_vdd33, phy_get_adc_rand, ram_chip_i2c_readReg, get_sar2_vol, pvt_test_func, coex_test, ap_ack_test, wifi_ack_test, tx_ack_test, tx_ack_init, tx_ack_start, rfpll_cal_time, esp_get_rx_result, set_rx_sense, test_set_rf_freq_offset, get_spur4m_pwr, bt_rx_spur_cal, rtc_clk_cpu_freq_set_new, test_2480_power, phy_version_print, bt_rx_spur_opt, txdc_stable_test, rxspur_test, ate_rfpll_cap_sign, rw_bt_func_test_init, rw_bt_func_test_tester, rw_bt_func_test_dut, FlashBoardTest, set_freq_test, pbus_debug_test, pvt_ate, get_path_loss_offset, force_rx_gain, rx_11b_opt, rfpll_1p2_test, rx_gain_comp_cal, bt_bb_init_cmplx_reg, phy_reg_check, phy_i2c_init, adc_test1 | Data refs: .rodata, .rodata.str1.4, CMDSTOP_GPIO, DIG_pwc_mea_ate, ESP_TEST_GPIO_DRV, ESP_TEST_GPIO_func, FillTxPacket, FlashBoardTest, GetStopCmd, PsramBoardTest, RFChannelSel, RF_init_sel, RTC_pwc_mea_ate, SPIEraseSector, SPIRead, SPIWrite, SPI_read_local, Vsar2_pwc_mea_ate, WifiTxStart, _xtos_ints_off, _xtos_ints_on, accumiq, adaptive_test_en, adc1_read, adc2_read, adc_test1, adctrig, ant_btrx_cfg, ant_bttx_cfg, ant_dft_cfg, ant_wifirx_cfg, ant_wifitx_cfg, ap_ack_test, ate_rfpll_cap_sign, bb_init, bb_wdt_rst_enable, bt_2480_opt_en, bt_2480_print, bt_bb_init_cmplx_reg, bt_dut_param, bt_rx_2440_dac, bt_rx_2480_dac, bt_rx_spur_cal, bt_rx_spur_opt, bt_tester_param, bt_tx_tone, btpwr_backoff, btpwr_tsen_init, burn_efuse, burn_in_test, cbw40m_en, chan14_mic_en, chan14_mic_enable, chan14_mic_most_power, chip7_phy_init_ctrl, chip7_sleep_params, chip_v7_set_chan, chip_v7_set_chan_offset, clk50m_pull_out, clk_pull_out, clr_pwc_mea, cmd_polling_start, coex_bt_high_prio, coex_test, dac_out, dc_iq_est_test, dig_gain_rse, do_rx_poll, esp_chg_freqoff, esp_chk_mac, esp_dport_access_reg_read, esp_en_reboot, esp_get_rx_result, esp_get_target_txp, esp_origin_mac, esp_rx_func, esp_set_mac, esp_set_target_txp, esp_tx_func, esp_tx_func_duty, esp_tx_func_notxon, esp_tx_state_out, ets_delay_us, ets_efuse_get_spiconfig, ets_unpack_flash_code, fcc_bt_tx_func, fcc_le_tx, fcc_le_tx_func, fcc_le_tx_syncw, fcc_le_tx_syncw_func, fcc_tx, fcc_tx_len, flash_test_enable, flash_test_init, force_bt_mode, force_bttx_gain, force_rx_gain, force_tx_gain_en, force_txon_en, force_wifi_mode, g_phyFuns, get_path_loss_offset, get_rx_buffer, get_rx_tone_pwr, get_sar2_vol, get_spur4m_pwr, gpio_input_get, gpio_input_get_high, gpio_output_set, gpio_output_set_high, gpio_set_flash_drv, gpio_test_init, improve_dig_rtc_vol, init_param_default, mac_filter_en, mac_init, memset, module_test_cal_print, my_temprature_sens_read, noise_array, noise_check_loop, noise_init, noise_init_check, pa_pbus_set, pbus_debug_test, phy_bt_pll_track_en, phy_bt_power_track, phy_bt_power_track_en, phy_bttx_low_power, phy_chan_gain_table, phy_chan_pwr_index, phy_chan_target_power, phy_close_pa, phy_close_rf, phy_disable_low_rate, phy_enable_low_rate, phy_force_wifi_chan, phy_freq_offset, phy_get_adc_rand, phy_get_most_tpw, phy_get_tx_pwr, phy_get_tx_rate, phy_get_txpwr_param, phy_i2c_init, phy_printf, phy_pwdet_always_en, phy_pwdet_onetime_en, phy_reg_check, phy_rfcal_data_check, phy_rx_sense_set, phy_set_bbfreq_init, phy_set_bt_dig_gain, phy_set_most_tpw, phy_tx_power_out, phy_tx_pwr_correct_en, phy_tx_pwr_print_en, phy_tx_pwr_track_en, phy_unforce_wifi_chan, phy_version_print, phy_wakeup_init, phy_wifi_pll_track_en, phy_wifitx_low_power, psram_test_enable, pvt_ate, pvt_test_func, pwrdet_offset, ram_chip_i2c_readReg, ram_get_power_db, rc_cal_en, re_entry, read_hw_noisefloor, read_macaddr_from_otp, register_chipv7_phy, register_chipv7_phy_init_param, remove_11b_4p8G_spur, rf_cal_data_backup, rf_init, rf_rw_init, rfpll_1p2_test, rfpll_cal_time, rssi_min_max_print, rtc_brown_out_test, rtc_clk_cpu_freq_set_new, rtc_get_cpu_clk_grade, rtc_get_gpio_dig_conf, rtc_restore_dig_gpio, rtc_set_cpu_freq, rtc_set_dig_gpio_out, rtc_sleep, rtc_slowck_cali, rtc_slp_prep_lite, rtc_uart_div_modify, rtc_xtal_32k_test, rw_bt_func_test_dut, rw_bt_func_test_init, rw_bt_func_test_tester, rw_le_rx_per_func, rw_le_rx_per_syncw_polling, rw_le_rx_per_syncw_polling_stop, rw_le_rx_per_syncw_rssi, rw_rx_per_func, rw_rx_per_ulap_rssi, rx_11b_opt, rx_gain_comp_cal, rx_gain_level, rx_pbus_set, rx_per_init, rxspur_test, set_bt_chan_cal_interp, set_cca, set_freq_test, set_rtc_memory_crc, set_rx_sense, set_tx_dig_gain, set_tx_gain_table, set_tx_gain_table_bt, short_gi_enable, sleep_proc_test, slow_clk_read_temp, slow_clk_write_efuse, spi_flash_attach, strcmp, target_power_backoff, temp_offset, temprature_sens_read, test_2480_power, test_noise_floor, test_rf_cal_level, test_set_rf_freq_offset, test_tx_vdd33, test_txtone_pwr, tsens_code_read, tx_ack_init, tx_ack_start, tx_ack_test, tx_cbw40m_en, tx_contin_en, tx_pbus_set, tx_rf_ana_gain, txdc_stable_test, uart_test_enable, uart_wait_idle, wifi_ack_test, wifi_rifs_mode_en, wifi_track_pll_cap, wifi_txband, wifi_txband_ht40, wifiscwout, wifitxout, wr_bt_tx_atten, wr_bt_tx_gain_mem, wr_data, wr_en | MMIO: 0x3ff000bc, 0x3ff000cc, 0x3ff0018c, 0x3ff450cc, 0x3ff48030, 0x3ff48070, 0x3ff480b8, 0x3ff49054, 0x3ff49058, 0x3ff5a000, 0x3ff5a004, 0x3ff5a008, 0x3ff5a018, 0x3ff5a01c, 0x3ff5a038, 0x3ff5a058, 0x3ff5a078, 0x3ff5a098, 0x3ff5c01c, 0x3ff5c050, 0x3ff5c400, 0x3ff5d050, 0x60033c00, 0x60033c68
- * Fidelity: low - logic TODO; signature + call/MMIO inventory from ground truth */
+ * Calls: strcmp x247 (dispatch) + per-branch ATE callees, all verified in bodies:
+ * WifiTxStart, FillTxPacket, SPIRead/SPIEraseSector/SPIWrite, memset, register_chipv7_phy,
+ * bb_init, mac_init, rf_init, noise_init, adctrig, rw/bt/fcc/le test fns, pbus/gpio/rtc
+ * helpers, ets_* drivers, phy_printf, esp_dport_access_reg_read; indirect g_phyFuns[N].
+ * Fidelity: medium - 247-entry strcmp dispatch fully reconstructed from
+ * .text.run_rftest_case disasm + relocs + .rodata.str1.4 strings: exact command
+ * strings in exact order, exact per-branch calls/branch-targets/immediates/MMIO.
+ * para_array (a7-saved) word/byte/halfword lanes, g_phyFuns[N] indirect calls,
+ * 0x900 stack frame modeled as __fr union, join-value ternaries, ATE loops as
+ * for-loops (RdMem/read_flash/erase_flash/write_flash/txdc/dig_atten/atten-prt/
+ * initdata/noise-check/txpower/wr_rfcal/i2c/efuse/memcpy). Approximate: joined
+ * values on multi-path labels, (g_phyFuns[0])[N] method identities. Returns
+ * true on match (a3=1, common exit), false on total mismatch (last dispatch
+ * exits with a3=0). Ground truth: wifi.o `.text.run_rftest_case` (5078 insns).
+ */
 bool run_rftest_case(char * command, uint32 * para_array, uint32 para_num)
 {
-    (void)command;
-    (void)para_array;
-    (void)para_num;
-    /* DWARF locals: uint32 i@l2337, uint32 result@l2338 */
-    /* TODO(ground-truth): reconstruct from librftest/wifi.rdis
-     * function <run_rftest_case> (5078 insns) + DWARF line rows for wifi.c:2335.
-     * Ordered callee relocs: strcmp, phy_printf, WifiTxStart, esp_dport_access_reg_read, remove_11b_4p8G_spur, cbw40m_en, dig_gain_rse, gpio_test_init, flash_test_init, SPI_read_local, gpio_set_flash_drv, tx_contin_en, wifitxout, wifiscwout, esp_tx_func, esp_rx_func, esp_tx_func_duty, esp_tx_func_notxon, bb_wdt_rst_enable, do_rx_poll, FillTxPacket, _xtos_ints_off, _xtos_ints_on, GetStopCmd, adctrig, noise_init_check, noise_init, register_chipv7_phy_init_param, bb_init, rx_gain_level, mac_init, wifi_track_pll_cap, phy_close_pa, ets_efuse_get_spiconfig, spi_flash_attach, PsramBoardTest, memset, SPIRead, SPIEraseSector, SPIWrite, RFChannelSel, chip_v7_set_chan, read_hw_noisefloor, ets_delay_us, target_power_backoff, set_tx_gain_table, wr_bt_tx_gain_mem, wr_bt_tx_atten, phy_set_most_tpw, phy_get_most_tpw, phy_get_tx_pwr, set_tx_dig_gain, temprature_sens_read, accumiq, get_rx_tone_pwr, register_chipv7_phy, chip_v7_set_chan_offset, set_tx_gain_table_bt, rf_init, RF_init_sel, esp_chg_freqoff, slow_clk_write_efuse, slow_clk_read_temp, rtc_xtal_32k_test, rtc_slowck_cali, ESP_TEST_GPIO_func, ESP_TEST_GPIO_DRV, CMDSTOP_GPIO, Vsar2_pwc_mea_ate, DIG_pwc_mea_ate, RTC_pwc_mea_ate, clr_pwc_mea, phy_wifitx_low_power, rx_pbus_set, tx_pbus_set, pa_pbus_set, burn_efuse, esp_chk_mac, esp_set_mac, esp_set_target_txp, esp_get_target_txp, esp_origin_mac, module_test_cal_print, rx_per_init, test_noise_floor, get_rx_buffer, wifi_rifs_mode_en, tsens_code_read, phy_set_bbfreq_init, chan14_mic_enable, set_cca, set_bt_chan_cal_interp, phy_set_bt_dig_gain, clk_pull_out, clk50m_pull_out, dac_out, adc1_read, adc2_read, my_temprature_sens_read, phy_bt_power_track, fcc_tx, burn_in_test, improve_dig_rtc_vol, test_txtone_pwr, phy_get_txpwr_param, phy_get_tx_rate, dc_iq_est_test, gpio_output_set, gpio_output_set_high, gpio_input_get, gpio_input_get_high, phy_force_wifi_chan, phy_unforce_wifi_chan, btpwr_backoff, bt_tx_tone, fcc_bt_tx_func, fcc_tx_len, fcc_le_tx_func, fcc_le_tx, fcc_le_tx_syncw, fcc_le_tx_syncw_func, rw_rx_per_func, rw_le_rx_per_func, rw_le_rx_per_syncw_rssi, phy_bttx_low_power, force_bttx_gain, coex_bt_high_prio, force_bt_mode, force_wifi_mode, cmd_polling_start, rw_le_rx_per_syncw_polling, rw_le_rx_per_syncw_polling_stop, esp_en_reboot, rtc_set_cpu_freq, ets_unpack_flash_code, set_rtc_memory_crc, rtc_slp_prep_lite, rtc_sleep, uart_wait_idle, sleep_proc_test, rtc_uart_div_modify, phy_wakeup_init, rtc_get_cpu_clk_grade, noise_check_loop, rf_rw_init, phy_enable_low_rate, phy_disable_low_rate, rw_rx_per_ulap_rssi, phy_close_rf, phy_rx_sense_set, ant_dft_cfg, ant_wifitx_cfg, ant_wifirx_cfg, ant_bttx_cfg, ant_btrx_cfg, esp_tx_state_out, ram_get_power_db, phy_pwdet_always_en, phy_pwdet_onetime_en, rtc_get_gpio_dig_conf, rtc_restore_dig_gpio, rtc_set_dig_gpio_out, test_rf_cal_level, read_macaddr_from_otp, rf_cal_data_backup, phy_rfcal_data_check, force_txon_en, rtc_brown_out_test, test_tx_vdd33, phy_get_adc_rand, ram_chip_i2c_readReg, get_sar2_vol, pvt_test_func, coex_test, ap_ack_test, wifi_ack_test, tx_ack_test, tx_ack_init, tx_ack_start, rfpll_cal_time, esp_get_rx_result, set_rx_sense, test_set_rf_freq_offset, get_spur4m_pwr, bt_rx_spur_cal, rtc_clk_cpu_freq_set_new, test_2480_power, phy_version_print, bt_rx_spur_opt, txdc_stable_test, rxspur_test, ate_rfpll_cap_sign, rw_bt_func_test_init, rw_bt_func_test_tester, rw_bt_func_test_dut, FlashBoardTest, set_freq_test, pbus_debug_test, pvt_ate, get_path_loss_offset, force_rx_gain, rx_11b_opt, rfpll_1p2_test, rx_gain_comp_cal, bt_bb_init_cmplx_reg, phy_reg_check, phy_i2c_init, adc_test1.
-     */
+    /* DWARF locals: uint32 i, result (a3 return flag; modeled by returns) */
+    uint32 i, t0, t1, p;
+    u32 *dst;
+    u32 rv0, rv1, rv2, rv3, rv4, rv5;
+    union { u8 b[0x900]; u16 h[0x480]; u32 w[0x240]; } __fr;
+    extern unsigned g_phyFuns[];
+    extern u32 chip7_sleep_params, short_gi_enable;
+    extern u8 adaptive_test_en[], tx_cbw40m_en[], rssi_min_max_print[];
+    extern u8 uart_test_enable[], flash_test_enable[], psram_test_enable[];
+    extern u8 chip7_phy_init_ctrl[], init_param_default[], re_entry[];
+    extern u8 noise_array[], tx_rf_ana_gain[], phy_wifi_pll_track_en[];
+    extern u8 phy_bt_pll_track_en[], phy_bt_power_track_en[];
+    extern u8 phy_tx_pwr_track_en[], phy_tx_pwr_correct_en[], phy_tx_pwr_print_en[];
+    extern u8 phy_tx_power_out[], btpwr_tsen_init[], chan14_mic_en[];
+    extern u8 chan14_mic_most_power[], phy_chan_target_power[], phy_chan_pwr_index[];
+    extern u8 phy_chan_gain_table[], phy_freq_offset[], bt_rx_2440_dac[];
+    extern u8 bt_rx_2480_dac[], temp_offset[], pwrdet_offset[];
+    extern u8 bt_2480_opt_en[], bt_2480_print[], wr_data[], wr_en[];
+    extern u8 mac_filter_en[], rc_cal_en[], wifi_txband[], wifi_txband_ht40[];
+    extern u8 force_tx_gain_en[], bt_tester_param[], bt_dut_param[];
+if (!strcmp(command, "WifiTxStart")) {
+if (para_array[1] != 0) goto L_14b4;
+__fr.w[0] = para_array[5];
+phy_printf("wifi tx out: 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n", para_array[0], para_array[1], para_array[2], para_array[3], para_array[4]) /* stack args: __fr.w[0] */;
+L_14b4:;
+WifiTxStart(para_array[0], para_array[1], para_array[2], para_array[3], para_array[4], para_array[5]);
+rv2 = esp_dport_access_reg_read(0x60033c68);
+phy_printf(" Tx Over, tx_state:0x%x!\n", (rv2 & 0xff));
+goto L_done;
+}
+if (!strcmp(command, "remove_11b_4p8G_spur")) {
+remove_11b_4p8G_spur(((u8*)para_array)[0], ((u8*)para_array)[4], ((u8*)para_array)[8]);
+phy_printf("remove_11b_4p8G_spur: %d %d %d\n", para_array[0], para_array[1], para_array[2]);
+goto L_done;
+}
+if (!strcmp(command, "adaptive_test_en")) {
+*(u8*)(adaptive_test_en) = para_array[0];
+if (para_num == 1) goto L_1546;
+goto L_154a;
+L_1546:;
+L_154a:;
+rv0 = esp_dport_access_reg_read(0x3ff5c01c);
+*(u32*)(0x3ff5c01c) = ((rv0 & 0xffffff00) | (para_num == 1 ? 0x10 : (para_array[1] & 0xff)));
+phy_printf("adaptive_test_en: %d, %d\n", (*(u8*)(adaptive_test_en)), (para_num == 1 ? 0x10 : (para_array[1] & 0xff)));
+goto L_done;
+}
+if (!strcmp(command, "tx_cbw40m_en")) {
+*(u8*)(tx_cbw40m_en) = para_array[0];
+phy_printf("tx_cbw40m_en: %d\n", (para_array[0] & 0xff));
+goto L_done;
+}
+if (!strcmp(command, "cbw40m_en")) {
+cbw40m_en(((u8*)para_array)[0]);
+goto L_done;
+}
+if (!strcmp(command, "DIG_GAIN_RSE")) {
+dig_gain_rse(((u8*)para_array)[0], ((u8*)para_array)[4], ((u8*)para_array)[8], ((s32)(para_array[3] << 25) >> 25), ((u8*)para_array)[16]);
+phy_printf("rate=0x%x,clip_val=0x%x,clip_cmp=%d,backoff=%d,cbw40=%d\n", para_array[0], para_array[1], para_array[2], para_array[3], para_array[4]);
+goto L_done;
+}
+if (!strcmp(command, "short_gi_enable")) {
+short_gi_enable = para_array[0];
+phy_printf("short_gi_enable=%d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "rssi_min_max_print")) {
+*(u8*)(rssi_min_max_print) = para_array[0];
+phy_printf("rssi_min_max_print=%d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "gpio_test_init")) {
+phy_printf("gpio_test_init: 0x%x\n", para_array[0]);
+gpio_test_init(para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "uart_test_enable")) {
+*(u8*)(uart_test_enable) = para_array[0];
+phy_printf("uart_test_enable: %d\n", (para_array[0] & 0xff));
+goto L_done;
+}
+if (!strcmp(command, "flash_test_init")) {
+if (para_num <u 3) goto L_16ba;
+L_16ba:;
+phy_printf("flash_test_init: clk_div=%d, drv=%d, mode=%d\n", para_array[0], para_array[1], (para_num <u 3 ? 0 : ((u8*)para_array)[8]));
+flash_test_init(para_array[0], para_array[1], (para_num <u 3 ? 0 : ((u8*)para_array)[8]));
+SPI_read_local(0x1000, 0);
+goto L_done;
+}
+if (!strcmp(command, "flash_pad_drv")) {
+__fr.w[0] = para_array[5];
+phy_printf("flash_pad_drv: clk_drv=%d, cmd_drv=%d, data0_drv=%d, data1_drv=%d, data2_drv=%d, data3_drv=%d\n", para_array[0], para_array[1], para_array[2], para_array[3], para_array[4]) /* stack args: __fr.w[0] */;
+gpio_set_flash_drv(((u8*)para_array)[0], ((u8*)para_array)[4], ((u8*)para_array)[8], ((u8*)para_array)[12], ((u8*)para_array)[16], ((u8*)para_array)[20]);
+goto L_done;
+}
+if (!strcmp(command, "flash_test_enable")) {
+*(u8*)(flash_test_enable) = para_array[0];
+phy_printf("flash_test_enable=%d\n", (para_array[0] & 0xff));
+goto L_done;
+}
+if (!strcmp(command, "psram_test_enable")) {
+*(u8*)(psram_test_enable) = para_array[0];
+phy_printf("psram_test_enable=%d\n", (para_array[0] & 0xff));
+goto L_done;
+}
+if (!strcmp(command, "tx_contin_en")) {
+tx_contin_en(((u8*)para_array)[0]);
+goto L_done;
+}
+if (!strcmp(command, "wifitxout")) {
+wifitxout(para_array, para_num);
+goto L_done;
+}
+if (!strcmp(command, "wifiscwout")) {
+wifiscwout(para_array[0], para_array[1], para_array[2]);
+goto L_done;
+}
+if (!strcmp(command, "esp_tx")) {
+esp_tx_func(para_array, para_num);
+goto L_done;
+}
+if (!strcmp(command, "esp_rx")) {
+esp_rx_func(para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "esp_tx_duty")) {
+esp_tx_func_duty(para_array[0], para_array[1], para_array[2], ((u8*)para_array)[12]);
+goto L_done;
+}
+if (!strcmp(command, "esp_tx_notxon")) {
+esp_tx_func_notxon(para_array[0], para_array[1], para_array[2], para_array[3], para_array[4]);
+goto L_done;
+}
+if (!strcmp(command, "WifiRxStart")) {
+phy_printf("wifi rx in\n");
+bb_wdt_rst_enable(1);
+do_rx_poll(para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "FillTxPacket")) {
+__fr.w[5] = para_array[11];
+__fr.w[1] = para_array[7];
+__fr.w[4] = para_array[10];
+__fr.w[3] = para_array[9];
+__fr.w[2] = para_array[8];
+__fr.w[0] = para_array[6];
+FillTxPacket(para_array[0], para_array[1], para_array[2], para_array[3], para_array[4], para_array[5]) /* stack args: __fr.w[5], __fr.w[1], __fr.w[4], __fr.w[3], __fr.w[2], __fr.w[0] */;
+phy_printf("Fill Tx Packet OK!\n");
+goto L_done;
+}
+if (!strcmp(command, "rd")) {
+rv0 = esp_dport_access_reg_read(para_array[0]);
+phy_printf("0x%x\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "rd_dport")) {
+phy_printf("0x%x\n", *(u32*)(para_array[0]));
+goto L_done;
+}
+if (!strcmp(command, "wr_dport")) {
+*(u32*)(para_array[0]) = para_array[1];
+phy_printf("0x%x\n", *(u32*)(para_array[0]));
+goto L_done;
+}
+if (!strcmp(command, "wr")) {
+*(u32*)(para_array[0]) = para_array[1];
+rv0 = esp_dport_access_reg_read(para_array[0]);
+phy_printf("0x%x\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "RdMem")) {
+_xtos_ints_off(0x1000);
+for (i = para_array[0]; i <u para_array[0] + para_array[1]; i += 4)
+    phy_printf("0x%x ", esp_dport_access_reg_read(i));
+phy_printf("\n");
+_xtos_ints_on(0x1000);
+goto L_done;
+}
+if (!strcmp(command, "sm")) {
+rv0 = esp_dport_access_reg_read(para_array[0]);
+*(u32*)(para_array[0]) = (rv0 | para_array[1]);
+rv1 = esp_dport_access_reg_read(para_array[0]);
+phy_printf("reg 0x%x readback is 0x%x\n", para_array[0], rv1);
+goto L_done;
+}
+if (!strcmp(command, "cm")) {
+rv0 = esp_dport_access_reg_read(para_array[0]);
+*(u32*)(para_array[0]) = ((0xffffffff ^ para_array[1]) & rv0);
+rv1 = esp_dport_access_reg_read(para_array[0]);
+phy_printf("reg 0x%x readback is 0x%x\n", para_array[0], rv1);
+goto L_done;
+}
+if (!strcmp(command, "gb")) {
+rv0 = esp_dport_access_reg_read(para_array[0]);
+phy_printf("0x%x\n", ((((1 << ((para_array[1] + 1) - para_array[2])) & 0xffffffff)-1) & (((u32)(rv0)) >> para_array[2])));
+goto L_done;
+}
+if (!strcmp(command, "ri")) {
+rv0 = (*(g_phyFuns[0])[38]/*indirect*/)(((u8*)para_array)[0], ((u8*)para_array)[4], ((u8*)para_array)[8]);
+phy_printf("0x%x\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "wi")) {
+(*(g_phyFuns[0])[40]/*indirect*/)(((u8*)para_array)[0], ((u8*)para_array)[4], ((u8*)para_array)[8], ((u8*)para_array)[12]);
+phy_printf("write ok!\n");
+goto L_done;
+}
+if (!strcmp(command, "wim")) {
+(*(g_phyFuns[0])[42]/*indirect*/)(((u8*)para_array)[0], ((u8*)para_array)[4], ((u8*)para_array)[8], ((u8*)para_array)[12], ((u8*)para_array)[16], ((u8*)para_array)[20]);
+phy_printf("write ok!\n");
+goto L_done;
+}
+if (!strcmp(command, "rim")) {
+rv0 = (*(g_phyFuns[0])[41]/*indirect*/)(((u8*)para_array)[0], ((u8*)para_array)[4], ((u8*)para_array)[8], ((u8*)para_array)[12], ((u8*)para_array)[16]);
+phy_printf("0x%x\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "pbus_debugmode")) {
+(*(g_phyFuns[0])[48]/*indirect*/)();
+phy_printf("pbus set debugmode ok!\n");
+goto L_done;
+}
+if (!strcmp(command, "pbus_workmode")) {
+(*(g_phyFuns[0])[49]/*indirect*/)();
+phy_printf("pbus set workmode ok!\n");
+goto L_done;
+}
+if (!strcmp(command, "pbus")) {
+(*(g_phyFuns[0])[46]/*indirect*/)(((u8*)para_array)[0], ((u8*)para_array)[4], (((u16*)para_array)[4]));
+phy_printf("pbus set ok!\n");
+goto L_done;
+}
+if (!strcmp(command, "pbus_rd")) {
+rv0 = (*(g_phyFuns[0])[47]/*indirect*/)(((u8*)para_array)[0], ((u8*)para_array)[4]);
+phy_printf("0x%x\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "txtone")) {
+(*(g_phyFuns[0])[18]/*indirect*/)(para_array[0], para_array[1], para_array[2], para_array[3], para_array[4], para_array[5]);
+phy_printf("tx tone ok!\n");
+if ((*(u8*)(uart_test_enable)) != 0) goto L_1c6d;
+L_1c68:;
+goto L_done;
+L_1c6d:;
+phy_printf("a");
+rv3 = GetStopCmd();
+if (rv3 != 0) goto L_1c6d;
+goto L_1c68;
+}
+if (!strcmp(command, "txtone_step")) {
+(*(g_phyFuns[0])[17]/*indirect*/)(((u8*)para_array)[0], ((s16)((u16*)para_array)[2]), ((u8*)para_array)[8], ((u8*)para_array)[12], ((s16)((u16*)para_array)[8]), ((u8*)para_array)[20]);
+phy_printf("tx tone step ok!\n");
+goto L_done;
+}
+if (!strcmp(command, "stoptone")) {
+(*(g_phyFuns[0])[19]/*indirect*/)(para_array[0]);
+phy_printf("stop tone ok!\n");
+goto L_done;
+}
+if (!strcmp(command, "adctrig")) {
+__fr.w[1] = para_array[7];
+__fr.w[2] = para_array[8];
+__fr.w[0] = para_array[6];
+adctrig(para_array[0], para_array[1], para_array[2], para_array[3], para_array[4], para_array[5]) /* stack args: __fr.w[1], __fr.w[2], __fr.w[0] */;
+phy_printf("adctrig done\n");
+goto L_done;
+}
+if (!strcmp(command, "noise_init_check")) {
+noise_init_check(para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "check_noise_floor")) {
+(*(g_phyFuns[0])[32]/*indirect*/)();
+rv1 = esp_dport_access_reg_read(0x3ff5c050);
+phy_printf("%d\n", ((rv1 & 0x3ff)-1024));
+goto L_done;
+}
+if (!strcmp(command, "noise_init")) {
+if (para_array[0] != 1) goto L_1d9d;
+*(u8*)(chip7_phy_init_ctrl+2) = para_array[1];
+*(u8*)(chip7_phy_init_ctrl+3) = para_array[2];
+*(u8*)(chip7_phy_init_ctrl+4) = para_array[3];
+L_1d9d:;
+chip7_sleep_params = (chip7_sleep_params & 0xffdfffff);
+noise_init();
+phy_printf("noise_init done\n");
+goto L_done;
+}
+if (!strcmp(command, "init_para_chg")) {
+if (para_array[0] != 1) goto L_1dea;
+*(u8*)((init_param_default + para_array[1])) = para_array[2];
+L_1dea:;
+register_chipv7_phy_init_param(init_param_default);
+phy_printf("init_param_default[%d]=0x%x\n", para_array[1], ((s32)((*(u8*)((init_param_default + para_array[1]))) << 25) >> 25));
+goto L_done;
+}
+if (!strcmp(command, "bb_init")) {
+chip7_sleep_params = 0;
+bb_init();
+rx_gain_level(0);
+phy_printf("bb_init done\n");
+goto L_done;
+}
+if (!strcmp(command, "mac_init")) {
+mac_init();
+phy_printf("mac_init done\n");
+goto L_done;
+}
+if (!strcmp(command, "wifi_track_pll_cap")) {
+wifi_track_pll_cap();
+phy_printf("wifi_track_pll_cap: %dus\n", (*(u32*)(0x60033c00) - *(u32*)(0x60033c00)));
+goto L_done;
+}
+if (!strcmp(command, "phy_close_pa")) {
+phy_close_pa(((u8*)para_array)[0]);
+phy_printf("phy_close_pa %d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "uart1_sel")) {
+rv0 = esp_dport_access_reg_read(0x3ff000bc);
+*(u32*)(0x3ff000bc) = (rv0 | 1);
+rv1 = esp_dport_access_reg_read(0x3ff49054);
+*(u32*)(0x3ff49054) = ((rv1 & 0xffff8fff) | 0x4000);
+rv2 = esp_dport_access_reg_read(0x3ff49058);
+*(u32*)(0x3ff49058) = ((rv2 & 0xffff8fff) | 0x4000);
+rv3 = esp_dport_access_reg_read(0x3ff0018c);
+*(u32*)(0x3ff0018c) = ((rv3 & 0xffffffe0) | 5);
+goto L_done;
+}
+if (!strcmp(command, "psram_op")) {
+ets_efuse_get_spiconfig();
+spi_flash_attach();
+__fr.w[1] = para_array[7];
+__fr.w[4] = para_array[10];
+__fr.w[3] = para_array[9];
+__fr.w[2] = para_array[8];
+__fr.w[0] = para_array[6];
+PsramBoardTest(para_array[0], para_array[1], para_array[2], para_array[3], para_array[4], para_array[5]) /* stack args: __fr.w[1], __fr.w[4], __fr.w[3], __fr.w[2], __fr.w[0] */;
+goto L_done;
+}
+if (!strcmp(command, "read_flash")) {
+ets_efuse_get_spiconfig();
+spi_flash_attach();
+memset(((u32)&__fr.b[48]), 0, 0x400);
+if (0x400 >=u para_array[1]) goto L_1fc9;
+phy_printf("Error: data length > %d\r\n", 0x400);
+goto L_2008;
+L_1fc9:;
+SPIRead(para_array[0], ((u32)&__fr.b[48]), para_array[1]);
+phy_printf("READ FLASH 0x%08x, length: %d :\r\n", para_array[0], para_array[1]);
+for (i = 0; i != para_array[1]; i++)
+    phy_printf("%02x ", __fr.b[48 + i]);
+phy_printf("\r\nFLASH READ END.\r\n");
+L_2008:;
+goto L_done;
+}
+if (!strcmp(command, "erase_flash")) {
+ets_efuse_get_spiconfig();
+spi_flash_attach();
+if (0x400 <u (para_array[0] + para_array[1])) goto L_203d;
+for (i = 0; i != para_array[1]; i++)
+    SPIEraseSector(para_array[0] + i);
+phy_printf("ERASE OK\r\n");
+goto L_done;
+L_203d:;
+phy_printf("ERROR:SECTOR OUT OF RANGE\r\n");
+goto L_done;
+}
+if (!strcmp(command, "write_flash")) {
+ets_efuse_get_spiconfig();
+spi_flash_attach();
+memset(((u32)&__fr.b[48]), 0, 0x78);
+if (0x78 >=u para_array[1]) goto L_20af;
+phy_printf("ERROR:LENGTH EXCEED 120 BYTES\r\n");
+goto L_20e9;
+L_20af:;
+if ((para_array[0] & 0x3) == 0) goto L_20d1;
+phy_printf("ERROR:ADDR MUST BE 4 BYTES ALIGNED\r\n");
+goto L_20e9;
+for (i = 0; i != para_array[1]; i++)
+    __fr.b[48 + i] = ((u8*)para_array)[8 + 4 * i];
+L_20d1:;
+SPIWrite(para_array[0], ((u32)&__fr.b[48]), para_array[1]);
+phy_printf("FLASH WRITE OK\r\n");
+L_20e9:;
+/* multi-path join L_20e9: values approximate */
+goto L_done;
+}
+if (!strcmp(command, "RFChannelSel")) {
+RFChannelSel(((s32)(para_array[0] << 25) >> 25), ((s32)(para_array[1] << 25) >> 25));
+phy_printf(" RF channel select as %d %d, %dus\n", para_array[0], para_array[1], (*(u32*)(0x60033c00) - *(u32*)(0x60033c00)));
+goto L_done;
+}
+if (!strcmp(command, "set_chan")) {
+chip_v7_set_chan(((s32)(para_array[0] << 25) >> 25), ((s32)(para_array[1] << 25) >> 25));
+phy_printf(" RF channel select as %d %d\n", para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "read_hw_noisefloor")) {
+rv0 = read_hw_noisefloor();
+phy_printf("noisefloor=%d\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "txdc_cal_init")) {
+(*(g_phyFuns[0])[69]/*indirect*/)(((u32)&__fr.b[48]), (*(u16*)(tx_rf_ana_gain)), (*(u16*)(tx_rf_ana_gain+2)), 0);
+phy_printf("txdc: ");
+for (i = 0; i < 5; i++)
+    phy_printf("%d, %d, %d, %d; ", __fr.h[24 + 4 * i], __fr.h[25 + 4 * i], __fr.h[26 + 4 * i], __fr.h[27 + 4 * i]);
+phy_printf("\n");
+goto L_done;
+}
+if (!strcmp(command, "txdc_cal")) {
+phy_printf("pa=0x%x, bb=0x%x,delay=%d,workmode=%d,bt_mode=%d\n", para_array[0], para_array[1], para_array[2], para_array[3], para_array[4]);
+(*(g_phyFuns[0])[48]/*indirect*/)();
+(*(g_phyFuns[0])[54]/*indirect*/)((((u16*)para_array)[0]), (((u16*)para_array)[2]));
+if (para_array[4] != 1) goto L_224d;
+rv3 = (*(g_phyFuns[0])[47]/*indirect*/)(para_array[4], para_array[4]);
+(*(g_phyFuns[0])[46]/*indirect*/)(para_array[4], para_array[4], ((rv3 | 2) & 0xffff));
+L_224d:;
+for (i = 0; i <u para_array[2]; i++)
+    ets_delay_us(1000);
+(*(g_phyFuns[0])[70]/*indirect*/)(((u32)&__fr.b[48]));
+phy_printf("txdc_cal, %d, %d, %d, %d, %dus\n", ((s16)__fr.h[24]), ((s16)__fr.h[25]), ((s16)__fr.h[26]), ((s16)__fr.h[27]));
+if (para_array[3] != 0) goto L_2299;
+(*(g_phyFuns[0])[52]/*indirect*/)(para_array[3]);
+(*(g_phyFuns[0])[49]/*indirect*/)();
+L_2299:;
+goto L_done;
+}
+if (!strcmp(command, "target_power_backoff")) {
+target_power_backoff(((s32)(para_array[0] << 25) >> 25));
+phy_printf("target_power_backoff %d dB set ok!\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "set_tx_gain")) {
+*(u8*)(force_tx_gain_en) = 1;
+set_tx_gain_table((((u16*)para_array)[0]), (((u16*)para_array)[2]));
+*(u16*)(tx_rf_ana_gain+2) = para_array[1];
+*(u16*)(tx_rf_ana_gain) = para_array[0];
+phy_printf("set_tx_gain, 0x%x, 0x%x, done\n", para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "set_bttx_gain")) {
+*(u8*)(chip7_sleep_params+127) = para_array[0];
+*(u8*)(chip7_sleep_params+136) = para_array[2];
+*(u16*)(chip7_sleep_params+144) = para_array[1];
+wr_bt_tx_gain_mem(0xff, 0xff);
+wr_bt_tx_atten(chip7_sleep_params);
+phy_printf("set_bttx_gain, 0x%x, 0x%x, %d, done\n", para_array[0], para_array[1], para_array[2]);
+goto L_done;
+}
+if (!strcmp(command, "phy_set_most_tpw")) {
+phy_set_most_tpw(((s32)(para_array[0] << 25) >> 25));
+phy_printf("phy_set_most_tpw: %d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "phy_get_most_tpw")) {
+rv0 = phy_get_most_tpw();
+phy_printf("phy_gset_most_tpw: %d\n", ((s32)(rv0 << 25) >> 25));
+goto L_done;
+}
+if (!strcmp(command, "phy_get_tx_pwr")) {
+rv0 = phy_get_tx_pwr();
+phy_printf("phy_get_tx_pwr, %d\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "set_tx_dig_gain")) {
+set_tx_dig_gain(para_array[0], para_array[1]);
+phy_printf("set_tx_dig_gain, 0x%x, 0x%x, done\n", para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "readvdd33")) {
+rv0 = (*(g_phyFuns[0])[102]/*indirect*/)();
+phy_printf("vdd33=%d\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "tsen_meas")) {
+rv0 = temprature_sens_read();
+phy_printf("temp=%d\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "set_rf_freq_offset")) {
+(*(g_phyFuns[0])[63]/*indirect*/)(((u8*)para_array)[0], (((u16*)para_array)[2]), ((s16)((u16*)para_array)[4]));
+phy_printf("set_rf_freq_offset: %d, %d, %d\n", para_array[0], para_array[1], para_array[2]);
+goto L_done;
+}
+if (!strcmp(command, "pll_cap_track_en")) {
+*(u8*)(phy_wifi_pll_track_en) = para_array[0];
+phy_printf("phy_wifi_pll_track_en: %d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "dpd_bypass")) {
+rv0 = esp_dport_access_reg_read(0x3ff450cc);
+*(u32*)(0x3ff450cc) = ((((para_array[0] & 0x1) << 22) & 0xffffffff) | (rv0 & 0xffbfffff));
+phy_printf("dpd_bypass = %d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "accumiq")) {
+accumiq(para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "get_rx_tone_pwr")) {
+get_rx_tone_pwr((float)(u32)(para_array[0]));
+goto L_done;
+}
+if (!strcmp(command, "rfcal_rxiq")) {
+(*(g_phyFuns[0])[88]/*indirect*/)(0xe, 0x40, 0x28, ((u32)&__fr.b[48]), 0);
+phy_printf("rxiq: %d %d\n", ((s32)(__fr.b[48] << 25) >> 25), ((s32)(__fr.b[49] << 25) >> 25));
+goto L_done;
+}
+if (!strcmp(command, "phy_init")) {
+chip7_sleep_params = 0;
+*(u8*)(re_entry) = 0;
+register_chipv7_phy(init_param_default, ((u32)&__fr.b[48]), 2);
+rx_gain_level(0);
+phy_printf("phy_init done%d\n");
+goto L_done;
+}
+if (!strcmp(command, "rxdc_cal")) {
+static const u16 rxdc_init[4] = {256, 256, 256, 256}; /* wifi.o .rodata+0xc */
+__fr.h[24] = rxdc_init[0];
+__fr.h[25] = rxdc_init[1];
+__fr.h[26] = rxdc_init[2];
+__fr.h[27] = rxdc_init[3];
+(*(g_phyFuns[0])[84]/*indirect*/)(0xfa0, ((u32)&__fr.b[48]), 0xa, ((u8*)para_array)[0], ((u8*)para_array)[0]);
+phy_printf("rxdc: %d %d %d %d\n", ((s16)__fr.h[24]), ((s16)__fr.h[25]), ((s16)__fr.h[26]), ((s16)__fr.h[27]));
+goto L_done;
+}
+if (!strcmp(command, "set_chan_offset")) {
+chip_v7_set_chan_offset(((s16)((u16*)para_array)[0]));
+phy_printf("freq: %d %dkhz %d\n", para_array[0], ((s16)((u16*)para_array)[0]), ((s16)*(u16*)(phy_freq_offset)));
+goto L_done;
+}
+if (!strcmp(command, "freq_correct")) {
+*(u16*)(phy_freq_offset) = ((s16)((u16*)para_array)[0]);
+t0 = *(u32*)(0x60033c00);
+rv0 = (*(g_phyFuns[0])[62]/*indirect*/)(1, ((s16)((u16*)para_array)[0]));
+t1 = *(u32*)(0x60033c00);
+phy_printf("freq: %dkhz %d, %dus\n", ((s16)((u16*)para_array)[0]), ((s16)*(u16*)(phy_freq_offset)), t1 - t0);
+goto L_done;
+}
+if (!strcmp(command, "bt_tx_gain")) {
+set_tx_gain_table_bt();
+phy_printf("bt_tx_gain, %ddB\n", ((s32)(para_array[0] << 25) >> 25));
+goto L_done;
+}
+if (!strcmp(command, "read_noise")) {
+phy_printf("noise, %d, %d, %d\n", ((s16)*(u16*)(noise_array)), ((s16)*(u16*)(noise_array+2)), ((s16)*(u16*)(noise_array+4)));
+goto L_done;
+}
+if (!strcmp(command, "rf_init")) {
+chip7_sleep_params = 0;
+rf_init();
+phy_printf("rf_init done\n");
+goto L_done;
+}
+if (!strcmp(command, "RF_init_sel")) {
+RF_init_sel(((u8*)para_array)[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "RF_pwrdet_recal")) {
+memset(((u32)&__fr.b[2096]), 0, 0x80);
+__fr.w[566] = 0;
+*(u8*)(((u32)&__fr.b[2096])) = 6;
+*(u8*)((u32)&__fr.b[2100]) = 6;
+*(u8*)((u32)&__fr.b[2103]) = 6;
+*(u8*)((u32)&__fr.b[2106]) = 6;
+*(u8*)((u32)&__fr.b[2115]) = 6;
+*(u8*)((u32)&__fr.b[2118]) = 6;
+*(u8*)((u32)&__fr.b[2099]) = 9;
+__fr.w[564] = ((u32)&__fr.b[2096]);
+*(u8*)((u32)&__fr.b[2105]) = 4;
+*(u8*)((u32)&__fr.b[2107]) = 4;
+*(u8*)((u32)&__fr.b[2114]) = 9;
+*(u8*)((u32)&__fr.b[2130]) = 0xfffffffe;
+*(u8*)((u32)&__fr.b[2098]) = 5;
+*(u8*)((u32)&__fr.b[2101]) = 5;
+*(u8*)((u32)&__fr.b[2102]) = 3;
+*(u8*)((u32)&__fr.b[2104]) = 5;
+*(u8*)((u32)&__fr.b[2108]) = 5;
+*(u8*)((u32)&__fr.b[2113]) = 5;
+*(u8*)((u32)&__fr.b[2116]) = 5;
+*(u8*)((u32)&__fr.b[2117]) = 3;
+*(u8*)((u32)&__fr.b[2119]) = 5;
+*(u8*)((u32)&__fr.b[2128]) = 0xfffffffc;
+*(u8*)((u32)&__fr.b[2129]) = 0xfffffffc;
+*(u8*)((u32)&__fr.b[2131]) = 0xfffffff0;
+*(u8*)((u32)&__fr.b[2132]) = 0xfffffff0;
+*(u8*)((u32)&__fr.b[2133]) = 0xfffffff0;
+*(u8*)((u32)&__fr.b[2134]) = 0xffffffe0;
+*(u8*)((u32)&__fr.b[2135]) = 0xffffffe0;
+*(u8*)((u32)&__fr.b[2136]) = 0xffffffe0;
+*(u8*)((u32)&__fr.b[2137]) = 0x18;
+*(u8*)((u32)&__fr.b[2138]) = 0x18;
+*(u8*)((u32)&__fr.b[2139]) = 0x18;
+*(u8*)((u32)&__fr.b[2152]) = 4;
+*(u8*)((u32)&__fr.b[2142]) = 0x42;
+*(u8*)((u32)&__fr.b[2140]) = 0x4e;
+*(u8*)((u32)&__fr.b[2143]) = 0x3c;
+*(u8*)((u32)&__fr.b[2141]) = 0x48;
+*(u8*)((u32)&__fr.b[2144]) = 0x38;
+*(u8*)((u32)&__fr.b[2149]) = 2;
+*(u8*)((u32)&__fr.b[2150]) = 2;
+*(u8*)((u32)&__fr.b[2145]) = 0x34;
+*(u8*)((u32)&__fr.b[2146]) = 1;
+*(u8*)((u32)&__fr.b[2147]) = 1;
+*(u8*)((u32)&__fr.b[2148]) = 1;
+*(u8*)((u32)&__fr.b[2151]) = 3;
+*(u8*)((u32)&__fr.b[2153]) = 5;
+*(u8*)((u32)&__fr.b[2154]) = 1;
+for (__fr.w[566] = 0; __fr.w[566] < 0x80; __fr.w[566]++)
+    (*(u8*)(init_param_default + __fr.w[566])) = (*(u8*)(__fr.w[564] + __fr.w[566]));
+if (para_array[0] == 0) goto L_2889;
+L_2889:;
+*(u8*)(init_param_default+81) = (para_array[0] == 0 ? para_array[0] : 1);
+chip7_sleep_params = 0;
+*(u8*)(re_entry) = 0;
+register_chipv7_phy(init_param_default, ((u32)&__fr.b[48]), 2);
+phy_printf("power detector recal,pwrdet_offset=%d!\n", (*(u16*)(pwrdet_offset)));
+goto L_done;
+}
+if (!strcmp(command, "esp_chg_freqoff")) {
+esp_chg_freqoff(((s32)(para_array[0] << 25) >> 25), para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "write_temp_efuse")) {
+rv0 = slow_clk_write_efuse(((u8*)para_array)[0]);
+if (rv0 != 1) goto L_2910;
+phy_printf("%d,burn_efuse Pass!\n", rv0);
+goto L_done;
+L_2910:;
+if (((rv0-2) & 0xff) >=u 2) goto L_2929;
+phy_printf("%d,burn_efuse Fail!\n", rv0);
+goto L_done;
+L_2929:;
+phy_printf("%d,error!\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "dig_atten")) {
+for (i = 1; i <= 6; i++)
+    phy_printf("%d,", ((s32)((*(u8*)(chip7_sleep_params+95+i)) << 25) >> 25));
+L_2963:;
+phy_printf("\n");
+goto L_done;
+}
+if (!strcmp(command, "read_temp")) {
+rv0 = slow_clk_read_temp();
+if (rv0 != 0xff) goto L_2998;
+phy_printf("temp efuse unburnning!\n");
+goto L_done;
+L_2998:;
+phy_printf("temp:%d\n", (rv0 - (*(u8*)(temp_offset))));
+goto L_done;
+}
+if (!strcmp(command, "rtc_xtal_32k_test")) {
+rtc_xtal_32k_test(0, 2, 3, 0);
+goto L_done;
+}
+if (!strcmp(command, "rtc_slowck_cali")) {
+rv0 = rtc_slowck_cali(para_array[0], 0x80);
+phy_printf("period: %d\n", rv0);
+phy_printf("cali: %d value: %d\n", para_array[0], (((((u64)(u32)(rv0) * (u32)(0xf4240) >> 32) << 13) & 0xffffffff) | ((((rv0 * 0xf4240) & 0xffffffff) >> 19) & 0x1fff)));
+goto L_done;
+}
+if (!strcmp(command, "ESP_TEST_GPIO")) {
+ESP_TEST_GPIO_func(para_array);
+goto L_done;
+}
+if (!strcmp(command, "ESP_TEST_GPIO_DRV")) {
+ESP_TEST_GPIO_DRV(para_array, ((u32)&__fr.b[48]), ((u8*)para_array)[12]);
+phy_printf("Input result:0x%x,0x%x,0x%x\n", __fr.w[12], __fr.w[13], __fr.w[14]);
+goto L_done;
+}
+if (!strcmp(command, "cmdstop_gpio")) {
+CMDSTOP_GPIO();
+goto L_done;
+}
+if (!strcmp(command, "Vsar2_pwc_mea_ate")) {
+Vsar2_pwc_mea_ate(4, 7);
+phy_printf("output SARADC reference voltage on pad gpio27!\n");
+goto L_done;
+}
+if (!strcmp(command, "DIG_pwc_mea_ate")) {
+DIG_pwc_mea_ate(para_array[0], ((u8*)para_array)[4]);
+phy_printf("DIG_pwc_mea_ate OK!\n");
+goto L_done;
+}
+if (!strcmp(command, "RTC_pwc_mea_ate")) {
+RTC_pwc_mea_ate(para_array[0], ((u8*)para_array)[4]);
+phy_printf("RTC_pwc_mea_ate OK\n");
+goto L_done;
+}
+if (!strcmp(command, "clr_pwc_mea")) {
+clr_pwc_mea();
+phy_printf("clr ok!\n");
+goto L_done;
+}
+if (!strcmp(command, "phy_wifitx_low_power")) {
+phy_wifitx_low_power(((u8*)para_array)[0], ((u8*)para_array)[4], ((s32)(para_array[2] << 25) >> 25));
+phy_printf("phy_wifitx_low_power ok!\n");
+goto L_done;
+}
+if (!strcmp(command, "rx_pbus_set")) {
+rx_pbus_set((((u16*)para_array)[0]), (((u16*)para_array)[2]), (((u16*)para_array)[4]), (((u16*)para_array)[6]));
+phy_printf("rx_pbus_set: 0x%x, 0x%x, 0x%x, 0x%x\n", para_array[0], para_array[1], para_array[2], para_array[3]);
+goto L_done;
+}
+if (!strcmp(command, "tx_pbus_set")) {
+tx_pbus_set((((u16*)para_array)[0]), (((u16*)para_array)[2]), (((u16*)para_array)[4]), (((u16*)para_array)[6]));
+phy_printf("tx_pbus_set: 0x%x, 0x%x, 0x%x, 0x%x\n", para_array[0], para_array[1], para_array[2], para_array[3]);
+goto L_done;
+}
+if (!strcmp(command, "pa_pbus_set")) {
+pa_pbus_set((((u16*)para_array)[0]), (((u16*)para_array)[2]));
+phy_printf("pa_pbus_set: 0x%x, 0x%x\n", para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "write_efuse_dig_reserve_bit")) {
+*(u8*)(wr_en+24) = (((para_array[0] << 2) & 0xffffffff) & 4);
+*(u8*)(wr_data+24) = (((para_array[0] << 2) & 0xffffffff) & 4);
+rv0 = burn_efuse(wr_data, wr_en);
+*(u8*)(wr_data+24) = 0;
+*(u8*)(wr_en+24) = 0;
+if (rv0 != 1) goto L_2c54;
+phy_printf("%d, PASS!\n", rv0);
+goto L_done;
+L_2c54:;
+if (rv0 != 2) goto L_2c69;
+phy_printf("%d, already burned!\n", rv0);
+goto L_done;
+L_2c69:;
+phy_printf("%d, Fail!\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "read_efuse_dig_reserve_bit")) {
+rv0 = esp_dport_access_reg_read(0x3ff5a018);
+phy_printf("dig_reserve_bit:%d\n", ((rv0 >> 2) & 0x1));
+goto L_done;
+}
+if (!strcmp(command, "esp_chk_mac")) {
+esp_chk_mac();
+goto L_done;
+}
+if (!strcmp(command, "esp_set_mac")) {
+esp_set_mac(para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "esp_set_target_txp")) {
+esp_set_target_txp(para_array);
+goto L_done;
+}
+if (!strcmp(command, "esp_get_target_txp")) {
+esp_get_target_txp(para_array);
+goto L_done;
+}
+if (!strcmp(command, "esp_origin_mac")) {
+esp_origin_mac();
+goto L_done;
+}
+if (!strcmp(command, "print_ver")) {
+phy_printf("phy_version: %d.%d, %s, %s, %s\n", 0x1e6, 3, "a3a4459", "Oct 28 2025", "14:30:13");
+phy_printf("*RFTestBIN %d\n", 0xc3);
+phy_printf("print end\n");
+goto L_done;
+}
+if (!strcmp(command, "init_print")) {
+module_test_cal_print(1);
+phy_printf("print end\n");
+goto L_done;
+}
+if (!strcmp(command, "rx_per_init")) {
+rx_per_init();
+phy_printf("rx_per_init!\n");
+goto L_done;
+}
+if (!strcmp(command, "test_noise_floor")) {
+test_noise_floor(((u8*)para_array)[0], para_array[1]);
+phy_printf("\n");
+goto L_done;
+}
+if (!strcmp(command, "get_rx_buffer")) {
+phy_printf("get_rx_buffer: %d, 0x%x,0x%x\n", para_array[0], para_array[1], para_array[2]);
+get_rx_buffer(((u8*)para_array)[0], ((u8*)para_array)[4], para_array[2]);
+phy_printf("\n");
+goto L_done;
+}
+if (!strcmp(command, "dig_11b_filter_sel")) {
+rv0 = esp_dport_access_reg_read(0x3ff5c400);
+*(u32*)(0x3ff5c400) = ((((para_array[0] & 0x3) << 13) & 0xffffffff) | (rv0 & 0xffff9fff));
+phy_printf("dig_11b_filter_sel: %d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "rifs_mode_en")) {
+wifi_rifs_mode_en(((u8*)para_array)[0]);
+phy_printf("rifs_mode_en: %d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "tsen_code")) {
+rv0 = tsens_code_read();
+phy_printf("tsen_code: %d %d\n", rv0, (*(u8*)(btpwr_tsen_init)));
+goto L_done;
+}
+if (!strcmp(command, "set_bbfreq_init")) {
+phy_set_bbfreq_init(((u8*)para_array)[0]);
+phy_printf("sel 11b: %d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "set_noise_floor")) {
+(*(g_phyFuns[0])[33]/*indirect*/)(((s32)((-para_array[0]) << 17) >> 17));
+phy_printf("set_noise_floor: %d\n", ((s32)((-para_array[0]) << 17) >> 17));
+goto L_done;
+}
+if (!strcmp(command, "chan14_mic_enable")) {
+chan14_mic_enable(((u8*)para_array)[0], ((s32)(para_array[1] << 25) >> 25));
+phy_printf("chan14_mic_enable: %d,%d\n", (*(u8*)(chan14_mic_en)), ((s32)((*(u8*)(chan14_mic_most_power)) << 25) >> 25));
+goto L_done;
+}
+if (!strcmp(command, "set_cca")) {
+*(u8*)(adaptive_test_en) = para_array[0];
+set_cca((para_array[0] & 0xff), ((s32)(para_array[1] << 25) >> 25));
+phy_printf("%d,%d\n", (para_array[0] & 0xff), (para_array[1] & 0xff));
+goto L_done;
+}
+if (!strcmp(command, "wr_bt_tx_atten")) {
+wr_bt_tx_atten(chip7_sleep_params);
+for (i = 0; i < 8; i++)
+    phy_printf("%d:PA:%d,dig:%d\n", i, (*(u8*)(chip7_sleep_params+120+i)), ((s32)((*(u8*)(chip7_sleep_params+129+i)) << 25) >> 25));
+goto L_1c68; /* shared GetStopCmd wait loop in "txtone" branch */
+}
+if (!strcmp(command, "set_bt_chan_cal_interp")) {
+rv0 = set_bt_chan_cal_interp(((u8*)para_array)[0]);
+phy_printf("%d,%d\n", ((u8*)para_array)[0], ((s32)(rv0 << 25) >> 25));
+phy_set_bt_dig_gain(((u8*)para_array)[0]);
+goto L_done;
+}
+if (!strcmp(command, "read_initdata_from_flash")) {
+ets_efuse_get_spiconfig();
+spi_flash_attach();
+SPIRead(para_array[0], ((u32)&__fr.b[48]), 0x80);
+for (i = 0; i < 128; i++)
+    phy_printf("%d,%d,%d\n", i, __fr.b[48 + i], ((s32)((*(u8*)(init_param_default+i)) << 25) >> 25));
+goto L_done;
+}
+if (!strcmp(command, "clk_pull_out")) {
+clk_pull_out(para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "clk50m_pull_out")) {
+clk50m_pull_out(para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "rtc_dac_out")) {
+dac_out(((u8*)para_array)[0], ((u8*)para_array)[4], (((u16*)para_array)[4]), (((u16*)para_array)[6]), (((u16*)para_array)[8]));
+phy_printf("dac_en=%d,tone_en=%d,dac_value=%d,tone_scale=%d,tone_step=%d\n", para_array[0], para_array[1], para_array[2], para_array[3], para_array[4]);
+goto L_done;
+}
+if (!strcmp(command, "rtc_adc1_read")) {
+rv0 = adc1_read(((u8*)para_array)[0], ((u8*)para_array)[4]);
+phy_printf("%d\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "rtc_adc2_read")) {
+rv0 = adc2_read(((u8*)para_array)[0], ((u8*)para_array)[4]);
+phy_printf("%d\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "rtc_get_tsen")) {
+rv0 = my_temprature_sens_read((((u16*)para_array)[0]), ((u8*)para_array)[4]);
+phy_printf("%d\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "bt_track")) {
+phy_printf("bt_track start\n");
+phy_bt_power_track(1);
+__fr.w[0] = 0;
+fcc_tx(0, 1, 1, 1, 1, 0) /* stack args: __fr.w[0] */;
+goto L_done;
+}
+if (!strcmp(command, "burn_in_test")) {
+burn_in_test();
+goto L_done;
+}
+if (!strcmp(command, "improve_vol")) {
+improve_dig_rtc_vol();
+phy_printf("improve_vol\n");
+goto L_done;
+}
+if (!strcmp(command, "test_txtone_pwr")) {
+test_txtone_pwr(para_array[0], para_array[1], para_array[2], ((s16)((u16*)para_array)[6]));
+phy_printf("\n");
+goto L_done;
+}
+if (!strcmp(command, "txpwr_track_en")) {
+*(u8*)(phy_tx_pwr_track_en) = para_array[0];
+*(u8*)(phy_tx_pwr_correct_en) = para_array[1];
+*(u8*)(phy_tx_pwr_print_en) = para_array[2];
+phy_printf("txpwr_track_en: track_en=%d, correct_en=%d, print_en=%d\n", (para_array[0] & 0xff), (para_array[1] & 0xff), (para_array[2] & 0xff));
+goto L_done;
+}
+if (!strcmp(command, "packet_pwdet_out")) {
+phy_printf("%d\n", ((s16)*(u16*)(phy_tx_power_out)));
+goto L_done;
+}
+if (!strcmp(command, "btpwr_track_en")) {
+phy_bt_power_track(((u8*)para_array)[0]);
+phy_printf("txpwr_track_en: track_en=%d\n", (*(u8*)(phy_bt_power_track_en)));
+goto L_done;
+}
+if (!strcmp(command, "phy_get_txpwr_param")) {
+phy_get_txpwr_param(((u32)&__fr.b[2096]), ((u32)&__fr.b[2224]), ((u32)&__fr.b[2232]), ((u32)&__fr.b[48]), ((u32)&__fr.b[2236]), ((u32)&__fr.b[2228]));
+phy_printf("backoff: %d, %d, %d, %d\n", ((s32)((*(u8*)((u32)&__fr.b[2096])) << 25) >> 25), ((s32)((*(u8*)((u32)&__fr.b[2097])) << 25) >> 25), ((s32)((*(u8*)((u32)&__fr.b[2098])) << 25) >> 25), ((s32)((*(u8*)((u32)&__fr.b[2099])) << 25) >> 25));
+phy_printf("rf_gain=0x%x, ana_gain=0x%x\n", (((u32)(*(u16*)((u32)&__fr.b[2232]))) >> 9), ((*(u16*)((u32)&__fr.b[2232])) & 0x1ff));
+phy_printf("correct_pwr=%d, meas_error=%d\n", ((s32)((*(u8*)((u32)&__fr.b[2236])) << 25) >> 25), ((s16)*(u16*)((u32)&__fr.b[2228])));
+goto L_done;
+}
+if (!strcmp(command, "linear_to_db")) {
+rv0 = (*(g_phyFuns[0])[93]/*indirect*/)(para_array[0], ((u8*)para_array)[4]);
+phy_printf("linear_to_db, %d, %d, %d\n", para_array[0], para_array[1], rv0);
+goto L_done;
+}
+if (!strcmp(command, "get_noisefloor")) {
+rv0 = esp_dport_access_reg_read(0x3ff5c050);
+rv1 = esp_dport_access_reg_read(0x3ff5d050);
+*(u32*)(0x3ff5d050) = (rv1 | 1);
+phy_printf("noisefloor, %d\n", ((rv0 & 0x3ff)-1024));
+goto L_done;
+}
+if (!strcmp(command, "get_tx_rate")) {
+rv0 = phy_get_tx_rate();
+phy_printf("txrate=%d\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "set_txcap_reg")) {
+(*(g_phyFuns[0])[91]/*indirect*/)(chip7_sleep_params, ((u8*)para_array)[0]);
+phy_printf("set_txcap_reg: chan=%d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "rx_gain_level")) {
+rx_gain_level(((u8*)para_array)[0]);
+phy_printf("rx_gain_level level=%d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "dc_iq_est")) {
+dc_iq_est_test(1, (((u16*)para_array)[0]), ((u32)&__fr.b[2096]), ((u32)&__fr.b[48]));
+__fr.w[0] = __fr.w[14];
+phy_printf("%d,%d,%d,%d,%d,%d\n", *(u32*)(((u32)&__fr.b[2096])), *(u32*)((u32)&__fr.b[2100]), *(u32*)((u32)&__fr.b[2104]), __fr.w[12], __fr.w[13]) /* stack args: __fr.w[0] */;
+goto L_done;
+}
+if (!strcmp(command, "gpio_output_set")) {
+if (0x1f <u para_array[0]) goto L_3484;
+gpio_output_set(((para_array[1] << para_array[0]) & 0xffffffff), ((((para_array[1] == 0) ? (1) : (0)) << para_array[0]) & 0xffffffff), ((1 << para_array[0]) & 0xffffffff), 0);
+goto L_34aa;
+L_3484:;
+gpio_output_set_high(((para_array[1] << (para_array[0]-32)) & 0xffffffff), ((((para_array[1] == 0) ? (1) : (0)) << (para_array[0]-32)) & 0xffffffff), ((1 << (para_array[0]-32)) & 0xffffffff), 0);
+L_34aa:;
+phy_printf("gpio_output_set: gpio_no=%d, out_set=%d\n", para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "gpio_dis_output")) {
+if (0x1f <u para_array[0]) goto L_34e7;
+gpio_output_set(0, 0, 0, ((1 << para_array[0]) & 0xffffffff));
+goto L_34ed;
+L_34e7:;
+gpio_output_set_high(0, 0, 0, ((1 << para_array[0]) & 0xffffffff));
+L_34ed:;
+phy_printf("gpio_dis_output: gpio_no=%d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "gpio_input_get")) {
+if (0x1f <u para_array[0]) goto L_352c;
+rv0 = gpio_input_get();
+goto L_353d;
+L_352c:;
+rv1 = gpio_input_get_high();
+L_353d:;
+phy_printf("gpio_input_get: gpio_no=%d, get_value=%d\n", para_array[0], (0x1f <u para_array[0] ? ((((u32)(rv1)) >> para_array[0]) & 0x1) : ((((u32)(rv0)) >> para_array[0]) & 0x1)));
+goto L_done;
+}
+if (!strcmp(command, "modify_noise")) {
+phy_printf("modify_noise: %d, %d\n", ((s16)*(u16*)(chip7_sleep_params+78)), para_array[0]);
+*(u16*)(chip7_sleep_params+78) = para_array[0];
+goto L_done;
+}
+if (!strcmp(command, "force_wifi_chan")) {
+phy_printf("phy_force_wifi_chan\n");
+phy_force_wifi_chan();
+goto L_done;
+}
+if (!strcmp(command, "unforce_wifi_chan")) {
+phy_printf("phy_unforce_wifi_chan\n");
+phy_unforce_wifi_chan();
+goto L_done;
+}
+if (!strcmp(command, "bt_txpwr_backoff")) {
+btpwr_backoff(((s32)(para_array[0] << 25) >> 25));
+phy_printf("bt_txpwr_backoff=%d\n ", ((s32)(para_array[0] << 25) >> 25));
+goto L_done;
+}
+if (!strcmp(command, "bt_tx_tone")) {
+bt_tx_tone(para_array[0], para_array[1], para_array[2]);
+goto L_done;
+}
+if (!strcmp(command, "fcc_bt_tx")) {
+fcc_bt_tx_func(para_array[0], para_array[1], para_array[2], para_array[3], para_array[4], para_array[5]);
+goto L_done;
+}
+if (!strcmp(command, "fcc_bt_tx_len")) {
+__fr.w[1] = para_array[6];
+__fr.w[0] = para_array[5];
+phy_printf("fcc_bt_tx_len: txpwr=%d, hoppe=%d, chan=%d, rate=%d, length=%d, data_type=%d, num=%d\n", para_array[0], para_array[1], para_array[2], para_array[3], para_array[4]) /* stack args: __fr.w[1], __fr.w[0] */;
+__fr.w[0] = para_array[6];
+fcc_tx_len(para_array[0], para_array[1], para_array[2], para_array[3], para_array[4], para_array[5]) /* stack args: __fr.w[0] */;
+goto L_done;
+}
+if (!strcmp(command, "fcc_le_tx")) {
+fcc_le_tx_func(para_array[0], para_array[1], para_array[2], para_array[3]);
+goto L_done;
+}
+if (!strcmp(command, "fcc_le_tx_num")) {
+phy_printf("fcc_le_tx_num: txpwr=%d, chan=%d, length=%d, data_type=%d,num=%d\n", para_array[0], para_array[1], para_array[2], para_array[3], para_array[4]);
+fcc_le_tx(para_array[0], para_array[1], para_array[2], para_array[3], para_array[4]);
+goto L_done;
+}
+if (!strcmp(command, "fcc_le_tx_syncw_num")) {
+__fr.w[0] = para_array[5];
+phy_printf("fcc_le_tx_syncw_num: txpwr=%d, chan=%d, length=%d, data_type=%d,syncword=0x%x,num=%d\n", para_array[0], para_array[1], para_array[2], para_array[3], para_array[4]) /* stack args: __fr.w[0] */;
+fcc_le_tx_syncw(para_array[0], para_array[1], para_array[2], para_array[3], para_array[4], para_array[5]);
+goto L_done;
+}
+if (!strcmp(command, "fcc_le_tx_syncw")) {
+fcc_le_tx_syncw_func(para_array[0], para_array[1], para_array[2], para_array[3], para_array[4], 0);
+goto L_done;
+}
+if (!strcmp(command, "rw_rx_per")) {
+rw_rx_per_func(para_array[0], para_array[1], para_array[2], para_array[3]);
+goto L_done;
+}
+if (!strcmp(command, "rw_le_rx_per")) {
+rw_le_rx_per_func(para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "rw_le_rx_per_rssi")) {
+rw_le_rx_per_syncw_rssi(para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "bttx_low_power")) {
+phy_bttx_low_power(((u8*)para_array)[0], ((u8*)para_array)[4]);
+phy_printf("bttx_low_power en=%d,level=%d\n", para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "force_bttx_gain")) {
+force_bttx_gain(((u8*)para_array)[0], ((u8*)para_array)[4], ((u8*)para_array)[8], ((u8*)para_array)[12]);
+phy_printf("force_bttx_gain en=%d,pa=0x%x,bb=0x%x,dig=%d\n", para_array[0], para_array[1], para_array[2], para_array[3]);
+goto L_done;
+}
+if (!strcmp(command, "bt_track_en")) {
+*(u8*)(phy_bt_pll_track_en) = para_array[0];
+*(u8*)(phy_bt_power_track_en) = para_array[1];
+phy_printf("pll_track=%d, power_track=%d\n", (para_array[0] & 0xff), (para_array[1] & 0xff));
+goto L_done;
+}
+if (!strcmp(command, "bt_set_chan_test")) {
+ets_delay_us(0x64);
+coex_bt_high_prio();
+ets_delay_us(0x64);
+force_bt_mode();
+ets_delay_us(0x64);
+chip_v7_set_chan(((s32)(para_array[0] << 25) >> 25), ((s32)(para_array[1] << 25) >> 25));
+force_wifi_mode(1);
+goto L_done;
+}
+if (!strcmp(command, "cmd_polling_start")) {
+cmd_polling_start(0x64);
+phy_printf("start polling\n");
+goto L_done;
+}
+if (!strcmp(command, "rw_le_rx_per_polling")) {
+rw_le_rx_per_syncw_polling(para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "rw_le_rx_per_polling_stop")) {
+rw_le_rx_per_syncw_polling_stop();
+goto L_done;
+}
+if (!strcmp(command, "read_efuse_all")) {
+dst = (u32*)&__fr.b[48];
+for (p = 0x3ff5a000; p != 0x3ff5a01c; p += 4)
+    *dst++ = esp_dport_access_reg_read(p);
+for (p = 0x3ff5a038; p != 0x3ff5a058; p += 4)
+    *dst++ = esp_dport_access_reg_read(p);
+for (p = 0x3ff5a058; p != 0x3ff5a078; p += 4)
+    *dst++ = esp_dport_access_reg_read(p);
+for (p = 0x3ff5a078; p != 0x3ff5a098; p += 4)
+    *dst++ = esp_dport_access_reg_read(p);
+for (i = 0; i < 32; i++)
+    phy_printf("word_:%d, 0x%x\n", i, __fr.w[12 + i]);
+goto L_done;
+}
+if (!strcmp(command, "esp_en_reboot")) {
+esp_en_reboot();
+goto L_done;
+}
+if (!strcmp(command, "flash_wr")) {
+phy_printf("flash_wr: 0x%x\n", para_array[0]);
+SPIEraseSector((((u32)(para_array[0])) >> 12));
+goto L_done;
+}
+if (!strcmp(command, "deep_sleep_test")) {
+phy_printf("go to sleep\n");
+ets_delay_us(0x2710);
+rtc_set_cpu_freq(0);
+ets_unpack_flash_code(0x20000, ((u32)&__fr.b[48]), 0, 0, 0);
+set_rtc_memory_crc();
+*(u32*)(0x3ff480b8) = __fr.w[12];
+rtc_slp_prep_lite(3, 0);
+rtc_sleep(0, para_array[0], 8, 0);
+goto L_done;
+}
+if (!strcmp(command, "sleep_proc_test")) {
+phy_printf("sleep_proc_test start\n");
+uart_wait_idle(0);
+sleep_proc_test(((u8*)para_array)[0], ((u8*)para_array)[4], para_array[2]);
+phy_printf("sleep_proc_test: mode=%d, wakeup=%d, sleep_time=%d, %dus\n", para_array[0], para_array[1], para_array[2], (*(u32*)(0x60033c00) - *(u32*)(0x60033c00)));
+goto L_done;
+}
+if (!strcmp(command, "phy_wakeup")) {
+phy_printf("phy_wakeup start\n");
+ets_delay_us(0x2710);
+rtc_set_cpu_freq(1);
+rtc_uart_div_modify(0);
+rv4 = esp_dport_access_reg_read(0x3ff000cc);
+*(u32*)(0x3ff000cc) = (rv4 | 0x87cf);
+rv5 = esp_dport_access_reg_read(0x3ff48030);
+*(u32*)(0x3ff48030) = (rv5 | 0xd8000000);
+phy_wakeup_init();
+mac_init();
+phy_printf("phy_wakeup\n");
+goto L_done;
+}
+if (!strcmp(command, "esp_chk_cpu_level")) {
+rv0 = rtc_get_cpu_clk_grade();
+phy_printf("level:%d\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "rtc_set_cpu_freq")) {
+rtc_set_cpu_freq(para_array[0]);
+rtc_uart_div_modify(0);
+phy_printf("cpu_freq: 0:40M 1:80M 2: 160M 3: 240M 4:2M, curr_freq: %d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "noise_check_loop")) {
+phy_printf("noise_check_loop: check_level=%d, delay_ms=%d\n", para_array[0], para_array[1]);
+for (;;) {
+    noise_check_loop(((u8*)para_array)[0], 1);
+    for (i = 0; i <u para_array[1]; i++)
+        ets_delay_us(1000);
+    if (GetStopCmd(1000) != 0) break;
+}
+phy_printf("noise_check_loop done!!!\n");
+goto L_done;
+}
+if (!strcmp(command, "bt_coex_init")) {
+coex_bt_high_prio();
+rf_rw_init(((u32)&__fr.b[48]));
+phy_printf("COEX BT HP\n");
+goto L_done;
+}
+if (!strcmp(command, "enable_lr")) {
+phy_enable_low_rate();
+phy_printf("enable LR \n");
+goto L_done;
+}
+if (!strcmp(command, "disable_lr")) {
+phy_disable_low_rate();
+phy_printf("disable LR \n");
+goto L_done;
+}
+if (!strcmp(command, "bt_force_init")) {
+force_bt_mode();
+rf_rw_init(((u32)&__fr.b[48]));
+phy_printf("Force BT\n");
+goto L_done;
+}
+if (!strcmp(command, "rw_rx_per_ulap_rssi")) {
+rw_rx_per_ulap_rssi(para_array[0], para_array[1], para_array[2], para_array[3]);
+goto L_done;
+}
+if (!strcmp(command, "phy_close_rf")) {
+phy_close_rf();
+phy_printf("phy_close_rf done\n");
+goto L_done;
+}
+if (!strcmp(command, "rx_sense_set")) {
+phy_rx_sense_set(((u8*)para_array)[0]);
+phy_printf("phy_rx_sense_set thr=%d done\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "ant_dft_cfg")) {
+ant_dft_cfg(((u8*)para_array)[0]);
+phy_printf("ant_dft_cfg val=%d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "ant_wifitx_cfg")) {
+ant_wifitx_cfg(((u8*)para_array)[0], ((u8*)para_array)[4]);
+phy_printf("ant_wifitx_cfg val0=%d, val1=%d\n", para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "ant_wifirx_cfg")) {
+ant_wifirx_cfg(((u8*)para_array)[0], ((u8*)para_array)[4], ((u8*)para_array)[8]);
+phy_printf("ant_wifirx_cfg auto_en=%d, val0=%d, val1=%d\n", para_array[0], para_array[1], para_array[2]);
+goto L_done;
+}
+if (!strcmp(command, "ant_bttx_cfg")) {
+ant_bttx_cfg(((u8*)para_array)[0]);
+phy_printf("ant_bttx_cfg val=%d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "ant_btrx_cfg")) {
+ant_btrx_cfg(((u8*)para_array)[0], ((u8*)para_array)[4], ((u8*)para_array)[8]);
+phy_printf("ant_btrx_cfg auto_en=%d, val0=%d, val1=%d\n", para_array[0], para_array[1], para_array[2]);
+goto L_done;
+}
+if (!strcmp(command, "esp_tx_state_out")) {
+esp_tx_state_out(((u8*)para_array)[0], ((u8*)para_array)[4]);
+phy_printf("esp_tx_state_out %d %d\n", para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "get_power_db")) {
+rv0 = ram_get_power_db((*(u16*)(pwrdet_offset)));
+phy_printf("%d\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "flash_erase")) {
+SPIEraseSector((((u32)(para_array[0])) >> 12));
+phy_printf("flash_erase 0x%x\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "pwdet_always_en")) {
+phy_pwdet_always_en(((u8*)para_array)[0]);
+phy_printf("pwdet_always_en %d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "pwdet_onetime_en")) {
+phy_pwdet_onetime_en();
+phy_printf("phy_pwdet_onetime_en\n");
+goto L_done;
+}
+if (!strcmp(command, "rtc_get_gpio_dig_conf")) {
+rv0 = rtc_get_gpio_dig_conf((para_array[0] & 0xff));
+phy_printf("rtc_get_gpio_dig_conf %d 0x%x\n", para_array[0], rv0);
+goto L_done;
+}
+if (!strcmp(command, "rtc_restore_dig_gpio")) {
+rtc_restore_dig_gpio(((u8*)para_array)[0], para_array[1]);
+phy_printf("rtc_restore_dig_gpio %d 0x%x\n", para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "rtc_set_dig_gpio_out")) {
+rtc_set_dig_gpio_out(((u8*)para_array)[0], ((u8*)para_array)[4], ((u8*)para_array)[8]);
+phy_printf("rtc_set_dig_gpio_out gpio_num=%d drv=%d value=%d\n", para_array[0], para_array[1], para_array[2]);
+goto L_done;
+}
+if (!strcmp(command, "tx_power_print")) {
+phy_printf("phy_chan_target_power:");
+for (i = 0; i < 0x11; i++)
+    phy_printf("%d, ", (*(u8*)(phy_chan_target_power+i)));
+phy_printf("phy_chan_pwr_index:");
+for (i = 0; i < 0x11; i++)
+    phy_printf("%d, ", (*(u8*)(phy_chan_pwr_index+i)));
+phy_printf("phy_chan_gain_table:");
+for (i = 0; i < 8; i++)
+    phy_printf("%d, ", ((s32)((*(u8*)(phy_chan_gain_table+i)) << 25) >> 25));
+goto L_2963; /* shared tail: print loop epilogue in "dig_atten" branch */
+}
+if (!strcmp(command, "test_rf_cal_level")) {
+test_rf_cal_level(((u8*)para_array)[0], para_array[1]);
+phy_printf("%s %d 0x%x\n", command, para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "wr_rf_cal_data")) {
+read_macaddr_from_otp(((u32)&__fr.b[2096]));
+for (i = 0; i < 6; i++)
+    __fr.b[52 + i] = __fr.b[2096 + i];
+rf_cal_data_backup(((u32)&__fr.b[48]));
+phy_rfcal_data_check(0, ((u32)&__fr.b[48]), init_param_default);
+SPIEraseSector(0xfc);
+SPIWrite(0xfc000, ((u32)&__fr.b[48]), 0x800);
+phy_printf("write rf_cal_data done\n");
+goto L_done;
+}
+if (!strcmp(command, "force_txon_en")) {
+force_txon_en(((u8*)para_array)[0]);
+phy_printf("force_txon_en %d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "brown_out_test")) {
+rtc_brown_out_test(((u8*)para_array)[0], ((u8*)para_array)[4]);
+phy_printf("rtc_brown_out_test %d %d\n", para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "test_tx_vdd33")) {
+phy_printf("test_tx_vdd33 %d\n", para_array[0]);
+test_tx_vdd33(para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "get_adc_rand")) {
+phy_get_adc_rand(((u8*)para_array)[0]);
+phy_printf("get_adc_rand %d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "test_i2c")) {
+t0 = *(u32*)(0x60033c00);
+for (i = 0; i <u para_array[0]; i++)
+    ram_chip_i2c_readReg(0x62, 1, 0);
+t1 = *(u32*)(0x60033c00);
+phy_printf("test_i2c %d %dus\n", t1 - t0, 0 /* a12 last set 0 pre-loop */);
+goto L_done;
+}
+if (!strcmp(command, "get_sar2_vol")) {
+rv0 = get_sar2_vol(((u8*)para_array)[0]);
+phy_printf("%d\n", rv0);
+goto L_done;
+}
+if (!strcmp(command, "pvt_test")) {
+pvt_test_func();
+goto L_done;
+}
+if (!strcmp(command, "coex_test")) {
+coex_test(((u8*)para_array)[0]);
+phy_printf("coex_test mode=%d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "ap_ack_test")) {
+phy_printf("ap_ack_test: chan=%d rate=0x%x len=%d \n", para_array[0], para_array[1], para_array[2]);
+ap_ack_test(((u8*)para_array)[0], para_array[1], para_array[2]);
+goto L_done;
+}
+if (!strcmp(command, "wifi_ack_test")) {
+__fr.w[1] = ((u8*)para_array)[28];
+__fr.w[4] = para_array[10];
+__fr.w[3] = ((u8*)para_array)[36];
+__fr.w[2] = ((u8*)para_array)[32];
+__fr.w[0] = (((u16*)para_array)[12]);
+wifi_ack_test(para_array[0], para_array[1], ((u8*)para_array)[8], para_array[3], para_array[4], para_array[5]) /* stack args: __fr.w[1], __fr.w[4], __fr.w[3], __fr.w[2], __fr.w[0] */;
+goto L_done;
+}
+if (!strcmp(command, "tx_ack_test")) {
+__fr.w[2] = ((u8*)para_array)[32];
+__fr.w[1] = para_array[7];
+__fr.w[0] = para_array[6];
+tx_ack_test(para_array[0], para_array[1], ((u8*)para_array)[8], (((u16*)para_array)[6]), para_array[4], para_array[5]) /* stack args: __fr.w[2], __fr.w[1], __fr.w[0] */;
+__fr.w[1] = para_array[6];
+__fr.w[3] = para_array[8];
+__fr.w[2] = para_array[7];
+__fr.w[0] = para_array[5];
+phy_printf("tx_ack_test:ap_addr0=0x%x, ap_addr1=0x%x, tx_rate=0x%x, tx_num=%d, tx_length=%d, backoff=%d, aifs=%d, delay_ms=%d, tx_cbw40=%d\n", para_array[0], para_array[1], para_array[2], para_array[3], para_array[4]) /* stack args: __fr.w[1], __fr.w[3], __fr.w[2], __fr.w[0] */;
+goto L_done;
+}
+if (!strcmp(command, "tx_ack_init")) {
+tx_ack_init(para_array[0], para_array[1], ((u8*)para_array)[8], para_array[3], ((u8*)para_array)[16]);
+phy_printf("tx_ack_init:ap_addr0=0x%x, ap_addr1=0x%x, tx_rate=0x%x, tx_length=%d,tx_cbw40=%d\n", para_array[0], para_array[1], para_array[2], para_array[3], para_array[4]);
+goto L_done;
+}
+if (!strcmp(command, "tx_ack_start")) {
+tx_ack_start((((u16*)para_array)[0]), para_array[1], para_array[2], para_array[3], ((u32)&__fr.b[48]));
+phy_printf("rx_flag:0x%x,ack_num:%d,rssi:%d,rssi_max:%d,rssi_min:%d\n", __fr.w[12], __fr.w[13], __fr.w[14], __fr.w[15], __fr.w[16]);
+goto L_done;
+}
+if (!strcmp(command, "rfpll_cal_time")) {
+rfpll_cal_time(((u8*)para_array)[0], ((u8*)para_array)[4]);
+phy_printf("rfpll_cal_time: chan_freq=%d, mode=%d\n", para_array[0], para_array[1]);
+goto L_done;
+}
+if (!strcmp(command, "esp_get_rx_result")) {
+rv0 = esp_get_rx_result(((u32)&__fr.b[48]));
+phy_printf("esp_get_rx_result: %d, %d, %d, flag=%d\n", __fr.w[12], __fr.w[13], __fr.w[14], rv0);
+goto L_done;
+}
+if (!strcmp(command, "set_rx_sense")) {
+*(u8*)(adaptive_test_en) = 1;
+set_rx_sense(((s32)(para_array[0] << 25) >> 25));
+phy_printf("set_rx_sense: rssi=%d\n", ((s32)(para_array[0] << 25) >> 25));
+goto L_done;
+}
+if (!strcmp(command, "phy_set_freq")) {
+test_set_rf_freq_offset((*(u8*)(chip7_phy_init_ctrl+1)), (((u16*)para_array)[0]), ((s16)((u16*)para_array)[2]));
+phy_printf("phy_set_freq %d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "get_spur4m_pwr")) {
+get_spur4m_pwr(((u32)&__fr.b[48]));
+phy_printf("get_spur4m_pwr %d,%d\n", __fr.w[12], __fr.w[13]);
+goto L_done;
+}
+if (!strcmp(command, "bt_rx_spur_cal")) {
+bt_rx_spur_cal(para_array[0], 1);
+phy_printf("get_spur4m_pwr chan=%d,%d %d\n", para_array[0], (*(u8*)(bt_rx_2440_dac)), (*(u8*)(bt_rx_2480_dac)));
+goto L_done;
+}
+if (!strcmp(command, "bbpll_80m_cal")) {
+rtc_clk_cpu_freq_set_new(((u8*)para_array)[0]);
+rtc_uart_div_modify(0);
+phy_printf("bbpll_80m_cal %d done\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "test_2480_power")) {
+test_2480_power(para_array[0]);
+phy_printf("test_2480_power %d\n", para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "bt_2480_opt_en")) {
+*(u8*)(bt_2480_opt_en) = para_array[0];
+*(u8*)(bt_2480_print) = para_array[1];
+phy_printf("bt_2480_opt_en %d %d\n", (para_array[0] & 0xff), (para_array[1] & 0xff));
+goto L_done;
+}
+if (!strcmp(command, "phy_version_print")) {
+phy_version_print();
+goto L_done;
+}
+if (!strcmp(command, "clk_test_tmp")) {
+*(u32*)(0x3ff48070) = (*(u32*)(0x3ff48070) & 0xe7ffffff);
+*(u32*)(0x3ff48070) = ((*(u32*)(0x3ff48070) & 0xe7ffffff) | 0x8000000);
+phy_printf("clk_test_tmp done\n");
+goto L_done;
+}
+if (!strcmp(command, "bt_rx_spur_opt")) {
+bt_rx_spur_opt(((u8*)para_array)[0]);
+phy_printf("%s %d\n", command, para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "txdc_stable_test")) {
+txdc_stable_test(1);
+goto L_done;
+}
+if (!strcmp(command, "rxspur_test")) {
+rxspur_test(1);
+phy_printf("%s\n", command);
+goto L_done;
+}
+if (!strcmp(command, "rfpll_cap_sign")) {
+ate_rfpll_cap_sign(((u8*)para_array)[0]);
+goto L_done;
+}
+if (!strcmp(command, "ate_bt_fb")) {
+__fr.w[0] = (((u16*)para_array)[10]);
+*(u16*)(bt_tester_param) = para_array[1];
+*(u16*)(bt_tester_param+2) = para_array[2];
+*(u16*)(bt_tester_param+4) = para_array[3];
+*(u16*)(bt_tester_param+6) = para_array[4];
+phy_printf("ate_bt_fb: num=%d,edr=%d,type=%d,len=%d,pwr=%d,freq=%d\n", para_array[0], (para_array[1] & 0xffff), (para_array[2] & 0xffff), (para_array[3] & 0xffff), (para_array[4] & 0xffff)) /* stack args: __fr.w[0] */;
+rw_bt_func_test_init();
+rw_bt_func_test_tester((((u16*)para_array)[10]), (((u16*)para_array)[10]), para_array[0]);
+phy_printf("ate_bt_fb done\n");
+goto L_done;
+}
+if (!strcmp(command, "ate_bt_dut")) {
+__fr.w[564] = (((u16*)para_array)[10]);
+__fr.w[566] = para_array[1];
+__fr.w[0] = __fr.w[564];
+*(u16*)(bt_dut_param) = __fr.w[566];
+*(u16*)(bt_dut_param+2) = para_array[2];
+*(u16*)(bt_dut_param+4) = para_array[3];
+*(u16*)(bt_dut_param+6) = para_array[4];
+__fr.w[565] = ((u32)&__fr.b[48]);
+phy_printf("ate_bt_dut: num=%d,edr=%d,type=%d,len=%d,pwr=%d,freq=%d\n", para_array[0], (para_array[1] & 0xffff), (para_array[2] & 0xffff), (para_array[3] & 0xffff), (para_array[4] & 0xffff)) /* stack args: __fr.w[0] */;
+*(u32*)((u32)&__fr.b[2236]) = 0;
+*(u32*)((u32)&__fr.b[2232]) = 0;
+*(u32*)((u32)&__fr.b[2228]) = 0;
+*(u32*)((u32)&__fr.b[2224]) = 0;
+*(u32*)(((u32)&__fr.b[2096])) = 0;
+*(u8*)((u32)&__fr.b[2245]) = 0;
+*(u8*)((u32)&__fr.b[2244]) = 0;
+*(u8*)((u32)&__fr.b[2243]) = 0;
+*(u8*)((u32)&__fr.b[2242]) = 0;
+*(u8*)((u32)&__fr.b[2241]) = 0;
+*(u8*)((u32)&__fr.b[2240]) = 0;
+__fr.w[12] = 0;
+rv1 = esp_dport_access_reg_read(0x3ff5a008);
+rv2 = esp_dport_access_reg_read(0x3ff5a004);
+rw_bt_func_test_init();
+__fr.w[7] = (&__fr.b[0x8c2]);
+__fr.w[6] = (&__fr.b[0x8c3]);
+__fr.w[5] = (&__fr.b[0x8c4]);
+__fr.w[4] = (&__fr.b[0x8c5]);
+__fr.w[3] = __fr.w[565];
+__fr.w[2] = ((u32)&__fr.b[2096]);
+__fr.w[1] = (&__fr.b[0x8b0]);
+__fr.w[0] = (&__fr.b[0x8b4]);
+__fr.w[9] = (&__fr.b[0x8c0]);
+__fr.w[8] = (&__fr.b[0x8c1]);
+rw_bt_func_test_dut(((rv1 & 0xffff) | 0x45110000), rv2, 0, para_array[0], (__fr.w[565] + 0x88c), (__fr.w[565] + 0x888)) /* stack args: __fr.w[7], __fr.w[6], __fr.w[5], __fr.w[4], __fr.w[3], __fr.w[2], __fr.w[1], __fr.w[0], __fr.w[9], __fr.w[8] */;
+__fr.w[0] = *(u32*)((u32)&__fr.b[2236]);
+__fr.w[2] = __fr.w[12];
+__fr.w[1] = *(u32*)(((u32)&__fr.b[2096]));
+phy_printf("ate_bt_dut done: dut_rx_num=%d, fb_rx_num=%d, bt_dut_rssi=%d, bt_fb_rssi=%d, ntx=%d, nslvtx=%d, nrxac=%d, nrxall=%d\n", *(u32*)((u32)&__fr.b[2224]), *(u32*)((u32)&__fr.b[2232]), ((s32)((*(u8*)((u32)&__fr.b[2243])) << 25) >> 25), ((s32)((*(u8*)((u32)&__fr.b[2240])) << 25) >> 25), *(u32*)((u32)&__fr.b[2228])) /* stack args: __fr.w[0], __fr.w[2], __fr.w[1] */;
+goto L_done;
+}
+if (!strcmp(command, "flash_op")) {
+ets_efuse_get_spiconfig();
+spi_flash_attach();
+__fr.w[566] = para_array[6];
+__fr.w[564] = para_array[13];
+__fr.w[2] = para_array[8];
+__fr.w[3] = para_array[9];
+__fr.w[7] = para_array[13];
+__fr.w[6] = para_array[12];
+__fr.w[5] = para_array[11];
+__fr.w[4] = para_array[10];
+__fr.w[1] = para_array[7];
+__fr.w[0] = __fr.w[566];
+FlashBoardTest(para_array[0], para_array[1], para_array[2], para_array[3], para_array[4], para_array[5]) /* stack args: __fr.w[2], __fr.w[3], __fr.w[7], __fr.w[6], __fr.w[5], __fr.w[4], __fr.w[1], __fr.w[0] */;
+goto L_done;
+}
+if (!strcmp(command, "set_freq_test")) {
+set_freq_test(para_array, para_num);
+goto L_done;
+}
+if (!strcmp(command, "pbus_debug_test")) {
+__fr.w[1] = (((u16*)para_array)[14]);
+__fr.w[4] = (para_array+40);
+__fr.w[3] = (((u16*)para_array)[18]);
+__fr.w[2] = (((u16*)para_array)[16]);
+__fr.w[0] = (((u16*)para_array)[12]);
+pbus_debug_test(((u8*)para_array)[0], ((u8*)para_array)[4], ((u8*)para_array)[8], ((u8*)para_array)[12], (((u16*)para_array)[8]), (((u16*)para_array)[10])) /* stack args: __fr.w[1], __fr.w[4], __fr.w[3], __fr.w[2], __fr.w[0] */;
+goto L_done;
+}
+if (!strcmp(command, "pvt_ate")) {
+pvt_ate();
+goto L_done;
+}
+if (!strcmp(command, "get_path_loss_offset")) {
+get_path_loss_offset(((u32)&__fr.b[48]));
+phy_printf("%s=%d\n", command, __fr.w[13]);
+goto L_done;
+}
+if (!strcmp(command, "mac_filter_en")) {
+*(u8*)(mac_filter_en) = para_array[0];
+phy_printf("%s %d\n", command, para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "force_rx_gain")) {
+force_rx_gain(((u8*)para_array)[0], ((u8*)para_array)[4], ((u8*)para_array)[8]);
+phy_printf("%s %d %d %d\n", command, para_array[0], para_array[1], para_array[2]);
+goto L_done;
+}
+if (!strcmp(command, "rx_11b_opt")) {
+rx_11b_opt(((u8*)para_array)[0]);
+phy_printf("%s %d\n", command, para_array[0]);
+goto L_done;
+}
+if (!strcmp(command, "rfpll_1p2_test")) {
+rfpll_1p2_test();
+phy_printf("%s\n", command);
+goto L_done;
+}
+if (!strcmp(command, "phy_param_set")) {
+*(u8*)(rc_cal_en) = ((u8*)para_array)[0];
+if (((u8*)para_array)[0] != 0) goto L_4970;
+*(u8*)(wifi_txband) = 0x5f;
+*(u8*)(wifi_txband_ht40) = 0xffffffc3;
+goto L_49a9;
+L_4970:;
+rv0 = (*(g_phyFuns[0])[11]/*indirect*/)(para_array[1], 0x5f, 0x32);
+*(u8*)(wifi_txband) = rv0;
+rv1 = (*(g_phyFuns[0])[11]/*indirect*/)(para_array[2], 0xc3, 0x64);
+*(u8*)(wifi_txband_ht40) = rv1;
+L_49a9:;
+chip7_sleep_params = 0;
+bb_init();
+phy_printf("phy_band_opt: enable=%d,%d,%d\n", para_array[0], (*(u8*)(chip7_sleep_params+84)), (*(u8*)(chip7_sleep_params+86)));
+goto L_done;
+}
+if (!strcmp(command, "rx_gain_comp_cal")) {
+rx_gain_comp_cal(((u8*)para_array)[0], ((u8*)para_array)[4]);
+phy_printf("%s %d\n", command, (*(u32*)(0x60033c00) - *(u32*)(0x60033c00)));
+goto L_done;
+}
+if (!strcmp(command, "bt_bb_init_cmplx")) {
+bt_bb_init_cmplx_reg();
+phy_printf("%s\n", command);
+goto L_done;
+}
+if (!strcmp(command, "phy_reg_check")) {
+phy_reg_check();
+phy_printf("%s\n", command);
+goto L_done;
+}
+if (!strcmp(command, "phy_wakeup_init")) {
+phy_wakeup_init();
+phy_printf("%s\n", command);
+goto L_done;
+}
+if (!strcmp(command, "phy_i2c_init")) {
+phy_i2c_init();
+phy_printf("%s\n", command);
+goto L_done;
+}
+if (!strcmp(command, "get_rfcal_num")) {
+phy_printf("%s, %d\n", command, 0x56c);
+goto L_done;
+}
+if (!strcmp(command, "io_adc_test")) {
+if (0x23 >=u (para_array[0] & 0xff)) goto L_4ae8;
+goto L_4aeb;
+L_4ae8:;
+L_4aeb:;
+rv0 = adc_test1(((0x23 >=u (para_array[0] & 0xff) ? ((para_array[0] & 0xff)-28) : ((para_array[0] & 0xff)-36)) & 0xff));
+phy_printf("%s: adc_io=%d, adc_chan=%d, adc_dout=%d\n", command, (para_array[0] & 0xff), (0x23 >=u (para_array[0] & 0xff) ? ((para_array[0] & 0xff)-28) : ((para_array[0] & 0xff)-36)), rv0);
+goto L_done;
+}
+    return false; /* no command matched */
+L_done:;
+    return true;
 }
 
 /* rx_gain_comp_cal wifi.c:2267 @ wifi.o size 478B [dwarf-sig]

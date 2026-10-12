@@ -65,22 +65,85 @@ void bb_rst_en_set(bool en)
     REG_WRITE(0x3ff5d040u, (REG_READ(0x3ff5d040u) & 0x7fffffffu) | ((e << 31) & 0x80000000u));
 }
 /* bt_get_i2c_data phy_chip_v7_ana.c:1818 @ phy_chip_v7_ana.o size 1096B [dwarf-sig]
- * Calls: (indirect) g_phyFuns[42] x2+, g_phyFuns[38], esp_dport_access_reg_read | Data refs: g_phyFuns | MMIO: (via hooks + reads)
- * Fidelity: low - signature + dispatch skeleton only; full 7-lane jx-table decode TODO (test-mode helper, out of priority path) */
+ * Calls: (indirect) g_phyFuns[42], g_phyFuns[38] | Data refs: g_phyFuns | MMIO: (none direct)
+ * Fidelity: medium-high - prologue hooks, chained lane sequence with exact per-lane constants, rd_en chaining, tail loop verified per disasm */
 void bt_get_i2c_data(U8 * i2c_mst, U8 * i2c_block, U8 * i2c_addr, U8 * i2c_addr_tx, U8 * i2c_data_tx, U8 * i2c_addr_rx, U8 * i2c_data_rx, uint8 i2c_num, uint8 * i2c_rd_en)
 {
     uint8 i; (void)i;                 /* DWARF l1824 */
     U8 ir_enx_cap; (void)ir_enx_cap;  /* DWARF l1832 */
     uint8 pll_rst_start; (void)pll_rst_start;  /* DWARF l1842 */
-    (void)i2c_mst; (void)i2c_block; (void)i2c_addr; (void)i2c_addr_tx;
-    (void)i2c_data_tx; (void)i2c_addr_rx; (void)i2c_data_rx;
-    (void)i2c_num; (void)i2c_rd_en;
-    /* TODO(ground-truth): 1096B indirect-jump (jx a12) dispatcher, 7+ lanes
-     * selected by a bltui ladder, filling the tx/rx addr+data arrays via
-     * g_phyFuns[42]/[38] hooks and DPORT reads. Reconstruct per-lane from
-     * disasm .text.bt_get_i2c_data (file offset 0x8..0x448) + DWARF lines
-     * phy_chip_v7_ana.c:1818+. Prologue hooks: w42(98,1,0,7,7,stale),
-     * w38(98,1,0) with returns masked 159. */
+    ((void (*)(u32, u32, u32, u32))g_phyFuns[42])(98, 1, 0, 7);  /* +168 lane (a13/a14=7,a15=1 setup; upper-arg roles uncertain) */
+    ((void (*)(u32, u32, u32))g_phyFuns[38])(98, 1, 0);          /* +152 lane */
+    if (i2c_num == 0)   /* bne -> lane chain, else return */
+        return;
+    /* Chained lane sequence: lane k fills index k, then
+     * `if (i2c_num <= k+1) return`, else i2c_rd_en[k+1] = 0 and fall
+     * through to lane k+1. (Loop-top rd_en[i]=i + jx dispatch only
+     * serves index 0 and the >=11 tail; chains bypass it.) */
+    i = 0;
+    i2c_rd_en[0] = 0;
+    i2c_mst[0] = 0; i2c_block[0] = 99; i2c_addr[0] = 0; i2c_addr_tx[0] = 15;
+    i2c_data_tx[0] = 0; i2c_data_rx[0] = 0; i2c_addr_rx[0] = 15;
+    i2c_rd_en[0] = 1;
+    if (i2c_num < 2) return;
+    i2c_rd_en[1] = 0;
+    i = 1;
+    i2c_mst[1] = 1; i2c_block[1] = 98; i2c_addr[1] = 1; i2c_addr_tx[1] = 16;
+    i2c_data_tx[1] = 0; i2c_data_rx[1] = 0; i2c_addr_rx[1] = 16;
+    if (i2c_num < 3) return;
+    i2c_rd_en[2] = 0;
+    i = 2;
+    i2c_mst[2] = 1; i2c_block[2] = 98; i2c_addr[2] = 2; i2c_addr_tx[2] = 17;
+    i2c_data_tx[2] = 0; i2c_data_rx[2] = 0; i2c_addr_rx[2] = 17;
+    if (i2c_num < 4) return;
+    i2c_rd_en[3] = 0;
+    i = 3;
+    i2c_mst[3] = 0; i2c_block[3] = 99; i2c_addr[3] = 0; i2c_addr_tx[3] = 0;
+    i2c_data_tx[3] = 7; i2c_data_rx[3] = 7; i2c_addr_rx[3] = 0;
+    if (i2c_num < 5) return;
+    i2c_rd_en[4] = 0;
+    i = 4;
+    i2c_mst[4] = 0; i2c_block[4] = 99; i2c_addr[4] = 3; i2c_addr_tx[4] = 22;
+    i2c_data_tx[4] = 0; i2c_data_rx[4] = 0; i2c_addr_rx[4] = 22;
+    if (i2c_num < 6) return;
+    i2c_rd_en[5] = 0;
+    i = 5;
+    i2c_mst[5] = 0; i2c_block[5] = 99; i2c_addr[5] = 5; i2c_addr_tx[5] = 20;
+    i2c_data_tx[5] = 0; i2c_data_rx[5] = 0; i2c_addr_rx[5] = 20;
+    if (i2c_num < 7) return;
+    i2c_rd_en[6] = 0;
+    i = 6;
+    i2c_mst[6] = 0; i2c_block[6] = 99; i2c_addr[6] = 4; i2c_addr_tx[6] = 21;
+    i2c_data_tx[6] = 0; i2c_data_rx[6] = 0; i2c_addr_rx[6] = 21;
+    if (i2c_num < 8) return;
+    i2c_rd_en[7] = 0;
+    i = 7;
+    i2c_mst[7] = 0; i2c_block[7] = 99; i2c_addr[7] = 0; i2c_addr_tx[7] = 1;
+    i2c_data_tx[7] = 23; i2c_data_rx[7] = 23; i2c_addr_rx[7] = 1;
+    if (i2c_num <= 8) return;   /* bgeu 8 lane */
+    i2c_rd_en[8] = 0;
+    i = 8;
+    i2c_mst[8] = 1; i2c_block[8] = 98; i2c_addr[8] = 0; i2c_addr_tx[8] = 2;
+    i2c_data_tx[8] = 34; i2c_data_rx[8] = 34; i2c_addr_rx[8] = 2;
+    if (i2c_num <= 9) return;
+    i2c_rd_en[9] = 0;
+    i = 9;
+    i2c_mst[9] = 0; i2c_block[9] = 100; i2c_addr[9] = 4; i2c_addr_tx[9] = 24;
+    i2c_data_tx[9] = 0; i2c_data_rx[9] = 0; i2c_addr_rx[9] = 24;
+    if (i2c_num <= 10) return;
+    i2c_rd_en[10] = 0;
+    i = 10;
+    i2c_mst[10] = 0; i2c_block[10] = 100; i2c_addr[10] = 7; i2c_addr_tx[10] = 25;
+    i2c_data_tx[10] = 0; i2c_data_rx[10] = 0; i2c_addr_rx[10] = 25;
+    if (i2c_num <= 11) return;
+    i2c_rd_en[11] = 0;
+    i = 11;   /* tail: blank lanes; loop-top sets rd_en[i]=i from here on */
+    for (;;) {
+        i2c_mst[i] = 0; i2c_block[i] = 0;
+        i++;
+        if (i >= i2c_num) return;   /* bgeu lane */
+        i2c_rd_en[i] = i;
+    }
 }
 /* bt_i2c_read_mem phy_chip_v7_ana.c:? @ phy_chip_v7_ana.o size 143B [inferred]
  * Calls: phy_printf x3, esp_dport_access_reg_read x2 | Data refs: phy_printf | MMIO: 0x3ff4e0c0, 0x3ff4e0c4
@@ -149,21 +212,91 @@ void bt_i2c_set_wifi_data(U8 * data, U8 i2c_num)
     }
 }
 /* bt_i2c_write_set phy_chip_v7_ana.c:1390 @ phy_chip_v7_ana.o size 1392B [dwarf-sig]
- * Calls: esp_dport_access_reg_read x19 | Data refs: esp_dport_access_reg_read | MMIO: 0x3ff4e130+ staging regs (per-lane)
- * Fidelity: low - signature + lane skeleton only; full per-lane field-pack decode TODO (test-mode helper, out of priority path) */
+ * Calls: esp_dport_access_reg_read x19 | Data refs: esp_dport_access_reg_read | MMIO: 0x3ff4e0c4, 0x3ff4e100, 0x3ff4e104, 0x3ff4e108, 0x3ff4e0d8, 0x3ff4e0dc, 0x3ff4e0e0, 0x3ff4e0e4, 0x3ff4e0e8, 0x3ff4e0ec, 0x3ff4e0f0, 0x3ff4e0f4, 0x3ff4e10c, 0x3ff4e110, 0x3ff4e128, 0x3ff4e12c, 0x3ff4e0d0, 0x3ff4e11c, 0x3ff4e0d4, 0x3ff4e120, 0x3ff4e124, 0x3ff4e0c8, 0x3ff4e0cc, 0x3ff4e114, 0x3ff4e118, 0x3ff4e164
+ * Fidelity: medium - prologue/mask-loop, all 5 phase skeletons, lane dispatch keys, target regs, byte/nibble sources verified; phase-1 pointer-xor mask idiom reproduced exactly (intent unclear, see note); funnel widths approximate */
 void bt_i2c_write_set(U8 * i2c_mst, U8 * i2c_block, U8 * i2c_addr, U8 * i2c_addr_tx, U8 * i2c_data_tx, U8 * i2c_addr_rx, U8 * i2c_data_rx, U8 i2c_num, U8 * i2c_rd_en)
 {
     U8 i; (void)i;                        /* DWARF l1392 */
-    u32 rd_en_data; (void)rd_en_data;     /* DWARF l1396 */
-    (void)i2c_mst; (void)i2c_block; (void)i2c_addr; (void)i2c_addr_tx;
-    (void)i2c_data_tx; (void)i2c_addr_rx; (void)i2c_data_rx;
-    (void)i2c_num; (void)i2c_rd_en;
-    /* TODO(ground-truth): 1392B multi-lane write programmer. Per-lane shape
-     * mirrors bt_i2c_read_set/bt_i2c_set_wifi_data (field packs into
-     * 0x3ff4e130+ staging regs with DPORT read-backs, bgeu/bnei lane
-     * selection on (i>>2)-style indices, rd_en_data accumulation).
-     * Reconstruct per-lane from disasm .text.bt_i2c_write_set (0xc0..0x630)
-     * + DWARF lines phy_chip_v7_ana.c:1390+. */
+    u32 rd_en_data = 0;                   /* DWARF l1396 */
+    U8 k;
+    REG_WRITE(0x3ff4e0c4u, (REG_READ(0x3ff4e0c4u) & 0xffff83ffu) | (((u32)i2c_num & 0x1fu) << 10));
+    if (i2c_num == 0) {   /* beqz -> tail store + return */
+        REG_WRITE(0x3ff4e164u, i2c_num);
+        return;
+    }
+    for (k = 0; k < i2c_num; k++)   /* rd_en bitmask loop */
+        if (i2c_rd_en[k] == 1)
+            rd_en_data |= (u32)1 << k;
+    REG_WRITE(0x3ff4e164u, rd_en_data);
+    /* Phase 1: per-lane RMW to 0x3ff4e100/104/108 by (i>>3). Mask idiom
+     * (verified exact): m = rd_en_end ^ (i2c_num << (i*4));
+     * REG = (read & m) | ((nibble) << (i*4)). The pointer-derived mask
+     * keeps the high address bits; intent unclear but reproduced exactly. */
+    {
+        U8 *rd_end = i2c_rd_en + i2c_num;
+        for (i = 0; i < i2c_num; i++) {
+            u32 addr = (i >> 3) == 0 ? 0x3ff4e100u : (i >> 3) == 1 ? 0x3ff4e104u : 0x3ff4e108u;
+            u32 v = REG_READ(addr);
+            u32 m = (u32)(uintptr_t)rd_end ^ ((u32)i2c_num << ((i * 4) & 31));
+            u32 nib = (i >> 3) == 0 ? (i2c_mst[i] & 0xfu)
+                : (i >> 3) == 1 ? (i2c_mst[i] & 0x7u) : (i2c_mst[i] & 0x7u);
+            v = (v & m) | (nib << ((i * 4) & 31));   /* exact shape; nibble width approximate */
+            REG_WRITE(addr, v);
+        }
+    }
+    /* Phase 2: per-lane byte-pack to 0x3ff4e0d8..0x3ff4e10c by (i>>1),
+     * default 0x3ff4e110. REG = (read & ~(0xffff << s)) | ((((addr[i])<<8)|block[i]) << s). */
+    {
+        static const u32 regs[9] = { 0x3ff4e0d8u, 0x3ff4e0dcu, 0x3ff4e0e0u, 0x3ff4e0e4u,
+            0x3ff4e0e8u, 0x3ff4e0ecu, 0x3ff4e0f0u, 0x3ff4e0f4u, 0x3ff4e10cu };
+        for (i = 0; i < i2c_num; i++) {
+            u32 idx = (u32)i >> 1;
+            u32 addr = idx <= 8 ? regs[idx] : 0x3ff4e110u;
+            u32 v = REG_READ(addr);
+            u32 s = (idx <= 8 ? (u32)(i * 4) : (u32)(i & 1) * 16) & 31;   /* approximate */
+            u32 field = (((u32)i2c_addr[i] << 8) | i2c_block[i]) & 0xffffu;
+            v = (v & ~(0xffffu << s)) | (field << s);
+            REG_WRITE(addr, v);
+        }
+    }
+    /* Phase 3: per-lane 0x3ff4e128/0x3ff4e12c bit RMWs + (i>>3) switch to
+     * 0x3ff4e0d0/0x3ff4e0d4/0x3ff4e124 (each with a secondary RMW to
+     * 0x3ff4e11c/0x3ff4e120/0x3ff4e124) with nibble insert. */
+    for (i = 0; i < i2c_num; i++) {
+        u32 v = REG_READ(0x3ff4e128u);
+        v = (v & ~1u) | ((i2c_addr_rx[i] >> 4) & 1u);
+        REG_WRITE(0x3ff4e128u, v);
+        v = REG_READ(0x3ff4e12cu);
+        v = (v & ~1u) | ((i2c_addr_tx[i] >> 4) & 1u);   /* approximate */
+        REG_WRITE(0x3ff4e12cu, v);
+        {
+            u32 addr = (i >> 3) == 0 ? 0x3ff4e0d0u : (i >> 3) == 1 ? 0x3ff4e0d4u : 0x3ff4e124u;
+            u32 addr2 = (i >> 3) == 0 ? 0x3ff4e11cu : (i >> 3) == 1 ? 0x3ff4e120u : 0x3ff4e124u;
+            u32 sh = ((i & 7) * 4) & 31;   /* slli-2 funnel; approximate */
+            v = REG_READ(addr);
+            v = (v & ~(0xfu << sh)) | (((u32)i2c_addr_rx[i] & 0xfu) << sh);
+            REG_WRITE(addr, v);
+            v = REG_READ(addr2);
+            v = (v & ~(0xfu << sh)) | (((u32)i2c_addr_tx[i] & 0xfu) << sh);
+            REG_WRITE(addr2, v);
+        }
+    }
+    /* Phase 4: per-lane double switch on (addr_rx[i]>>2)/(addr_tx[i]>>2)
+     * selecting 0x3ff4e0c8/0x3ff4e0cc/0x3ff4e114/0x3ff4e118; shared funnel
+     * body inserts the low 2-bit field + data byte. */
+    for (i = 0; i < i2c_num; i++) {
+        static const u32 regs[4] = { 0x3ff4e0c8u, 0x3ff4e0ccu, 0x3ff4e114u, 0x3ff4e118u };
+        u32 sel = (i2c_addr_rx[i] >> 2) & 3u;
+        u32 v = REG_READ(regs[sel]);
+        u32 sh = ((i2c_addr_rx[i] & 3u) << 3) & 31;
+        v = (v & ~(0xffu << sh)) | (((u32)i2c_data_rx[i] << 0) & (0xffu << sh));   /* approximate */
+        REG_WRITE(regs[sel], v);
+        sel = (i2c_addr_tx[i] >> 2) & 3u;
+        v = REG_READ(regs[sel]);
+        sh = ((i2c_addr_tx[i] & 3u) << 3) & 31;
+        v = (v & ~(0xffu << sh)) | (((u32)i2c_data_tx[i] << 0) & (0xffu << sh));   /* approximate */
+        REG_WRITE(regs[sel], v);
+    }
 }
 /* bt_track_pll_cap phy_chip_v7_ana.c:? @ phy_chip_v7_ana.o size 106B [inferred]
  * Calls: phy_enter_critical, esp_dport_access_reg_read, phy_dis_hw_set_freq, pll_correct_dcap, bt_track_tx_power, phy_en_hw_set_freq, phy_exit_critical | Data refs: (flag bytes via literals) | MMIO: 0x3ff4e168, 0x3ff5d008
@@ -809,7 +942,7 @@ void phy_force_chan(uint8 chan_freq)
     phy_exit_critical_to(crit);                        /* mov a10,a3 lane */
 }
 /* phy_force_wifi_chan phy_chip_v7_ana.c:2340 @ phy_chip_v7_ana.o size 284B [dwarf-sig]
- * Calls: (indirect) g_phyFuns table + local direct call8s, esp_dport_access_reg_read | Data refs: phy_force_wifi_chan_en | MMIO: 0x3ff4e0c4, 0x3ff51040, 0x3ff5c07c, 0x3ff5d008, 0x60033c00
+ * Calls: (indirect) g_phyFuns table + local direct call8s, esp_dport_access_reg_read, phy_enter_critical, bb_rst_en_set, esp_dport_access_reg_read, phy_exit_critical, phy_dis_hw_set_freq | Data refs: phy_force_wifi_chan_en | MMIO: 0x3ff4e0c4, 0x3ff51040, 0x3ff5d008, 0x60033c00
  * Fidelity: medium-low - flag stores, RMW masks, poll-loop skeleton verified; unresolved call targets listed as TODO (no invented names) */
 void phy_force_wifi_chan(void)
 {
@@ -890,7 +1023,7 @@ unbump:
     hw_set_freq_refcount--;                        /* addi -1; store; ret */
 }
 /* phy_i2c_init phy_chip_v7_ana.c:? @ phy_chip_v7_ana.o size 723B [inferred]
- * Calls: phy_enter_critical, i2c_write_master x8, i2c_bt_filter_set, i2c_bbpll_init$part$0, phy_exit_critical | Data refs: (staging tables on stack) | MMIO: (none direct; via callees)
+ * Calls: phy_enter_critical, i2c_write_master, i2c_bt_filter_set, phy_exit_critical | Data refs: (staging tables on stack) | MMIO: (none direct)
  * Fidelity: medium-low - phase order (probe reads, table staging, 8x master writes, BT filter, BBPLL part, exit) verified; exact table bytes/args TODO (see rdis) */
 void phy_i2c_init(void)
 {
@@ -983,7 +1116,7 @@ void phy_wifi_pll_track(bool enable)
     phy_wifi_pll_track_en = enable;   /* s8i a2,a8,0; memw */
 }
 /* pll_correct_dcap phy_chip_v7_ana.c:1738 @ phy_chip_v7_ana.o size 238B [dwarf-sig]
- * Calls: (indirect) g_phyFuns[41], esp_dport_access_reg_read | Data refs: g_phyFuns | MMIO: 0x3ff4e0c0, 0x3ff4e0c4, 0x3ff4e130, 0x3ff4e148
+ * Calls: (indirect) g_phyFuns[41], esp_dport_access_reg_read, esp_dport_access_reg_read | Data refs: g_phyFuns | MMIO: 0x3ff4e0c0, 0x3ff4e0c4, 0x3ff4e130, 0x3ff4e148
  * Fidelity: medium-low - status trilogy (0/1/-1), program+strobe sequence, cap store verified; hook args + 130-lane source TODO */
 sint8 pll_correct_dcap(uint8 freq, u8 * pll_cap_ext, bool wifi_chan_en)
 {
@@ -1259,7 +1392,7 @@ void rfpll_1p2_opt(void)
     ((void (*)(uint32, uint32, uint32, uint32))g_phyFuns[40])(106, 2, 0, 42);
 }
 /* set_chan_freq_hw_init phy_chip_v7_ana.c:2051 @ phy_chip_v7_ana.o size 172B [dwarf-sig]
- * Calls: bt_get_i2c_data, bt_i2c_write_set, esp_dport_access_reg_read, i2cmst_reg_init | Data refs: bt_get_i2c_data, bt_i2c_write_set, i2cmst_reg_init | MMIO: 0x60033d38
+ * Calls: get_rf_freq_init$part$2, bt_get_i2c_data, bt_i2c_write_set, write_wifi_chan_data, esp_dport_access_reg_read, i2cmst_reg_init | Data refs: bt_get_i2c_data, bt_i2c_write_set, i2cmst_reg_init | MMIO: 0x60033d38
  * Fidelity: medium-low - init gates, table-stage loops, final program verified; exact table/arg mapping TODO */
 void set_chan_freq_hw_init(S8 tx_freq_offset, S8 rx_freq_offset)
 {

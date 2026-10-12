@@ -152,3 +152,18 @@ inter_channel_timeout_process → scan_next_channel+0x68.
    summarised, not exhaustively mapped.
 7. Shared `/tmp/gen_net80211.py` was clobbered by a sibling worker mid-task;
    repaired outputs in place (unique-name generators recommended for shared /tmp).
+
+## 7. Upgrade pass 2026-10-12 (low -> medium, offline, disasm-grounded)
+
+Only functions tagged `Fidelity: low` touched; all others byte-identical.
+Headers re-tagged to medium; braces balanced (comment-aware recount 0 diff);
+hostap/input/output still `gcc -fsyntax-only -std=c99 -w` clean.
+
+| file | function(size) | old -> new | unlock notes |
+|---|---|---|---|
+| ieee80211_hostap.c | hostap_recv_mgmt(4854B) | low -> medium | FC-subtype dispatch on a14 (beqi 128/64/80/176/160/192/208 at +0x2a8..+0x2f9; bnone -33, blt bounds -> +0x1520); vendor OUI fork (is_esp_manufacturer_oui/is_non_esp_oui), IE walk l8ui +0/1/2 (beqi 3, bgeui 4, 50/221); assoc + action forks listed in call order |
+| ieee80211_hostap.c | hostap_input(1948B) | low -> medium | type/subtype fork (extui 0,2; movi 140/136/128; bbci bit5/6); mgmt -> recv_mgmt, ctl -> recv_ctl, data -> deauth/pwrsave/ampdu_reorder -> crypto_decap -> decap/amsdu -> deliver_data |
+| ieee80211_hostap.c | wifi_softap_start(1242B) | low -> medium | 5-phase bring-up in disasm call order (default-ssid/vif, NVS+2nd-chan+commit, phy/HT/bw40 gate, home/current/snd+update, attach+memset x4+event) |
+| ieee80211_input.c | ieee80211_parse_rsn(2558B) | low -> medium | RSN IE field map (id 48 @+0, len @+1, ver @+2 beqi 1, group @+4, pairwise cnt/list @+8, AKM, caps beqi 32, PMKID) + better_pairwise + ent/11r/wpa3 gates + override-OUI |
+| ieee80211_input.c | ieee80211_parse_beacon(1535B) | low -> medium | IE walk (beqi 1 arm; ids 0/1/3/5/7/HT/RSN/WPA, 221/127 markers) + regdomain_chan_in_range x2 gate |
+| ieee80211_output.c | ieee80211_assoc_req_construct(1267B) | low -> medium | IE build order (capinfo, lora/vnd size, getmgtframe, rates/chan/xrates, htcap gate, idle/dh/vendor/ht-vendor, appie x2, esp-mfr, lora/vnd set) |

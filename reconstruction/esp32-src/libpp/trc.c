@@ -1766,7 +1766,7 @@ L_53:;
  * Calls: rssi_margin | Data refs: .rodata.TRC_AMPDU_PER_DOWN_THRESHOLD, rssi_margin
  *   MMIO: none
  *   funcdb v3: 1 call(s), 2 ref(s); disasm: 4 call(s), 2 data ref(s)
- * Fidelity: low - 44 instr, 7 branches, 1 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: low - 44 instr, 7 branches, jx computed tail dispatch via rssi_margin table (+0x27 jx a2); threshold comparisons observed, case targets structural - need jump-table case decode to raise */
 int32_t TRC_AMPDU_PER_DOWN_THRESHOLD(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.TRC_AMPDU_PER_DOWN_THRESHOLD; Xtensa ABI: args a2..a7, return a2 */
@@ -1910,7 +1910,7 @@ L_d8:;
  * Calls: rssi_margin | Data refs: .rodata.TRC_AMPDU_PER_UP_THRESHOLD, rssi_margin
  *   MMIO: none
  *   funcdb v3: 1 call(s), 2 ref(s); disasm: 2 call(s), 2 data ref(s)
- * Fidelity: low - 37 instr, 7 branches, 1 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: low - 37 instr, 7 branches, jx computed tail dispatch via rssi_margin table (+0x2d jx a8); threshold comparisons observed, case targets structural - need jump-table case decode to raise */
 int32_t TRC_AMPDU_PER_UP_THRESHOLD(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.TRC_AMPDU_PER_UP_THRESHOLD; Xtensa ABI: args a2..a7, return a2 */
@@ -2758,7 +2758,7 @@ L_34:;
  * Calls: .rodata.trc_NeedRTS[tail] | Data refs: .rodata.trc_NeedRTS, lmacConfMib
  *   MMIO: none
  *   funcdb v3: 0 call(s), 2 ref(s); disasm: 1 call(s), 2 data ref(s)
- * Fidelity: low - 52 instr, 15 branches, 0 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: low - 52 instr, 15 branches, jx computed tail dispatch (+0x4c jx a2 via .rodata.trc_NeedRTS); RTS threshold comparisons observed, case targets structural - need jump-table case decode to raise */
 int32_t trc_NeedRTS(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.trc_NeedRTS; Xtensa ABI: args a2..a7, return a2 */
@@ -4037,7 +4037,7 @@ L_8:;
  * Calls: none | Data refs: none
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 0 call(s), 0 data ref(s)
- * Fidelity: low - 28 instr, 8 branches, 1 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: low - 28 instr, 8 branches, jx computed tail dispatch (+0x15 jx a2); rate-to-sched-index mapping structural - need jump-table case decode to raise */
 static int32_t rc11NRate2SchedIdx(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.rc11NRate2SchedIdx; Xtensa ABI: args a2..a7, return a2 */

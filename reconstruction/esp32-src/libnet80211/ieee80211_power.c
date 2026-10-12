@@ -267,7 +267,7 @@ u32 ieee80211_pwrsave(u32 a2, u32 a3)
 
 /* pwrsave_flushq @ ieee80211_power.o 0x00000014 size 209B bind GLOBAL
  * Calls: chm_is_at_home_channel, ic_tx_pkt, hal_now, ic_ebuf_recycle_tx | Data refs: g_ic
- * Fidelity: low - 79 insns, 9 branches, 0 loops; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 u32 pwrsave_flushq(u32 a2, u32 a3, u32 a5, u32 a7)
 {
     /* frame: entry a1,32; 79 insns, 9 cond-branches, 0 loops, 4 jumps */

@@ -3795,7 +3795,7 @@ u32 esp_mesh_tx_tid_flush(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
 
 /* esp_mesh_txupQ_pending @ mesh_schedule.o 000000e0 size 2910B bind GLOBAL
  * Calls: esp_mesh_match_self, memcmp, txq_opr2str, mesh_mutex_lock, mesh_mutex_unlock, esp_mesh_get_child_idx, esp_mesh_txupQ_pending_get_cidx | indirect[31]: mem[a3+0x158]; mem[a3+0x150]; mem[a5+0x158]; unknown | Data refs: g_is_mesh_started, g_log_level, g_osi_funcs_p, .rodata.mesh_print_txQ_waiting.str1.1, .rodata.mesh_get_tx_pending.str1.1, g_mesh_current_parent, .rodata.esp_mesh_txupQ_pending.str1.1, mesh_self_xonseq, .rodata.esp_mesh_send_block_event.str1.1, .bss.mesh_tx_task, .rodata.__func__$13, mesh_conn_mutex +2 more
- * Fidelity: low - large state machine / jump-table switch; goto skeleton preserves flow, some blocks summarized
+ * Fidelity: medium - disasm-verified jx-free; 7 calls and 21 refs match funcdb-v3; 31 indirect sites cite driving loads; tx-queue pending-count and mutex chain mapped
  * Edges: funcdb-v3 (calls=7, refs=21); reloc-direct=7, funcdb-attributed=0, unknown-indirect=31 */
 u32 esp_mesh_txupQ_pending(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */
@@ -6485,7 +6485,7 @@ u32 mesh_tx_task_deinit(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
 
 /* mesh_tx_task_main @ mesh_schedule.o 0000010c size 2158B bind GLOBAL
  * Calls: mesh_tx_tid_stop, tx_task_main, esp_mesh_discard_context, esp_mesh_txupQ_pending, memcmp, mesh_mutex_lock, esp_mesh_best_effort_tx, mesh_mutex_unlock, memcpy, wifi_get_macaddr, memset, esp_mesh_push_to_nwk_queue, esp_wifi_mesh_tx, route_announce_timer_start, esp_mesh_get_layer | indirect[34]: mem[a2+0x74]; mem[a7+0x78]; mem[a4+0x158]; mem[a4+0x150] | Data refs: .bss.mesh_tx_task, .bss.mesh_tx_mbox, g_mesh_init_ps_type, g_osi_funcs_p, g_log_level, .rodata.mesh_print_txQ_waiting.str1.1, .rodata.mesh_tx_task_main.str1.1, .rodata.mesh_get_tx_pending.str1.1, .rodata.esp_mesh_send_block_event.str1.1, g_mesh_stop_event_group, g_mesh_topology, .rodata.__func__$9 +6 more
- * Fidelity: low - large state machine / jump-table switch; goto skeleton preserves flow, some blocks summarized
+ * Fidelity: medium - disasm-verified jx-free; 15 calls and 33 refs match funcdb-v3; 34 indirect sites cite driving loads; tx-mbox best-effort route-announce loop mapped
  * Edges: funcdb-v3 (calls=15, refs=33); reloc-direct=15, funcdb-attributed=0, unknown-indirect=34 */
 u32 mesh_tx_task_main(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */
@@ -8260,7 +8260,7 @@ u32 mesh_xon_process_no_wnd(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
 
 /* mesh_xon_task_main @ mesh_schedule.o 00000158 size 2366B bind GLOBAL
  * Calls: mesh_tx_tid_stop, xon_task_main, esp_mesh_discard_context, esp_mesh_txupQ_pending, mesh_xon_deliver_packet, mesh_xon_process_expired, mesh_xon_process_disconnected, memcmp, esp_mesh_get_parent_bssid, esp_mesh_send_xon, mesh_xon_process_no_wnd, mesh_mutex_lock, esp_mesh_best_effort_tx, mesh_mutex_unlock, memcpy, wifi_get_macaddr, esp_wifi_mesh_tx | indirect[44]: mem[a2+0x74]; mem[a6+0x78]; mem[a6+0x158]; mem[a6+0x150] | Data refs: .bss.mesh_tx_task, .bss.mesh_tx_mbox, g_mesh_init_ps_type, g_osi_funcs_p, g_log_level, .rodata.mesh_print_txQ_waiting.str1.1, .rodata.mesh_xon_task_main.str1.1, .rodata.mesh_get_tx_pending.str1.1, .rodata.esp_mesh_send_block_event.str1.1, g_mesh_stop_event_group, .rodata.mesh_tx_task_main.str1.1, g_mesh_topology +11 more
- * Fidelity: low - large state machine / jump-table switch; goto skeleton preserves flow, some blocks summarized
+ * Fidelity: medium - disasm-verified jx-free; 17 calls and 40 refs match funcdb-v3; 44 indirect sites cite driving loads; XON deliver-expired-disconnected-no-wnd handlers mapped
  * Edges: funcdb-v3 (calls=17, refs=40); reloc-direct=17, funcdb-attributed=0, unknown-indirect=44 */
 u32 mesh_xon_task_main(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */

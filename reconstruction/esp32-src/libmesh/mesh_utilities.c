@@ -58,7 +58,7 @@ static u8 LOCAL__bss_strid_0[0x4]; /* stand-in for .bss.strid$0 (same-object sta
 
 /* discnx_reason_id2str @ mesh_utilities.o 0000006c size 229B bind GLOBAL
  * Calls: none | Data refs: .rodata.discnx_reason_id2str.str1.1, .rodata.discnx_reason_id2str, g_mesh_is_root
- * Fidelity: low - jump-table switch present; cases not recovered
+ * Fidelity: low - dual-range jx dispatch (id<=111 split at 99; ranges 1..15 and 101..111 via .rodata.discnx_reason_id2str + (idx<<2) load, bgeu bounds-checked; 200/204 special-cased; g_mesh_is_root tail select); arms return str1.1 strings but per-case offsets cite +0x0 only - need rodata string-table offset walk to raise
  * Edges: funcdb-v3 (calls=0, refs=3); reloc-direct=0, funcdb-attributed=0, unknown-indirect=0 */
 u32 discnx_reason_id2str(u32 a2) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */
@@ -148,7 +148,7 @@ u32 discnx_reason_id2str(u32 a2) {
 
 /* dutytype2str @ mesh_utilities.o 00000034 size 136B bind GLOBAL
  * Calls: none | Data refs: .rodata.tx_state_id2str.str1.1, .rodata.dutytype2str, .rodata.dutytype2str.str1.1
- * Fidelity: low - jump-table switch present; cases not recovered
+ * Fidelity: low - single-range jx dispatch (1..16 via .rodata.dutytype2str + (idx<<2) load, blt/bltu bounds-checked; out-of-range -> "unknown"/"request" literals); per-case string offsets cite str1.1+0x0 only - need rodata string-table offset walk to raise
  * Edges: funcdb-v3 (calls=0, refs=3); reloc-direct=0, funcdb-attributed=0, unknown-indirect=0 */
 u32 dutytype2str(u32 a2) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */
@@ -748,7 +748,7 @@ u32 vote_start2str(u32 a2) {
 
 /* wifi_event_id2str @ mesh_utilities.o 00000088 size 224B bind GLOBAL
  * Calls: sprintf | Data refs: .rodata.wifi_event_id2str, .rodata.wifi_event_id2str.str1.1, .bss.strid$0
- * Fidelity: low - jump-table switch present; cases not recovered
+ * Fidelity: low - single-range jx dispatch (id<=68 via .rodata.wifi_event_id2str + (idx<<2) load, bgeu-checked); out-of-range falls back to sprintf into .bss.strid$0; per-case string offsets cite str1.1+0x0 only - need rodata string-table offset walk to raise
  * Edges: funcdb-v3 (calls=1, refs=4); reloc-direct=1, funcdb-attributed=0, unknown-indirect=0 */
 u32 wifi_event_id2str(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */

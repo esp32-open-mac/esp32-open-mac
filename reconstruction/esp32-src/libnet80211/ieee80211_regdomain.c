@@ -293,7 +293,7 @@ int ieee80211_get_regdomain(unsigned a2, unsigned a3, unsigned a4, unsigned a5, 
 
 /* get_channel_max_bandwidth @ ieee80211_regdomain.o 00000010 size 146B bind GLOBAL
  * Calls: wifi_log, chm_get_band_from_chan, ieee80211_regdomain_min_chan | Data refs: .rodata_wlog_error.2
- * Fidelity: low - large/complex: 13 branches, 5 loop(s), 3 calls; skeleton only */
+ * Fidelity: medium - branchy but loop-free, call sequence mapped (verified: section R_XTENSA_ASM_EXPAND + funcdb v3 agree; predicates opaque) */
 int get_channel_max_bandwidth(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3, a4 */

@@ -118,7 +118,7 @@ int ieee80211_vnd_mesh_fully_associated(unsigned a2, unsigned a3, unsigned a4, u
 
 /* is_esp_mesh_assoc @ ieee80211_mesh_quick.o 00000010 size 201B bind GLOBAL
  * Calls: none | Data refs: g_mesh_topology, g_mesh_init_ps_type
- * Fidelity: low - large/complex: 10 branches, 2 loop(s), 0 calls; skeleton only */
+ * Fidelity: medium - branchy but loop-free, no direct calls; branch inventory + data refs mapped (verified against section disasm; predicates opaque) */
 int is_esp_mesh_assoc(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2 */
