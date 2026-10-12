@@ -35,5 +35,10 @@ says what evidence would resolve it).
 
 ## License
 
-Derived from Espressif's binary blobs, which are licensed Apache 2.0
-(see `../license/`). Same terms apply here.
+Derived from Espressif's binary blobs, which are licensed Apache 2.0 —
+see `LICENSE` (full text, same as sibling components) and `NOTICE`
+(attribution + derivation statement) in this directory, plus
+`../license/LICENSE.esp32-wifi-lib.txt`. This matches how this repo
+handles blob-derived material in `../license/README.md`, with one
+difference stated in NOTICE: this corpus is reconstruction, not a
+clean-room rewrite.

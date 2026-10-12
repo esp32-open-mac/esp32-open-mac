@@ -1,0 +1,23 @@
+NOTICE — reconstruction/ directory
+
+Copyright (c) 2015-2026 Espressif Systems (original binary blobs).
+Reconstruction work: contributors to this pull request.
+
+This directory is derived from the binary libraries distributed in
+https://github.com/espressif/esp32-wifi-lib,
+https://github.com/espressif/esp32-phy-lib and
+https://github.com/espressif/esp-coex-lib, which Espressif licenses
+under the Apache License 2.0 (see LICENSE in this directory and
+LICENSE.esp32-wifi-lib.txt in ../license/).
+
+Unlike the clean-room rewrite in main/ (see ../license/README.md), these
+files are a direct reconstruction: same function names, same structure,
+translated from disassembly/DWARF/live traces. Fidelity varies per
+function (high/medium/low tags in every header; ledgers define the
+contract). Do not treat this as vendor source, and do not merge it into
+main/ or components/ without a clean rewrite pass.
+
+Changes relative to the licensed material: binary machine code translated
+to C; no original Espressif source is reproduced (none is published).
+Symbol names are retained so the code can be correlated with the blobs
+(same rationale as proprietary.h).
