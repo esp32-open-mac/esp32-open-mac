@@ -3457,7 +3457,7 @@ u32 esp_mesh_tx_task_deinit(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
 
 /* esp_mesh_tx_task_init @ mesh_schedule.o 0000007c size 445B bind GLOBAL
  * Calls: memset, esp_mesh_create_mbox, mesh_tx_task_deinit | indirect[2]: mem[a7+0x94]; mem[a6+0x94] | Data refs: .bss.is_mesh_tx_started, .bss.mesh_reassign_xseqno, mesh_xon, .bss.mesh_xreq_seqno, mesh_conn_leave, mesh_self_xonseq, .bss.mesh_tx_task, g_mesh_xon_cfg_qsize, .rodata.esp_mesh_tx_task_init, g_mesh_ext_cfg, .bss.mesh_tx_mbox, g_osi_funcs_p +5 more
- * Fidelity: low - jump-table switch present; cases not recovered
+ * Fidelity: low - jx dispatch (bltu bound 13 at +0x121, table .rodata.esp_mesh_tx_task_init via l32r at +0x124 + (idx<<2) load at +0x127, jx a8 at +0x12c); per-case targets structural - need rodata table dump + per-case target walk to raise
  * Edges: funcdb-v3 (calls=3, refs=20); reloc-direct=3, funcdb-attributed=0, unknown-indirect=2 */
 u32 esp_mesh_tx_task_init(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */
@@ -5078,7 +5078,7 @@ u32 esp_mesh_txupQ_pending_insert_child(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, 
 
 /* mesh_check_tid_mbox_full @ mesh_schedule.o 0000003c size 398B bind GLOBAL
  * Calls: print_txupQ_pending, esp_mesh_print_txQ_waiting | indirect[4]: mem[a3+0x78]; mem[a8+0x158]; mem[a7+0x78]; unknown | Data refs: .bss.mesh_tx_mbox, g_mesh_topology, g_osi_funcs_p, .rodata.mesh_check_tid_mbox_full, g_mesh_xon_cfg_qsize, .rodata.__func__$20, g_mesh_ext_cfg, g_log_level, .rodata.mesh_check_tid_mbox_full.str1.1, .rodata.mesh_print_txQ_waiting.str1.1
- * Fidelity: low - jump-table switch present; cases not recovered
+ * Fidelity: low - jx dispatch (bltu bound 13 at +0x7e, table .rodata.mesh_check_tid_mbox_full via l32r at +0x81 + (idx<<2) load at +0x84, jx a3 at +0x89); per-case targets structural - need rodata table dump + per-case target walk to raise
  * Edges: funcdb-v3 (calls=2, refs=12); reloc-direct=2, funcdb-attributed=0, unknown-indirect=4 */
 u32 mesh_check_tid_mbox_full(u32 a2, u32 a3, u32 a4) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */

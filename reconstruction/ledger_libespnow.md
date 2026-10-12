@@ -57,7 +57,7 @@
 | mt_get_peer_num, mt_get_version | high | exact |
 | mt_set_pmk | high | exact (dst g_mt+0 via rela addend) |
 | mt_set_wake_window | high | exact |
-| mt_set_peer_rate_config | low/med | ladder: all branches/constants/strings/returns exact, field semantics inferred; store path high |
+| mt_set_peer_rate_config | medium | ladder: branch constants/strings/returns verified against section disasm (no jx, no loop insn, 0 backward-conditionals); store path + QUIRK return exact; field semantics inferred |
 | mt_set/get_user_oui | high | exact (NULL set = no-op success) |
 
 ## Recovered structs / globals
@@ -104,3 +104,10 @@
   (espnow_log, espnow_logx, espnow_ensure_lock, espnow_lock_and_check — shared
   idioms factored, each marked). manatick.c functions: 28 (21 funcdb + 7 LOCAL
   statics) + 3 static helpers (mt_log, mt_logx, mt_assert_hang — marked).
+
+## Mid-size (257–1024B) pass 2026-10-12 (offline, disasm-grounded)
+
+- `mt_set_peer_rate_config` (618B) low/med -> medium: section disasm verified
+  (17 callx, 0 jx, 0 loop insns, 0 backward-conditionals; all branch
+  constants/strings/returns exact). Only `Fidelity:` line touched;
+  non-Fidelity lines byte-identical; braces balanced.

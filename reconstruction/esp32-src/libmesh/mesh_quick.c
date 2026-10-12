@@ -6516,7 +6516,7 @@ u32 ieee80211_is_mesh_roots_yield_used(void) {
 
 /* ieee80211_mesh_quick_get @ mesh_quick.o 00000010 size 322B bind GLOBAL
  * Calls: memcpy | Data refs: esp_mesh_appie, .rodata.ieee80211_mesh_quick_get, g_mesh_topology
- * Fidelity: low - jump-table switch present; cases not recovered
+ * Fidelity: low - jx dispatch (bgeu bound 24 at +0x3c, table .rodata.ieee80211_mesh_quick_get via l32r at +0x42 + (idx<<2) load at +0x45, jx a2 at +0x4a); per-case targets structural - need rodata table dump + per-case target walk to raise
  * Edges: funcdb-v3 (calls=1, refs=4); reloc-direct=1, funcdb-attributed=0, unknown-indirect=0 */
 u32 ieee80211_mesh_quick_get(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */
@@ -6638,7 +6638,7 @@ u32 ieee80211_mesh_quick_get(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
 
 /* ieee80211_mesh_quick_set @ mesh_quick.o 00000014 size 594B bind GLOBAL
  * Calls: memcpy, ieee80211_vnd_mesh_update_beacon | Data refs: esp_mesh_appie, .rodata.ieee80211_mesh_quick_set, g_mesh_topology
- * Fidelity: low - jump-table switch present; cases not recovered
+ * Fidelity: low - jx dispatch (bgeu bound 24 at +0x40, table .rodata.ieee80211_mesh_quick_set via l32r at +0x46 + (idx<<2) load at +0x49, jx a3 at +0x4e); per-case targets structural - need rodata table dump + per-case target walk to raise
  * Edges: funcdb-v3 (calls=2, refs=5); reloc-direct=2, funcdb-attributed=0, unknown-indirect=0 */
 u32 ieee80211_mesh_quick_set(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */

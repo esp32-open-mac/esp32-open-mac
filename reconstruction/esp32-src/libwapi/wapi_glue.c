@@ -183,7 +183,7 @@ int wapi_sm_set_param(wapi_sm_t *sm /*a2*/, u32 id /*a3*/, u32 val /*a4*/)
 
 /* wapi_sm_parse_wapi_ie @ wapi_glue.o 00000050 size 550B bind GLOBAL
  * Calls: memset, wifi_log, wapi_selector_to_bitfield | Data refs: .rodata.__func__("wapi_sm_parse_wapi_ie"), .rodata_wlog_error.2("... ie len too short %lu"), .3("... malformed ie or unknown version, id=%02u, len=%02u"), .4("... ie count both (key mgmt), count %u left %u"), .5("... ie too short (for capabilities)"), .6("... ie count botch (pairwise), count %u left %u"), .7("... ie too short (for key mgmt)"), .8("... ie length mismatch, %u too much"), .9("... ie has %u trailing bytes - ignored"), selector words 0x00147201/0x00147202/0xffeb8e00
- * Fidelity: low - 550B IE parser; phased pseudocode below follows observed branches/loops but selector-table semantics and some count-field roles are inferred, not proven */
+ * Fidelity: low - 550B IE parser; phased pseudocode follows observed branches/loops (selector words 0x00147201/0x00147202/0xffeb8e00, count-field roles structural); selector-table semantics unproven - need WAPI IE spec (GB15629.11) + live trace to raise */
 int wapi_sm_parse_wapi_ie(const u8 *ie /*a2*/, u32 ie_len /*a3*/, wapi_sm_t *out /*a4*/)
 {
     /* Phase 0: init out block.
@@ -275,7 +275,7 @@ int wapi_sm_set_ap_wapi_ie(wapi_sm_t *sm /*a2*/, const u8 *ie /*a3*/, u32 len /*
 
 /* wapi_sm_set_assoc_wapi_ie_default @ wapi_glue.o 00000040 size 364B bind GLOBAL
  * Calls: wapi_put_be32, wifi_log, memcpy, g_osi_funcs_p slot 0x16c (alloc) | Data refs: selector words 0x00147201/0x00147202, .rodata_wlog_error.11("Invalid AKM mode (%d)."), .12("Invalid pairwise cipher (%d)."), .13("Invalid group cipher (%d)."), .14/.16("%s %d" with "wapi_glue.c",237/0x179), g_osi_funcs_p
- * Fidelity: low - 364B IE builder; phases below follow observed stores/calls but pairwise/group selection and length-cap (23) handling are structural */
+ * Fidelity: low - 364B IE builder; phases follow observed stores/calls (AKM 1<<13/1<<12, pairwise/group selection, length-cap 23 structural); selection/len-cap semantics unproven - need WAPI IE spec + live trace to raise */
 int wapi_sm_set_assoc_wapi_ie_default(wapi_sm_t *sm /*a2*/, u8 *out /*a3*/,
                                       u32 *lenp /*a4*/)
 {

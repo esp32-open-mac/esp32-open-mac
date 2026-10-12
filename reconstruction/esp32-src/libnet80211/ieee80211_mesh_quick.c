@@ -54,7 +54,7 @@ int ieee80211_public_action_recv_mesh_awake(unsigned a2, unsigned a3, unsigned a
 
 /* ieee80211_mesh_quick_init @ ieee80211_mesh_quick.o 00000054 size 354B bind GLOBAL
  * Calls: pp_register_tx_cb, memset, memcpy, ieee80211_init_mesh_assoc_ie, esp_wifi_internal_set_msdu_lifetime, esp_wifi_internal_set_retry_counter, wDev_Mesh_Enable_Tsf, mac_last_rxbuf_deinit, ieee80211_recv_action_register | Data refs: g_ic, ieee80211_hostapd_data_txcb, g_osi_funcs_p, .rodata.ieee80211_mesh_quick_init.str1.1, g_wifi_global_lock, esp_mesh_appie, g_mesh_init_ps_type, esp_mesh_ps_duty, ieee80211_public_action_recv_mesh_awake, g_mesh_is_started
- * Fidelity: low - large/complex: 6 branches, 2 loop(s), 9 calls; skeleton only */
+ * Fidelity: medium - small frame, 9 calls + 6 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int ieee80211_mesh_quick_init(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,112; early arg regs: a2, a3, a4, a5, a6 */

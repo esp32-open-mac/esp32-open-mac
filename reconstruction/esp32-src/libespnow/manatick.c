@@ -827,7 +827,7 @@ int mt_get_user_oui(u8 *oui)
 
 /* mt_set_peer_rate_config @ manatick.o 00000050 size 618B bind GLOBAL
  * Calls: chm_get_band_from_chan, chm_get_current_channel, memcmp, memcpy | Data refs: chm_get_band_from_chan, chm_get_current_channel, g_chm, g_ic, g_mt, g_osi_funcs_p, g_wifi_nvs, memcmp, memcpy
- * Fidelity: low - ladder interior (all branch constants/strings/returns exact, field semantics inferred); entries, store path, QUIRK return high. */
+ * Fidelity: medium - ladder interior (all branch constants/strings/returns verified against section disasm; field semantics inferred, entries/store path/QUIRK return exact); call sequence mapped, predicates opaque */
 int mt_set_peer_rate_config(const u8 *peer, const u32 *config)
 {
     u32 mode, rate;

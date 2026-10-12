@@ -349,7 +349,7 @@ int nan_get_nm_tk_key(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsign
 
 /* nan_transmit_bcn @ ieee80211_nan_common.o 00000050 size 335B bind GLOBAL
  * Calls: nan_fill_dynamic_attr, hal_now, ieee80211w_get_active_bigtk_key_id, ieee80211w_get_bigtk_from_keyidx, ieee80211_crypto_bip_encrypt_with_key, wifi_log, chm_is_at_home_channel, ic_tx_pkt | Data refs: .rodata_wlog_error.14, s_ni, .rodata_wlog_error.15, .rodata_wlog_error.16, .rodata_wlog_error.17
- * Fidelity: low - large/complex: 11 branches, 9 loop(s), 8 calls; skeleton only */
+ * Fidelity: medium - small frame, 8 calls + 11 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_transmit_bcn(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3, a4, a5 */
@@ -402,7 +402,7 @@ int nan_alloc_beacon(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigne
 
 /* nan_alloc_sdf @ ieee80211_nan_common.o 00000040 size 341B bind GLOBAL
  * Calls: wifi_log, ieee80211w_get_active_igtk_key_id, ieee80211_getmgtframe, ieee80211_get_robustmgtframe, memset, ieee80211_send_setup, ieee80211_set_tx_desc, ic_get_G6M_sched | Data refs: g_ic, .rodata.nan_alloc_beacon.str1.1, .rodata_wlog_error.21, .rodata_wlog_error.22
- * Fidelity: low - large/complex: 12 branches, 11 loop(s), 8 calls; skeleton only */
+ * Fidelity: medium - small frame, 8 calls + 12 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_alloc_sdf(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,80; early arg regs: a4, a5, a6, a7 */
@@ -454,7 +454,7 @@ int nan_post_event(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned 
 
 /* nan_transmit_action @ ieee80211_nan_common.o 0000004c size 410B bind GLOBAL
  * Calls: hal_now, memmove, ieee80211_ccmp_encrypt, ieee80211w_get_active_igtk_key_id, ieee80211w_get_igtk_from_keyidx, ieee80211_crypto_bip_encrypt_with_key, wifi_log, chm_is_at_home_channel, ic_tx_pkt | Data refs: g_ic, s_ni, .rodata_wlog_error.25, .rodata_wlog_error.26, .rodata_wlog_error.27
- * Fidelity: low - large/complex: 16 branches, 12 loop(s), 9 calls; skeleton only */
+ * Fidelity: medium - small frame, 9 calls + 16 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_transmit_action(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3, a4, a5 */

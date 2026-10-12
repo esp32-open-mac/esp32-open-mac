@@ -1525,7 +1525,7 @@ L_51:;
  * Calls: wifi_rf_phy_enable[got], esp_wifi_get_mode[got], wifi_rf_phy_enable[got], g_pm_cnt[got], g_pm[got], .text.pm_set_state[got] | Data refs: g_pm, wifi_rf_phy_enable, g_mesh_is_started, g_mesh_is_root, g_mesh_init_ps_type, esp_wifi_get_mode, g_osi_funcs_p, g_pm_cnt, .text.pm_set_state
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 6 call(s), 9 data ref(s)
- * Fidelity: low - 120 instr, 17 branches, 3 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 120 instr, 17 branches, 3 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pm_dream(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifislprxiram.30; Xtensa ABI: args a2..a7, return a2 */
@@ -1713,7 +1713,7 @@ L_6e:;
  * Calls: ppCheckTxQIdle[got], ppCheckTxIdle[got], g_osi_funcs_p[got], wifi_rf_phy_disable[got], esp_wifi_get_mode[got], wifi_rf_phy_disable[got], .text.pm_set_state[got] | Data refs: g_mesh_is_started, g_pm, g_mesh_is_root, g_mesh_init_ps_type, ppCheckTxQIdle, g_osi_funcs_p, ppCheckTxIdle, wifi_rf_phy_disable, esp_wifi_get_mode, g_pm_cnt, .text.pm_set_state
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 7 call(s), 11 data ref(s)
- * Fidelity: low - 186 instr, 41 branches, 9 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 186 instr, 41 branches, 9 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pm_sleep(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifislprxiram.31; Xtensa ABI: args a2..a7, return a2 */
@@ -2639,7 +2639,7 @@ L_2d6:;
  * Calls: wifi_gpio_debug[got], pm_wake_done[got], pm_get_connectionless_status[got], wifi_event_post[got], wifi_event_post[got], wifi_gpio_debug[got], pm_coex_separate_connectionless_window[got], pm_wake_up[got], wifi_gpio_debug[got], g_osi_funcs_p[got] | Data refs: g_osi_funcs_p, g_pm, wifi_gpio_debug, pm_wake_done, pm_get_connectionless_status, wifi_event_post, pm_coex_separate_connectionless_window, pm_wake_up
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 10 call(s), 8 data ref(s)
- * Fidelity: low - 116 instr, 11 branches, 4 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 116 instr, 11 branches, 4 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pm_update_by_connectionless_status(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifislpiram.21; Xtensa ABI: args a2..a7, return a2 */
@@ -2866,7 +2866,7 @@ L_85:;
  * Calls: __udivdi3, pm_coex_schm_overall_period_get, wifi_log, g_pm[got], g_osi_funcs_p[got] | Data refs: .rodata_wlog_warning.35, __udivdi3, g_intr_lock_mux, g_osi_funcs_p, g_pm, pm_coex_schm_overall_period_get, wifi_log
  *   MMIO: none
  *   funcdb v3: 3 call(s), 7 ref(s); disasm: 5 call(s), 7 data ref(s)
- * Fidelity: low - 219 instr, 35 branches, 7 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 219 instr, 35 branches, 7 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pm_set_next_tbtt(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.pm_set_next_tbtt; Xtensa ABI: args a2..a7, return a2 */
@@ -3246,7 +3246,7 @@ L_6a:;
  * Calls: __umoddi3[got], ptr_beacon_offset_funcs[got], pm_coex_schm_overall_period_get[got], pm_handle_tbtt_interval[got], ptr_beacon_offset_funcs[got], g_mesh_init_ps_type[got], g_pm_cfg[got], g_mesh_init_ps_type[got], wifi_log[got], g_pm_cfg[got], g_mesh_init_ps_type[got], g_mesh_init_ps_type[got], esp_mesh_quick_funcs[got], esp_mesh_quick_funcs[got], g_mesh_init_ps_type[got], g_mesh_is_started[got], esp_mesh_quick_funcs[got] | Data refs: g_osi_funcs_p, g_pm_cfg, g_pm, __umoddi3, ptr_beacon_offset_funcs, pm_coex_schm_overall_period_get, pm_handle_tbtt_interval, g_intr_lock_mux, g_mesh_is_started, g_mesh_is_root, g_mesh_init_ps_type, g_wifi_mac_time_delta, .rodata_wlog_warning.39, wifi_log, esp_mesh_quick_funcs
  *   MMIO: 0x3FF73C00
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 17 call(s), 15 data ref(s)
- * Fidelity: low - 292 instr, 42 branches, 2 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 292 instr, 42 branches, 2 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pm_update_next_tbtt(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifislpiram.38; Xtensa ABI: args a2..a7, return a2 */
@@ -4512,7 +4512,7 @@ L_72:;
  * Calls: pm_check_state, pm_dream, pm_enable_active_timer, pm_enable_keep_alive_timer, pm_enable_sleep_delay_timer, pm_is_in_wifi_slice_threshold, pm_offchan_execute_ready_cb, pm_send_nullfunc, pm_sleep, pm_tx_null_data_done_quick_wake_process, ppProcessWaitingQueue, wifi_log, esp_mesh_quick_funcs[got], .text.pm_set_state[got] | Data refs: .rodata.pm_tx_null_data_done_process.str1.1, .rodata_wlog_debug.51, .rodata_wlog_debug.52, esp_mesh_quick_funcs, g_ic, g_mesh_init_ps_type, g_mesh_is_root, g_mesh_is_started, g_osi_funcs_p, g_pm, g_pm_cnt, pm_check_state, pm_dream, pm_enable_active_timer, pm_enable_keep_alive_timer, pm_enable_sleep_delay_timer, pm_is_in_wifi_slice_threshold, pm_offchan_execute_ready_cb, pm_send_nullfunc, pm_sleep, pm_tx_null_data_done_quick_wake_process, ppProcessWaitingQueue, wifi_log, .text.pm_set_state
  *   MMIO: none
  *   funcdb v3: 12 call(s), 23 ref(s); disasm: 16 call(s), 24 data ref(s)
- * Fidelity: low - 253 instr, 55 branches, 4 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 253 instr, 55 branches, 4 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pm_tx_null_data_done_process(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.pm_tx_null_data_done_process; Xtensa ABI: args a2..a7, return a2 */
@@ -5198,7 +5198,7 @@ L_97:;
  * Calls: pm_is_in_wifi_slice_threshold[got], pm_go_to_wake[got], pm_is_in_wifi_slice_threshold[got], pm_enable_dream_timer[got], pm_disable_sleep_delay_timer[got], pm_sleep[got], .text.pm_disable_active_timer[got], pm_active_timeout_process[got] | Data refs: g_pm, g_osi_funcs_p, pm_is_in_wifi_slice_threshold, pm_go_to_wake, g_pm_cnt, pm_enable_dream_timer, pm_disable_sleep_delay_timer, pm_sleep, .text.pm_disable_active_timer, pm_active_timeout_process
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 8 call(s), 10 data ref(s)
- * Fidelity: low - 126 instr, 23 branches, 4 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 126 instr, 23 branches, 4 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pm_process_tim(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifislprxiram.40; Xtensa ABI: args a2..a7, return a2 */
@@ -5645,7 +5645,7 @@ L_a8:;
  * Calls: esp_mesh_quick_funcs[got], pm_check_state[got], pm_check_state[got], pm_is_in_wifi_slice_threshold[got], pm_disconnected_wake[got], pm_coex_schm_process_restart[got], pm_is_in_wifi_slice_threshold[got], esp_mesh_quick_funcs[got], pm_go_to_wake[got], pm_is_in_wifi_slice_threshold[got], g_pm[got], pm_dream[got], pm_go_to_wake[got], pm_enable_active_timer[got], .text.pm_incr_coex_active_cnt[got] | Data refs: g_mesh_is_started, g_mesh_is_root, g_mesh_init_ps_type, esp_mesh_quick_funcs, g_pm, pm_check_state, g_osi_funcs_p, pm_is_in_wifi_slice_threshold, pm_disconnected_wake, pm_coex_schm_process_restart, pm_go_to_wake, pm_dream, g_pm_cnt, pm_enable_active_timer, .text.pm_incr_coex_active_cnt
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 15 call(s), 15 data ref(s)
- * Fidelity: low - 191 instr, 48 branches, 6 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 191 instr, 48 branches, 6 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pm_tx_data_process(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifiextrairam.48; Xtensa ABI: args a2..a7, return a2 */
@@ -6691,7 +6691,7 @@ L_2c:;
  * Calls: dbg_lmac_ps_statis_reset, memcpy, pm_beacon_monitor_init, pm_enable_active_timer, pm_on_coex_schm_status_config, pm_scale_listen_interval, pm_update_by_connectionless_status, pm_update_next_tbtt, wifi_gpio_debug, wifi_log, ptr_beacon_offset_funcs[got] | Data refs: .bss.g_offchan_ready_cb, .bss.g_offchan_ready_ctx, .rodata_wlog_info.57, dbg_lmac_ps_statis_reset, g_osi_funcs_p, g_pm, memcpy, pm_beacon_monitor_init, pm_enable_active_timer, pm_on_coex_schm_status_config, pm_scale_listen_interval, pm_update_by_connectionless_status, pm_update_next_tbtt, ptr_beacon_offset_funcs, wifi_gpio_debug, wifi_log
  *   MMIO: none
  *   funcdb v3: 10 call(s), 16 ref(s); disasm: 13 call(s), 16 data ref(s)
- * Fidelity: low - 171 instr, 5 branches, 7 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 171 instr, 5 branches, 7 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pm_start(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.pm_start; Xtensa ABI: args a2..a7, return a2 */
@@ -6880,7 +6880,7 @@ L_21c:;
  * Calls: __divsf3, __extendsfdf2, __floatundisf, esp_mesh_get_running_active_duty_cycle, ieee80211_hostapd_beacon_txcb, pm_coex_pwr_update, pm_coex_schm_process_restart, pm_disable_sleep_delay_timer, pm_dream, pm_enable_disconnected_sleep_delay_timer, pm_on_coex_schm_status_config, pm_set_bss_max_idle, pm_update_by_connectionless_status, pm_wake_done, ppProcessWaitingQueue, wifi_log, .text.hal_pm_unblock_txq[got], .text.pm_disable_active_timer[got], .text.pm_set_state[got], g_pm[got], g_pm[got], ptr_beacon_offset_funcs[got], g_pm[got] | Data refs: .rodata_wlog_info.58, .rodata_wlog_info.59, __divsf3, __extendsfdf2, __floatundisf, esp_mesh_get_running_active_duty_cycle, g_mesh_init_ps_type, g_mesh_is_root, g_mesh_is_started, g_osi_funcs_p, g_pm, ieee80211_hostapd_beacon_txcb, pm_coex_pwr_update, pm_coex_schm_process_restart, pm_disable_sleep_delay_timer, pm_dream, pm_enable_disconnected_sleep_delay_timer, pm_on_coex_schm_status_config, pm_set_bss_max_idle, pm_update_by_connectionless_status, pm_wake_done, ppProcessWaitingQueue, ptr_beacon_offset_funcs, wifi_log, .text.hal_pm_unblock_txq, .text.pm_disable_active_timer, .text.pm_set_state
  *   MMIO: none
  *   funcdb v3: 16 call(s), 24 ref(s); disasm: 25 call(s), 27 data ref(s)
- * Fidelity: low - 186 instr, 12 branches, 2 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 186 instr, 12 branches, 2 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pm_stop(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.pm_stop; Xtensa ABI: args a2..a7, return a2 */
@@ -7870,7 +7870,7 @@ L_25:;
  * Calls: __udivdi3[got], pm_beacon_miss_exceeded_wakeup_disabled[got], pm_beacon_add_total_counter[got], g_osi_funcs_p[got], pm_beacon_monitor_tbtt_allowed[got], pm_beacon_monitor_tbtt_start[got] | Data refs: ptr_beacon_offset_funcs, g_osi_funcs_p, __udivdi3, pm_beacon_miss_exceeded_wakeup_disabled, pm_beacon_add_total_counter, pm_beacon_monitor_tbtt_allowed, pm_beacon_monitor_tbtt_start
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 6 call(s), 7 data ref(s)
- * Fidelity: low - 109 instr, 22 branches, 3 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 109 instr, 22 branches, 3 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pm_enable_beacon_monitor_timer(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifislprxiram.28; Xtensa ABI: args a2..a7, return a2 */
@@ -8008,7 +8008,7 @@ L_132:;
  * Calls: pm_check_state[got], .text.hal_pm_unblock_txq[got], pm_save_tbtt_info[got], pm_enable_beacon_monitor_timer[got], g_pm[got], pm_beacon_monitor_tbtt_allowed[got], pm_coex_schm_overall_period_get[got], pm_beacon_monitor_tbtt_start[got], wifi_gpio_debug[got], pm_dream[got], g_pm[got], g_pm[got], pm_coex_tbtt_process[got], pm_noise_check[got], pm_mesh_set_next_tbtt[got], pm_set_next_tbtt[got], pm_go_to_wake[got], pm_update_params[got], pm_update_by_connectionless_status[got] | Data refs: g_osi_funcs_p, pm_check_state, g_pm, .text.hal_pm_unblock_txq, pm_save_tbtt_info, pm_enable_beacon_monitor_timer, pm_beacon_monitor_tbtt_allowed, pm_coex_schm_overall_period_get, pm_beacon_monitor_tbtt_start, wifi_gpio_debug, g_pm_cnt, pm_dream, g_mesh_is_started, g_mesh_is_root, g_mesh_init_ps_type, g_wifi_mac_time_delta, pm_coex_tbtt_process, pm_noise_check, pm_mesh_set_next_tbtt, pm_set_next_tbtt, pm_go_to_wake, pm_update_params, pm_update_by_connectionless_status
  *   MMIO: 0x3FF73C00
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 19 call(s), 23 data ref(s)
- * Fidelity: low - 153 instr, 28 branches, 3 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 153 instr, 28 branches, 3 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pm_tbtt_process(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifislprxiram.46; Xtensa ABI: args a2..a7, return a2 */

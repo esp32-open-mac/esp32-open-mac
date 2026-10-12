@@ -263,7 +263,7 @@ int nan_sched_get_chan_bitmap(unsigned a2, unsigned a3, unsigned a4, unsigned a5
 
 /* nan_sched_allocate_crbs @ ieee80211_nan_datapath.o 0000002c size 467B bind GLOBAL
  * Calls: memcpy, memset, nan_get_avail_by_map_id[local], wifi_log, nan_set_update_sdf_pending | Data refs: s_dp, s_dp+0x10, .rodata_wlog_error.2, .rodata_wlog_info.3
- * Fidelity: low - large/complex: 32 branches, 27 loop(s), 5 calls; skeleton only */
+ * Fidelity: low - large/complex: 32 branches, 27 loops, 5 calls; hardware loop at +0x113 (loop a12); trip/stride mapping needed - need loop-trip decode to raise */
 int nan_sched_allocate_crbs(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,96; early arg regs: a3, a4, a6, a7 */
@@ -281,7 +281,7 @@ int nan_sched_allocate_crbs(unsigned a2, unsigned a3, unsigned a4, unsigned a5, 
 
 /* nan_sched_alloc_conditional @ ieee80211_nan_datapath.o 00000028 size 313B bind GLOBAL
  * Calls: nan_get_avail_by_map_id[local], wifi_log, nan_sched_get_chan_bitmap, nan_sched_alloc_time_slots | Data refs: .rodata.nan_sched_alloc_conditional.str1.1, .rodata_wlog_info.4, g_def_2g_channels, s_dp
- * Fidelity: low - large/complex: 23 branches, 17 loop(s), 4 calls; skeleton only */
+ * Fidelity: medium - small frame, 4 calls + 23 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_sched_alloc_conditional(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,64; early arg regs: a2, a4, a5, a6 */
@@ -532,7 +532,7 @@ int nan_dp_alloc_ndl(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigne
 
 /* nan_dp_delete_peer @ ieee80211_nan_datapath.o 00000034 size 347B bind GLOBAL
  * Calls: wifi_log, nan_clear_peer_integrity_keys, nan_dp_clear_tmp_data[+0x8][local], nan_dp_remove_node, ic_ebuf_recycle_tx, nan_set_update_sdf_pending, memset | Data refs: .rodata_wlog_debug.13, s_dp, s_dp+0x51c, g_osi_funcs_p, s_dp+0x508
- * Fidelity: low - large/complex: 13 branches, 12 loop(s), 7 calls; skeleton only */
+ * Fidelity: medium - small frame, 7 calls + 13 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_dp_delete_peer(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2, a3 */
@@ -603,7 +603,7 @@ int nan_dp_construct_device_caps(unsigned a2, unsigned a3, unsigned a4, unsigned
 
 /* nan_dp_post_tx @ ieee80211_nan_datapath.o 00000024 size 264B bind GLOBAL
  * Calls: nan_sched_in_ndc_slot, nan_sched_is_peer_available, wifi_log, ppTxPkt, ic_ebuf_recycle_tx | Data refs: s_dp, .rodata_wlog_debug.15, .rodata_wlog_debug.16
- * Fidelity: low - large/complex: 15 branches, 3 loop(s), 5 calls; skeleton only */
+ * Fidelity: medium - small frame, 5 calls + 15 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_dp_post_tx(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2, a3, a4, a5 */
@@ -637,7 +637,7 @@ int nan_ndp_setup_timeout_process(unsigned a2, unsigned a3, unsigned a4, unsigne
 
 /* nan_construct_ndp_confirm @ ieee80211_nan_datapath.o 00000044 size 620B bind GLOBAL
  * Calls: nan_dp_get_peer_ndp, nan_dp_get_peer_ndl, wifi_log | Data refs: NAN_ACTION_OUI, .rodata_wlog_error.20, .rodata_wlog_error.21, .rodata_wlog_debug.22, g_nan_secure_dp_funcs, .rodata_wlog_error.23, .rodata_wlog_error.24, .rodata_wlog_error.25
- * Fidelity: low - large/complex: 26 branches, 21 loop(s), 3 calls; skeleton only */
+ * Fidelity: medium - small frame, 3 calls + 26 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_construct_ndp_confirm(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,96; early arg regs: a3, a4, a5, a6, a7 */
@@ -743,7 +743,7 @@ returns a2; predicates/fields untyped */
 
 /* nan_send_ndp_confirm @ ieee80211_nan_datapath.o 0000003c size 268B bind GLOBAL
  * Calls: nan_get_clust_id, nan_dp_get_peer_ndp, wifi_log, nan_dp_get_peer_ndl, nan_is_pmf_enabled, nan_alloc_action, nan_construct_ndp_confirm, ic_ebuf_recycle_tx, nan_tx_action_frame | Data refs: g_nan_secure_dp_funcs, .rodata_wlog_debug.41, .rodata_wlog_error.42
- * Fidelity: low - large/complex: 13 branches, 7 loop(s), 9 calls; skeleton only */
+ * Fidelity: medium - small frame, 9 calls + 13 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_send_ndp_confirm(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,80; early arg regs: a2, a3, a4, a5, a6, a7 */
@@ -785,7 +785,7 @@ int nan_send_ndp_terminate(unsigned a2, unsigned a3, unsigned a4, unsigned a5, u
 
 /* nan_construct_ndp_security_key_install @ ieee80211_nan_datapath.o 00000030 size 574B bind GLOBAL
  * Calls: nan_dp_get_peer_ndp, memcpy, wifi_log | Data refs: NAN_ACTION_OUI, .rodata_wlog_error.44, .rodata_wlog_error.45, g_nan_secure_dp_funcs, .rodata_wlog_error.46
- * Fidelity: low - large/complex: 17 branches, 11 loop(s), 3 calls; skeleton only */
+ * Fidelity: medium - small frame, 3 calls + 17 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_construct_ndp_security_key_install(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a3, a4, a5, a6, a7 */
@@ -801,7 +801,7 @@ int nan_construct_ndp_security_key_install(unsigned a2, unsigned a3, unsigned a4
 
 /* nan_send_security_key_install @ ieee80211_nan_datapath.o 00000044 size 396B bind GLOBAL
  * Calls: nan_get_clust_id, nan_dp_get_peer_ndl, wifi_log, nan_dp_get_peer_ndp, nan_is_pmf_enabled, nan_alloc_action, nan_construct_ndp_security_key_install, nan_tx_action_frame | Data refs: .rodata_wlog_error.47, .rodata_wlog_error.48, g_nan_secure_dp_funcs, .rodata_wlog_error.49
- * Fidelity: low - large/complex: 11 branches, 9 loop(s), 8 calls; skeleton only */
+ * Fidelity: medium - small frame, 8 calls + 11 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_send_security_key_install(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,96; early arg regs: a3, a4, a5, a6, a7 */
@@ -822,7 +822,7 @@ int nan_send_security_key_install(unsigned a2, unsigned a3, unsigned a4, unsigne
 
 /* nan_send_ndp_resp @ ieee80211_nan_datapath.o 00000074 size 722B bind GLOBAL
  * Calls: wifi_log, nan_dp_get_peer_ndp, nan_sched_avail_entries_len, nan_get_service_by_id, nan_get_clust_id, nan_is_pmf_enabled, nan_alloc_action, nan_construct_ndp_resp, ic_ebuf_recycle_tx, nan_tx_action_frame, nan_dp_get_peer_ndl, nan_call_ndp_terminated_cb, nan_dp_delete_peer | Data refs: .rodata_wlog_debug.50, g_nan_secure_dp_funcs, .rodata_wlog_warning.51, s_dp, .rodata_wlog_debug.52, .rodata_wlog_debug.53, .rodata_wlog_warning.54, .rodata_wlog_warning.55
- * Fidelity: low - large/complex: 38 branches, 32 loop(s), 13 calls; skeleton only */
+ * Fidelity: medium - small frame, 13 calls + 38 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_send_ndp_resp(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,112; early arg regs: a3, a4, a5, a6 */
@@ -848,7 +848,7 @@ int nan_send_ndp_resp(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsign
 
 /* nan_send_ndp_req @ ieee80211_nan_datapath.o 00000034 size 295B bind GLOBAL
  * Calls: nan_sched_avail_entries_len, nan_dp_get_peer_ndp, nan_get_service_by_index, nan_get_peer_svc_record, nan_get_clust_id, nan_is_pmf_enabled, nan_alloc_action, nan_construct_ndp_req, nan_tx_action_frame | Data refs: g_nan_secure_dp_funcs
- * Fidelity: low - large/complex: 11 branches, 8 loop(s), 9 calls; skeleton only */
+ * Fidelity: medium - small frame, 9 calls + 11 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_send_ndp_req(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,64; early arg regs: a2, a3, a4, a6, a7 */
@@ -870,7 +870,7 @@ int nan_send_ndp_req(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigne
 
 /* nan_dp_parse_ndpa @ ieee80211_nan_datapath.o 00000054 size 721B bind GLOBAL
  * Calls: nan_dp_alloc_ndp, memcpy, wifi_log, nan_dp_get_peer_ndp | Data refs: .rodata_wlog_error.56, .rodata_wlog_error.57, .rodata_wlog_error.58, .rodata_wlog_error.59, .rodata_wlog_error.60, .rodata_wlog_error.61, g_osi_funcs_p, .rodata_wlog_error.62
- * Fidelity: low - large/complex: 49 branches, 28 loop(s), 4 calls; skeleton only */
+ * Fidelity: medium - small frame, 4 calls + 49 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_dp_parse_ndpa(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,64; early arg regs: a3, a4, a5, a6, a7 */
@@ -901,7 +901,7 @@ int nan_dp_parse_ndla(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsign
 
 /* nan_dp_parse_elem_container @ ieee80211_nan_datapath.o 00000014 size 308B bind GLOBAL
  * Calls: wifi_log, memcpy | Data refs: .rodata_wlog_debug.63, g_osi_funcs_p
- * Fidelity: low - large/complex: 24 branches, 10 loop(s), 2 calls; skeleton only */
+ * Fidelity: medium - small frame, 2 calls + 24 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_dp_parse_elem_container(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a3, a4, a5, a6 */
@@ -941,7 +941,7 @@ int nan_dp_chan_from_bitmap(unsigned a2, unsigned a3, unsigned a4, unsigned a5, 
 
 /* nan_dp_parse_time_bitmap @ ieee80211_nan_datapath.o 0000001c size 356B bind GLOBAL
  * Calls: wifi_log | Data refs: .rodata_wlog_error.64, .rodata_wlog_error.65, .rodata_wlog_warning.66
- * Fidelity: low - large/complex: 19 branches, 10 loop(s), 1 call; skeleton only */
+ * Fidelity: low - large/complex: 19 branches, 10 loops, 1 call; hardware loop at +0x12d (loop a9, movi 8); trip/stride mapping needed - need loop-trip decode to raise */
 int nan_dp_parse_time_bitmap(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,64; early arg regs: a2, a4, a5, a6 */
@@ -970,7 +970,7 @@ int nan_dp_parse_ndca(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsign
 
 /* nan_sched_parse_avail_entries @ ieee80211_nan_datapath.o 00000018 size 419B bind GLOBAL
  * Calls: memset, nan_dp_parse_time_bitmap, nan_dp_chan_from_bitmap, memcpy | Data refs: g_def_2g_channels
- * Fidelity: low - large/complex: 30 branches, 12 loop(s), 4 calls; skeleton only */
+ * Fidelity: medium - small frame, 4 calls + 30 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_sched_parse_avail_entries(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,80; early arg regs: a3, a4, a5 */
@@ -987,7 +987,7 @@ int nan_sched_parse_avail_entries(unsigned a2, unsigned a3, unsigned a4, unsigne
 
 /* nan_dp_parse_availability @ ieee80211_nan_datapath.o 00000070 size 948B bind GLOBAL
  * Calls: wifi_log, nan_sched_parse_avail_entries, memcpy, memset, chm_get_home_channel, nan_sched_alloc_time_slots | Data refs: .rodata_wlog_error.68, .rodata_wlog_error.69, .rodata_wlog_error.70, s_dp, s_dp+0x2c, .rodata_wlog_debug.71, .rodata_wlog_error.72, .rodata_wlog_error.73, .rodata_wlog_error.74, .rodata_wlog_error.75, .rodata_wlog_debug.76
- * Fidelity: low - large/complex: 39 branches, 30 loop(s), 6 calls; skeleton only */
+ * Fidelity: medium - small frame, 6 calls + 39 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_dp_parse_availability(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,80; early arg regs: a4, a5, a6 */
@@ -1006,7 +1006,7 @@ int nan_dp_parse_availability(unsigned a2, unsigned a3, unsigned a4, unsigned a5
 
 /* nan_parse_ndp_req @ ieee80211_nan_datapath.o 00000094 size 947B bind GLOBAL
  * Calls: nan_dp_get_peer_ndl, wifi_log, nan_call_ndp_terminated_cb, nan_dp_delete_peer, nan_dp_node_available, nan_dp_parse_ndla, nan_dp_parse_ndpa, nan_get_service_by_id, nan_dp_parse_dev_caps, nan_dp_parse_availability, nan_dp_parse_ndca, nan_dp_parse_elem_container, nan_call_ndp_indication_cb, nan_send_ndp_resp | Data refs: .rodata_wlog_error.77, .rodata_wlog_debug.78, .rodata_wlog_info.79, .rodata_wlog_error.80, .rodata_wlog_error.81, .rodata_wlog_debug.82, .rodata_wlog_debug.83, .rodata_wlog_debug.84, g_nan_secure_dp_funcs, .rodata_wlog_debug.85, .rodata_wlog_error.86, .text.nan_ndp_setup_timeout, s_dp+0x508, g_osi_funcs_p, s_dp
- * Fidelity: low - large/complex: 54 branches, 44 loop(s), 14 calls; skeleton only */
+ * Fidelity: medium - small frame, 14 calls + 54 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_parse_ndp_req(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,112; early arg regs: a3, a4, a5, a6, a7 */
@@ -1078,7 +1078,7 @@ returns a2; predicates/fields untyped */
 
 /* nan_parse_ndp_confirm @ ieee80211_nan_datapath.o 000000e0 size 934B bind GLOBAL
  * Calls: nan_dp_get_peer_ndl, wifi_log, nan_dp_node_available, nan_dp_confirm_peer, nan_dp_get_peer_ndp, nan_send_security_key_install, nan_dp_parse_ndpa, nan_dp_delete_peer, nan_call_ndp_confirm_cb | Data refs: .rodata_wlog_error.103, .rodata_wlog_error.104, .rodata_wlog_error.105, .rodata_wlog_error.106, .rodata_wlog_error.107, .rodata_wlog_debug.108, .rodata_wlog_error.109, .rodata_wlog_debug.110, g_nan_secure_dp_funcs, .rodata_wlog_debug.111, .rodata_wlog_error.112, .rodata_wlog_info.113, s_dp+0x508, g_osi_funcs_p, .rodata_wlog_warning.114, .rodata_wlog_error.115, .rodata_wlog_error.116, .rodata_wlog_error.117, .rodata_wlog_error.118, .rodata_wlog_error.119, .rodata_wlog_error.120, .rodata_wlog_debug.121, .rodata_wlog_debug.122, .rodata_wlog_error.123, .rodata_wlog_info.124, .rodata_wlog_error.125, .rodata_wlog_error.126, .rodata_wlog_warning.127, .rodata_wlog_error.128, s_dp+0x6, s_dp
- * Fidelity: low - large/complex: 60 branches, 44 loop(s), 9 calls; skeleton only */
+ * Fidelity: medium - small frame, 9 calls + 60 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_parse_ndp_confirm(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,80; early arg regs: a3, a5, a6, a7 */
@@ -1100,7 +1100,7 @@ int nan_parse_ndp_confirm(unsigned a2, unsigned a3, unsigned a4, unsigned a5, un
 
 /* nan_parse_ndp_security_install @ ieee80211_nan_datapath.o 00000098 size 639B bind GLOBAL
  * Calls: wifi_log, nan_dp_get_peer_ndl, nan_dp_get_peer_ndp, nan_dp_confirm_peer, nan_call_ndp_confirm_cb, nan_dp_delete_peer | Data refs: .rodata.nan_parse_ndp_resp.str1.1, .rodata_wlog_error.129, .rodata_wlog_debug.130, .rodata_wlog_error.131, .rodata_wlog_error.132, .rodata_wlog_debug.133, .rodata_wlog_warning.134, s_dp+0x6, .rodata_wlog_error.135, g_nan_secure_dp_funcs, .rodata_wlog_debug.136, .rodata_wlog_debug.137, .rodata_wlog_debug.138, .rodata_wlog_error.139, .rodata_wlog_debug.140, s_dp+0x508, g_osi_funcs_p, .rodata_wlog_info.141, s_dp
- * Fidelity: low - large/complex: 22 branches, 17 loop(s), 6 calls; skeleton only */
+ * Fidelity: medium - small frame, 6 calls + 22 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_parse_ndp_security_install(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,96; early arg regs: a3, a4, a5, a7 */
@@ -1147,7 +1147,7 @@ int nan_dp_get_attr(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned
 
 /* nan_rx_naf @ ieee80211_nan_datapath.o 0000004c size 436B bind GLOBAL
  * Calls: nan_get_clust_id, memcmp, memset, wifi_log, nan_parse_ndp_req, nan_parse_ndp_resp, nan_parse_ndp_confirm, nan_parse_ndp_terminate, nan_parse_ndp_security_install, ic_ebuf_recycle_rx | Data refs: .rodata_wlog_error.142, .rodata_wlog_error.143, .rodata.nan_rx_naf, .rodata_wlog_debug.144, .rodata_wlog_error.145
- * Fidelity: low - large/complex: 29 branches, 15 loop(s), 10 calls; skeleton only */
+ * Fidelity: low - large/complex: 29 branches, 15 loops, 10 calls; 2 jx sites (jx a10 at +0xe3 via addi -11/bltu 30/l32r +0xdb; jx a5 at +0x193 via addi -5/bltu 8/l32r +0x18b; both addx4+(idx<<2) loads); per-case targets structural - need jump-table case decode to raise */
 int nan_rx_naf(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,112; early arg regs: a2, a3, a5, a6, a7 */
@@ -1170,7 +1170,7 @@ int nan_rx_naf(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, 
 
 /* nan_naf_txcb @ ieee80211_nan_datapath.o 000000a8 size 835B bind GLOBAL
  * Calls: nan_dp_get_peer_ndl, wifi_log, nan_send_ndp_req, nan_dp_confirm_peer, nan_send_ndp_resp, nan_call_ndp_confirm_cb, nan_send_ndp_confirm, nan_send_security_key_install, nan_send_ndp_terminate, nan_call_ndp_terminated_cb, nan_dp_delete_peer | Data refs: .rodata_wlog_error.146, .rodata.nan_naf_txcb, .rodata_wlog_info.147, g_nan_secure_dp_funcs, .rodata_wlog_debug.148, s_dp+0x51c, .rodata_wlog_error.149, .rodata_wlog_debug.150, s_dp+0x508, g_osi_funcs_p, s_dp+0x6, .rodata_wlog_debug.151, .rodata_wlog_debug.152, .rodata_wlog_debug.153, .rodata_wlog_error.154, .rodata_wlog_debug.155, .rodata_wlog_error.156, .rodata_wlog_error.157, s_dp
- * Fidelity: low - large/complex: 57 branches, 41 loop(s), 11 calls; skeleton only */
+ * Fidelity: low - large/complex: 57 branches, 41 loops, 11 calls; jx a10 at +0x11a (addi +125 at +0x106, extui 0,7, bltui bound 5 at +0x10c, l32r at +0x112 + addx4 at +0x115); per-case targets structural - need jump-table case decode to raise */
 int nan_naf_txcb(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,96; early arg regs: a2, a3, a4, a5, a6 */
@@ -1194,7 +1194,7 @@ int nan_naf_txcb(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6
 
 /* nan_datapath_send_req @ ieee80211_nan_datapath.o 0000008c size 700B bind GLOBAL
  * Calls: nan_dp_get_peer_ndl, nan_dp_node_available, wifi_log, nan_dp_alloc_ndl, nan_dp_alloc_ndp, nan_get_service_by_index, nan_get_peer_svc_record, nan_sched_alloc_conditional, memcpy, nan_send_ndp_req, nan_dp_delete_peer | Data refs: .rodata_wlog_error.158, .rodata_wlog_error.159, .rodata_wlog_error.160, s_ndp_id, .rodata_wlog_error.161, g_nan_secure_dp_funcs, .rodata_wlog_debug.162, .rodata_wlog_warning.163, .rodata_wlog_error.164, .rodata_wlog_error.165, s_dp, .rodata_wlog_error.166, .text.nan_ndp_setup_timeout, s_dp+0x508, g_osi_funcs_p
- * Fidelity: low - large/complex: 30 branches, 23 loop(s), 11 calls; skeleton only */
+ * Fidelity: medium - small frame, 11 calls + 30 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_datapath_send_req(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,96; early arg regs: a2, a3, a5, a6 */
@@ -1218,7 +1218,7 @@ int nan_datapath_send_req(unsigned a2, unsigned a3, unsigned a4, unsigned a5, un
 
 /* nan_datapath_send_resp @ ieee80211_nan_datapath.o 0000003c size 368B bind GLOBAL
  * Calls: nan_dp_get_peer_ndl, wifi_log, nan_dp_get_peer_ndp, memcpy, nan_send_ndp_resp, nan_call_ndp_terminated_cb, nan_dp_delete_peer | Data refs: .rodata_wlog_warning.167, .rodata_wlog_warning.168, s_dp, g_osi_funcs_p
- * Fidelity: low - large/complex: 13 branches, 8 loop(s), 7 calls; skeleton only */
+ * Fidelity: medium - small frame, 7 calls + 13 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_datapath_send_resp(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,96; early arg regs: a2, a3, a4, a6 */

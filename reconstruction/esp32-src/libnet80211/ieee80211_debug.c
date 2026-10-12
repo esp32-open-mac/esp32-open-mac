@@ -76,7 +76,7 @@ u32 wifi_log(u32 a3, u32 a4, u32 a5, u32 a6, u32 a7)
 
 /* dbg_hmac_rxtx_statis_dump @ ieee80211_debug.o 0x000000c0 size 471B bind GLOBAL
  * Calls: wifi_log, wifi_log, wifi_log, wifi_log, wifi_log, wifi_log, wifi_log, wifi_log, wifi_log, wifi_log, wifi_log, wifi_log, wifi_log | Data refs: .rodata_wlog_info.2, .rodata_wlog_info.3, .rodata.dbg_hmac_rxtx_statis_dump.str1.1, .rodata_wlog_info.4, g_hmac_cnt, .rodata_wlog_info.5, .rodata_wlog_info.6, .rodata_wlog_info.7, .rodata_wlog_info.8, .rodata_wlog_info.9, .rodata_wlog_info.10, .rodata_wlog_info.11, .rodata_wlog_info.12, .rodata_wlog_info.13, .rodata_wlog_info.14
- * Fidelity: low - 185 insns, 0 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 185 insns, 0 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 dbg_hmac_rxtx_statis_dump(u32 a2, u32 a5, u32 a6, u32 a7)
 {
     /* frame: entry a1,64; 185 insns, 0 cond-branches, 0 loops, 0 jumps */

@@ -1360,7 +1360,7 @@ L_4:;
  * Calls: .text.offchan_in_progress[got], wifi_log[got], wDev_isNANPktInValidSlot[got], lmacDiscardAgedMSDU[got], ppRecycleAmpdu[got], pp_post[got], wifi_assert[got], wifi_assert[got], wifi_assert[got], lmacIsLongFrame[got], lmacSetTxFrame[got], lmacIsLongFrame[got], hal_random[got], hal_random[got], hal_mac_tx_config_edca[got], wifi_gpio_debug[got], hal_mac_txq_enable[got] | Data refs: .bss.our_instances, .text.offchan_in_progress, .rodata_wlog_debug.24, wifi_log, wDev_isNANPktInValidSlot, lmacDiscardAgedMSDU, ppRecycleAmpdu, pp_post, .rodata.__FUNCTION__$1, .rodata.lmacProcessTxopSuccess.str1.1, wifi_assert, g_osi_funcs_p, lmacIsLongFrame, lmacConfMib, lmacSetTxFrame, g_lmac_cnt, hal_random, hal_mac_tx_config_edca, wifi_gpio_debug, hal_mac_txq_enable
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 17 call(s), 20 data ref(s)
- * Fidelity: low - 240 instr, 22 branches, 2 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 240 instr, 22 branches, 2 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t lmacTxFrame(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifi0iram.23; Xtensa ABI: args a2..a7, return a2 */
@@ -1815,7 +1815,7 @@ L_4:;
  * Calls: wifi_assert[got], ppRecordBarRRC[got], ppResortTxAMPDU[got], ppRecycleAmpdu[got], lmacDiscardMSDU[got], wifi_assert[got], memset[got], hal_mac_tx_get_blockack[got], hal_mac_tx_is_cbw40[got], ppTxqUpdateBitmap[got], ppRecycleAmpdu[got], ppResortTxAMPDU[got], wifi_assert[got], trc_isTxAmpduOperational[got], ppReSendBar[got], ppRegressAmpdu[got], lmacRecycleMPDU[got], wifi_assert[got], wifi_assert[got], lmacRetryTxFrame[got], lmacIsLongFrame[got], lmacRetryTxFrame[got], lmacEndRetryAMPDUFail[got] | Data refs: .rodata.__FUNCTION__$10, .rodata.lmacProcessTxopSuccess.str1.1, wifi_assert, ppRecordBarRRC, ppResortTxAMPDU, ppRecycleAmpdu, lmacConfMib, lmacDiscardMSDU, memset, hal_mac_tx_get_blockack, pTxRx, hal_mac_tx_is_cbw40, ppTxqUpdateBitmap, trc_isTxAmpduOperational, ppReSendBar, ppRegressAmpdu, lmacRecycleMPDU, lmacRetryTxFrame, lmacIsLongFrame, lmacEndRetryAMPDUFail
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 23 call(s), 20 data ref(s)
- * Fidelity: low - 262 instr, 34 branches, 0 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 262 instr, 34 branches, 0 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t lmacEndFrameExchangeSequence(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifi0iram.11; Xtensa ABI: args a2..a7, return a2 */
@@ -2242,7 +2242,7 @@ L_b7:;
  * Calls: lmacDiscardFrameExchangeSequence, lmacEndFrameExchangeSequence, lmacEndRetryAMPDUFail, lmacIsLongFrame, lmacMSDUAged, lmacRetryTxFrame, rcReachRetryLimit, wifi_assert | Data refs: .rodata.__FUNCTION__$7, .rodata.lmacProcessTxopSuccess.str1.1, lmacConfMib, lmacDiscardFrameExchangeSequence, lmacEndFrameExchangeSequence, lmacEndRetryAMPDUFail, lmacIsLongFrame, lmacMSDUAged, lmacRetryTxFrame, rcReachRetryLimit, wifi_assert
  *   MMIO: none
  *   funcdb v3: 8 call(s), 11 ref(s); disasm: 10 call(s), 11 data ref(s)
- * Fidelity: low - 182 instr, 34 branches, 0 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 182 instr, 34 branches, 0 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t lmacProcessShortRetryFail(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.lmacProcessShortRetryFail; Xtensa ABI: args a2..a7, return a2 */
@@ -3074,7 +3074,7 @@ L_bd:;
  * Calls: hal_mac_get_txq_state[got], pm_is_sleeping[got], tx_pwctrl_background[got], hal_mac_clr_txq_state[got], wifi_log[got], hal_mac_get_txq_pmd[got], hal_mac_clr_txq_state[got], wifi_gpio_debug[got], .rodata[tail], lmacProcessTxSuccess[got], lmacProcessTxRtsError[got], lmacProcessCtsTimeout[got], lmacProcessAckTimeout[got], lmacProcessTxError[got], wifi_assert[got] | Data refs: hal_mac_get_txq_state, g_osi_funcs_p, pm_is_sleeping, g_pp_tx_pkt_num, tx_pwctrl_background, .bss.our_instances, hal_mac_clr_txq_state, .rodata_wlog_info.17, wifi_log, hal_mac_get_txq_pmd, wifi_gpio_debug, .rodata, lmacProcessTxSuccess, lmacProcessTxRtsError, lmacProcessCtsTimeout, lmacProcessAckTimeout, lmacProcessTxError, .rodata.__FUNCTION__$8, .rodata.lmacProcessTxopSuccess.str1.1, wifi_assert
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 15 call(s), 20 data ref(s)
- * Fidelity: low - 131 instr, 15 branches, 1 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: low - 131 instr, 15 branches, 1 indirect; jx computed dispatch at +0x145 (extui 12,4 at +0x137, bgeui bound 6 at +0x13a, l32r at +0x13d + addx4 at +0x140, jx a5); per-case targets structural - need jump-table case decode to raise */
 int32_t lmacProcessTxComplete(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifiextrairam.16; Xtensa ABI: args a2..a7, return a2 */

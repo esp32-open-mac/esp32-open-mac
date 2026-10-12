@@ -627,7 +627,7 @@ L_0:;
  *   MMIO: none
  *   FP/data literals (loaded, never dereferenced - NOT MMIO): 0x3FF0624D
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 13 call(s), 15 data ref(s)
- * Fidelity: low - 207 instr, 15 branches, 0 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 207 instr, 15 branches, 0 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pm_beacon_offset_get_params(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifislpiram.4; Xtensa ABI: args a2..a7, return a2 */
@@ -1247,7 +1247,7 @@ L_4:;
  *   MMIO: none
  *   FP/data literals (loaded, never dereferenced - NOT MMIO): 0x3F000000
  *   funcdb v3: 5 call(s), 13 ref(s); disasm: 13 call(s), 13 data ref(s)
- * Fidelity: low - 173 instr, 15 branches, 0 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 173 instr, 15 branches, 0 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pm_beacon_offset_check(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.pm_beacon_offset_check; Xtensa ABI: args a2..a7, return a2 */

@@ -459,3 +459,32 @@ Only `Fidelity: low` function touched; all others byte-identical. Braces balance
 | file | function(size) | old -> new | unlock notes |
 |---|---|---|---|
 | pp.c | ppRxFragmentProc(1109B, .wifirxiram.26) | low -> medium | fragment reassembly (s_fragment null -> recycle/clear; mesh gates is_started/is_root/init_ps + osi+0x110 indirect; REG32(0x3FF73C00 MMIO)+time_delta vs lmacConfMib window bgeu; ptk_alg + TID/seq extui chain; hdrsize FC arms bnei 2/4; frag link + gettid x2 + memcmp + seq gates; TKIP-MIC via obtain_key/CalTkipMic/memcmp + mic-fail cb) |
+
+## Mid-size (257–1024B) pass 2026-10-12 (offline, disasm-grounded)
+
+Only in-range `Fidelity: low` functions touched (33 low->medium, 5 sharpened
+low); others byte-identical. Braces balanced; non-Fidelity lines identical.
+All upgraded functions verified loop-free in the true-loop sense (0 backward
+conditionals, 0 `loop` insns) with no `jx`; counts preserved from headers.
+
+- Upgraded to medium (flow + direct calls mapped, GOT-indirects enumerated):
+  `esf_buf_alloc_dynamic`(452B), `ic_set_vif`(431B), `lmacTxFrame`(622B),
+  `lmacEndFrameExchangeSequence`(682B), `lmacProcessShortRetryFail`(479B),
+  `pm_dream`(314B), `pm_sleep`(499B), `pm_update_by_connectionless_status`(318B),
+  `pm_set_next_tbtt`(558B), `pm_update_next_tbtt`(734B),
+  `pm_tx_null_data_done_process`(668B), `pm_process_tim`(343B),
+  `pm_tx_data_process`(507B), `pm_start`(466B), `pm_stop`(514B),
+  `pm_enable_beacon_monitor_timer`(290B), `pm_tbtt_process`(419B),
+  `pm_beacon_offset_get_params`(587B), `pm_beacon_offset_check`(453B),
+  `pp_create_task`(378B), `pp_post`(322B), `ppTxPkt`(475B),
+  `ppCalTxAMPDULength`(692B), `ppResortTxAMPDU`(1010B),
+  `dbg_lmac_hw_statis_dump`(503B), `rcUpdateTxDoneAmpdu2`(807B),
+  `rcUpdateRate`(509B), `wdev_csi_rx_process`(274B),
+  `wDev_SnifferRxData`(604B), `wDev_Rxbuf_Init`(498B),
+  `wDev_IndicateFrame`(662B), `wDev_IndicateAmpdu`(752B),
+  `wDev_ProcessRxSucData`(905B).
+- Sharpened, remain low: `esf_buf_alloc`(jx +0x3b), `lmacProcessTxComplete`
+  (jx +0x145), `ppTask`(jx +0xf8), `rssi_margin`(jx +0x27, rssi_margin table),
+  `mac_txrx_init`(loop +0x99, MMIO 0x3FF730D8) — each note cites exact
+  bounds/table/jx offsets + case-decode or loop-trip resolver. phy/coex
+  functions untouched (other workers).

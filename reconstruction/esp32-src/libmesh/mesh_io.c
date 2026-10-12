@@ -245,7 +245,7 @@ u32 mesh_look_for_network(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
 
 /* mesh_nwk_io_process @ mesh_io.o 00000060 size 380B bind GLOBAL
  * Calls: mesh_set_self_organized, io_cfg2str, mesh_set_id, mesh_get_subnet_nodes_num, mesh_get_subnet_nodes_list, mesh_set_parent, mesh_set_ie_crypto_funcs, strnlen, mesh_set_ie_crypto_key, mesh_set_type, mesh_set_router, mesh_switch_channel, mesh_look_for_network, mesh_ps_get_duties | indirect[4]: mem[a2+0x158]; mem[a2+0x150]; mem[a3+0x158]; unknown | Data refs: g_log_level, g_osi_funcs_p, .rodata.mesh_set_io_process.str1.1, .rodata.mesh_nwk_io_process, .rodata.mesh_nwk_io_process.str1.1, g_mesh_stop_reconnection, .bss.s_mesh_io_error
- * Fidelity: low - jump-table switch present; cases not recovered
+ * Fidelity: low - jx dispatch (bgeu bound 12 at +0xaa, table .rodata.mesh_nwk_io_process via l32r at +0xb0 + (idx<<2) load at +0xb3, jx a3 at +0xb8); per-case targets structural - need rodata table dump + per-case target walk to raise
  * Edges: funcdb-v3 (calls=14, refs=21); reloc-direct=14, funcdb-attributed=0, unknown-indirect=4 */
 u32 mesh_nwk_io_process(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */

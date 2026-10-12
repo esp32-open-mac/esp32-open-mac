@@ -477,7 +477,7 @@ u32 esp_wifi_get_negotiated_channel_local(u32 a2)
 
 /* esp_wifi_get_negotiated_bw_local @ ieee80211_api.o 0x00000010 size 260B bind GLOBAL
  * Calls: none | Data refs: g_wifi_nvs, g_ic
- * Fidelity: low - 93 insns, 23 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 93 insns, 23 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 esp_wifi_get_negotiated_bw_local(u32 a2)
 {
     /* frame: entry a1,32; 93 insns, 23 cond-branches, 0 loops, 7 jumps */
@@ -734,7 +734,7 @@ u32 esp_wifi_get_inactive_time_local(u32 a2)
 
 /* wifi_station_get_config_local @ ieee80211_api.o 0x00000030 size 500B bind LOCAL
  * Calls: wifi_api_lock, wifi_nvs_get, wifi_api_unlock, memset, memset, memcpy, memcpy, memcpy, memcpy, wifi_api_unlock | Data refs: g_wifi_nvs, g_ic
- * Fidelity: low - 161 insns, 5 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 161 insns, 5 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 wifi_station_get_config_local(u32 a2)
 {
     /* frame: entry a1,32; 161 insns, 5 cond-branches, 0 loops, 1 jumps */
@@ -776,7 +776,7 @@ u32 wifi_station_get_config_local(u32 a2)
 
 /* wifi_softap_get_config @ ieee80211_api.o 0x00000030 size 434B bind GLOBAL
  * Calls: wifi_api_lock, wifi_nvs_get, wifi_api_unlock, wifi_set_default_ssid, memcpy, memcpy, ieee80211_regdomain_check_ap_channel, ieee80211_regdomain_ap_min_chan, wifi_softap_max_support_num, wifi_softap_max_support_num, wifi_api_unlock | Data refs: none
- * Fidelity: low - 152 insns, 9 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 152 insns, 9 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 wifi_softap_get_config(u32 a2)
 {
     /* frame: entry a1,32; 152 insns, 9 cond-branches, 0 loops, 3 jumps */
@@ -922,7 +922,7 @@ u32 wifi_unregister_user_ie_manufacturer_recv_cb(void)
 
 /* wifi_set_user_ie @ ieee80211_api.o 0x00000014 size 278B bind GLOBAL
  * Calls: indirect(a8), indirect(a11), indirect(a3), memcpy, indirect(a3), indirect(a2) | Data refs: g_ic+0x88, .rodata.CSWTCH$548, g_osi_funcs_p, g_ic
- * Fidelity: low - 106 insns, 14 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 106 insns, 14 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 wifi_set_user_ie(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6)
 {
     /* frame: entry a1,48; 106 insns, 14 cond-branches, 0 loops, 3 jumps */
@@ -1251,7 +1251,7 @@ u32 net80211_funcs_deinit(u32 a2)
 
 /* esp_wifi_init_internal @ ieee80211_api.o 0x00000060 size 275B bind GLOBAL
  * Calls: puts, wifi_osi_funcs_register, wifi_api_lock, wifi_api_unlock, wifi_api_unlock, wifi_log, pm_funcs_init, net80211_funcs_init, wifi_api_unlock, wifi_init_in_caller_task, indirect(a3), ieee80211_ioctl, wifi_api_lock, wifi_deinit_in_caller_task, wifi_api_lock, pm_funcs_deinit, net80211_funcs_deinit, wifi_api_unlock | Data refs: .rodata.esp_wifi_init_internal.str1.1, .data.s_wifi_init_state, .rodata_wlog_warning.6, .rodata_wlog_warning.7, g_osi_funcs_p, wifi_init_process
- * Fidelity: low - 98 insns, 12 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 98 insns, 12 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 esp_wifi_init_internal(u32 a2, u32 a4)
 {
     /* frame: entry a1,32; 98 insns, 12 cond-branches, 0 loops, 6 jumps */
@@ -1460,7 +1460,7 @@ u32 esp_wifi_start(u32 a2)
 
 /* esp_wifi_stop @ ieee80211_api.o 0x00000070 size 394B bind GLOBAL
  * Calls: wifi_api_lock, indirect(a2), wifi_api_unlock, wifi_log, indirect(a3), wifi_api_unlock, wifi_api_unlock, reset_cs_thres, ieee80211_ioctl, indirect(a7), ieee80211_ioctl, indirect(a7), indirect(a8), wifi_log, wifi_log, indirect(a2), ieee80211_ioctl, wifi_log, wifi_api_lock, wifi_api_unlock | Data refs: g_osi_funcs_p, .rodata_wlog_error.13, s_wifi_stop_in_progress, wifi_stop_process, .rodata_wlog_error.15, .rodata_wlog_warning.16, .rodata_wlog_warning.17, .rodata_wlog_error.18
- * Fidelity: low - 144 insns, 10 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 144 insns, 10 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 esp_wifi_stop(u32 a3, u32 a4)
 {
     /* frame: entry a1,48; 144 insns, 10 cond-branches, 0 loops, 7 jumps */
@@ -1662,7 +1662,7 @@ u32 get_total_scan_time(u32 a2, u32 a4)
 
 /* esp_wifi_scan_start @ ieee80211_api.o 0x00000058 size 390B bind GLOBAL
  * Calls: wifi_init_completed, indirect(a2), indirect(a2), scan_set_scan_id, ieee80211_regdomain_check_channel, wifi_log, indirect(a2), memcpy, indirect(a2), ieee80211_ioctl, get_total_scan_time, scan_get_scan_id, wifi_log, indirect(a8), indirect(a9), wifi_log | Data refs: g_ic, g_wifi_global_lock, g_osi_funcs_p, .bss.old_scan_id$2, g_wifi_nvs, .rodata_wlog_error.19, wifi_scan_start_process, .rodata_wlog_warning.20, .rodata_wlog_verbose.21
- * Fidelity: low - 141 insns, 13 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 141 insns, 13 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 esp_wifi_scan_start(u32 a2, u32 a3, u32 a7)
 {
     /* frame: entry a1,48; 141 insns, 13 cond-branches, 0 loops, 6 jumps */
@@ -2207,7 +2207,7 @@ u32 esp_wifi_config_80211_tx_rate(u32 a2, u32 a3)
 
 /* esp_wifi_config_80211_tx @ ieee80211_api.o 0x00000060 size 456B bind GLOBAL
  * Calls: wifi_init_completed, wifi_log, chm_get_current_band, wifi_log, ic_set_80211_tx_rate_config | Data refs: .rodata_wlog_warning.41, .rodata_wlog_warning.42, .rodata_wlog_warning.43, g_ic, .rodata_wlog_warning.44, g_wifi_nvs, .rodata_wlog_warning.45, .rodata_wlog_warning.46, .rodata_wlog_warning.47, .rodata_wlog_warning.48, .rodata_wlog_warning.49, .rodata_wlog_warning.50, .rodata_wlog_warning.51, g_chm, .rodata_wlog_warning.52, .rodata_wlog_warning.53, .rodata_wlog_warning.54
- * Fidelity: low - 166 insns, 42 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 166 insns, 42 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 esp_wifi_config_80211_tx(u32 a2, u32 a3)
 {
     /* frame: entry a1,32; 166 insns, 42 cond-branches, 0 loops, 20 jumps */
@@ -3296,7 +3296,7 @@ u32 esp_wifi_set_sta_rx_probe_req(u32 a2)
 
 /* esp_wifi_ipc_internal @ ieee80211_api.o 0x00000028 size 278B bind GLOBAL
  * Calls: wifi_init_completed, indirect(a4), ieee80211_ioctl, indirect(a4), memcpy, indirect(a4), indirect(a2), memcpy, indirect(a4), ieee80211_ioctl, wifi_log, indirect(a2), indirect(a2) | Data refs: g_osi_funcs_p, wifi_ipc_process, .rodata_wlog_error.61
- * Fidelity: low - 109 insns, 13 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 109 insns, 13 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 esp_wifi_ipc_internal(u32 a2, u32 a3)
 {
     /* frame: entry a1,32; 109 insns, 13 cond-branches, 0 loops, 4 jumps */
@@ -4334,7 +4334,7 @@ u32 esp_wifi_nan_set_params_internal(u32 a2)
 
 /* esp_wifi_nan_load_saved_creds @ ieee80211_api.o 0x00000044 size 341B bind GLOBAL
  * Calls: indirect(a5), memcpy, nan_key_is_all_ff_constprop_0, memcpy, memcpy, memcpy, nan_key_is_all_ff_constprop_0, memcpy, memcpy, memcpy, nan_key_is_all_ff_constprop_0, indirect(a4), wifi_log | Data refs: .rodata.esp_wifi_nan_load_saved_creds.str1.1, g_wifi_global_lock, g_osi_funcs_p, g_wifi_nvs, .rodata_wlog_info.63
- * Fidelity: low - 124 insns, 6 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 124 insns, 6 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 esp_wifi_nan_load_saved_creds(u32 a2, u32 a3, u32 a4, u32 a5)
 {
     /* frame: entry a1,48; 124 insns, 6 cond-branches, 0 loops, 1 jumps */
@@ -4382,7 +4382,7 @@ u32 esp_wifi_nan_load_saved_creds(u32 a2, u32 a3, u32 a4, u32 a5)
 
 /* esp_wifi_nan_save_creds_for_peer @ ieee80211_api.o 0x00000044 size 312B bind GLOBAL
  * Calls: indirect(a5), memcmp, nan_key_is_all_ff_constprop_0, memcmp, nan_key_is_all_ff_constprop_0, indirect(a2), wifi_log, memcpy, memcpy, memcpy, wifi_nvs_set, wifi_nvs_commit, indirect(a4), wifi_log | Data refs: g_wifi_global_lock, g_osi_funcs_p, g_wifi_nvs, .rodata_wlog_warning.64, g_ic, .rodata_wlog_info.65
- * Fidelity: low - 119 insns, 6 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 119 insns, 6 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 esp_wifi_nan_save_creds_for_peer(u32 a2, u32 a3, u32 a4)
 {
     /* frame: entry a1,48; 119 insns, 6 cond-branches, 0 loops, 3 jumps */
@@ -4742,7 +4742,7 @@ u32 esp_mesh_scan_get_ap_ie_len(u32 a2)
 
 /* esp_wifi_scan_get_cur_ap_record @ ieee80211_api.o 0x00000038 size 316B bind GLOBAL
  * Calls: wifi_init_completed, indirect(a5), indirect(a2), memset, memcpy, memcpy, memcpy, memcpy, memcpy, free_bss_info, indirect(a2) | Data refs: g_ic, g_wifi_global_lock, g_osi_funcs_p, g_ic+0x130
- * Fidelity: low - 122 insns, 23 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 122 insns, 23 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 esp_wifi_scan_get_cur_ap_record(u32 a3, u32 a4, u32 a7)
 {
     /* frame: entry a1,48; 122 insns, 23 cond-branches, 0 loops, 8 jumps */
@@ -5098,7 +5098,7 @@ u32 esp_mesh_set_ie_crypto_key_internal(u32 a2, u32 a3)
 
 /* esp_wifi_scan_sort_ap_records @ ieee80211_api.o 0x00000038 size 342B bind GLOBAL
  * Calls: scan_get_apnum, wifi_log, indirect(a3), wifi_log, indirect(a3), memmove, indirect(a4) | Data refs: g_mesh_topology, .rodata_wlog_warning.68, g_osi_funcs_p, .bss.sort_bss$1, .rodata_wlog_warning.69, .bss.s_mesh_sort_bss, g_wifi_global_lock, g_ic, g_ic+0x130, .bss.s_mesh_sort_num
- * Fidelity: low - 127 insns, 15 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 127 insns, 15 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 esp_wifi_scan_sort_ap_records(u32 a3, u32 a4, u32 a6)
 {
     /* frame: entry a1,48; 127 insns, 15 cond-branches, 0 loops, 10 jumps */
@@ -5166,7 +5166,7 @@ u32 esp_wifi_scan_sort_get_cur_ap_info(u32 a2, u32 a3, u32 a6)
 
 /* esp_wifi_scan_sort_get_cur_ap_record @ ieee80211_api.o 0x00000040 size 404B bind GLOBAL
  * Calls: wifi_init_completed, indirect(a2), indirect(a2), memset, memcpy, memcpy, memcpy, memcpy, memcpy, free_bss_info, indirect(a2), indirect(a2) | Data refs: g_ic, g_wifi_global_lock, g_osi_funcs_p, .bss.s_mesh_sort_bss, .bss.s_mesh_sort_num, .bss.s_mesh_fetch_num
- * Fidelity: low - 152 insns, 24 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 152 insns, 24 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 esp_wifi_scan_sort_get_cur_ap_record(u32 a2, u32 a3, u32 a4)
 {
     /* frame: entry a1,32; 152 insns, 24 cond-branches, 0 loops, 9 jumps */

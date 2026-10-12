@@ -296,7 +296,7 @@ L_102:;
  * Calls: wifi_log | Data refs: .rodata.dbg_lmac_hw_statis_dump.str1.1, .rodata_wlog_info.17, .rodata_wlog_info.18, .rodata_wlog_info.19, .rodata_wlog_info.20, .rodata_wlog_info.21, .rodata_wlog_info.22, .rodata_wlog_info.23, .rodata_wlog_info.24, wifi_log
  *   MMIO: 0x3FF73094, 0x3FF7328C, 0x3FF73294, 0x3FF73298, 0x3FF73290, 0x3FF7329C, 0x3FF732A0, 0x3FF732A4, 0x3FF732A8, 0x3FF732B0, 0x3FF732B8, 0x3FF732BC, 0x3FF732B4, 0x3FF732C0, 0x3FF732C4, 0x3FF732C8, 0x3FF732E0, 0x3FF732D8, 0x3FF73D58, 0x3FF73D5C, 0x3FF73D60, 0x3FF73D64, 0x3FF73D68, 0x3FF73D6C, 0x3FF73D70
  *   funcdb v3: 1 call(s), 10 ref(s); disasm: 8 call(s), 10 data ref(s)
- * Fidelity: low - 196 instr, 0 branches, 0 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 196 instr, 0 branches, 0 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t dbg_lmac_hw_statis_dump(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.dbg_lmac_hw_statis_dump; Xtensa ABI: args a2..a7, return a2 */

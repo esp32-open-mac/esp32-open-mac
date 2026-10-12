@@ -866,7 +866,7 @@ L_4:;
  * Calls: none | Data refs: none
  *   MMIO: 0x3FF73C6C, 0x3FF730D8, 0x3FF73C74, 0x3FF730F8, 0x3FF730FC, 0x3FF73100, 0x3FF73104, 0x3FF7310C, 0x3FF73114, 0x3FF73C78, 0x3FF73D78, 0x3FF73C54, 0x3FF73C1C, 0x3FF73C20, 0x3FF73C24, 0x3FF73CAC, 0x3FF73C5C, 0x3FF73C88, 0x3FF73288, 0x3FF73084
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 0 call(s), 0 data ref(s)
- * Fidelity: low - 217 instr, 1 branches, 0 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: low - 217 instr, 1 branch, 0 indirect; hardware loop at +0x99 (loop a9, movi 4, MMIO 0x3FF730D8 table init); trip/stride mapping needed - need loop-trip decode to raise */
 int32_t mac_txrx_init(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.mac_txrx_init; Xtensa ABI: args a2..a7, return a2 */

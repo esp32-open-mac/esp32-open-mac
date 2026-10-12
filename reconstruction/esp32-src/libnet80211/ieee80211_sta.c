@@ -469,7 +469,7 @@ u32 ieee80211_parse_wmeparams(u32 a2, u32 a3)
 
 /* sta_rx_csa @ ieee80211_sta.o 0x00000054 size 532B bind GLOBAL
  * Calls: wifi_log, chm_get_band_from_chan, chm_get_band_from_chan, wifi_log, wifi_log, indirect(a11), indirect(a11), indirect(a13), wifi_log, wifi_mesh_event_post, indirect(a2), wifi_log | Data refs: .rodata.sta_rx_csa.str1.1, g_ic, .rodata_wlog_warning.70, .rodata_wlog_info.72, .rodata_wlog_info.73, .rodata_wlog_info.74, g_wifi_nvs, sta_csa_timer, g_osi_funcs_p, cnx_csa_fn, .rodata_wlog_info.75, .rodata_wlog_debug.76
- * Fidelity: low - 198 insns, 18 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 198 insns, 18 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 sta_rx_csa(u32 a2, u32 a3, u32 a4)
 {
     /* frame: entry a1,80; 198 insns, 18 cond-branches, 0 loops, 6 jumps */
@@ -1124,7 +1124,7 @@ u32 sta_auth_open(u32 a2, u32 a6, u32 a7)
 
 /* sta_auth_shared @ ieee80211_sta.o 0x00000028 size 294B bind GLOBAL
  * Calls: wifi_log, indirect(a2), ieee80211_alloc_challenge, memcpy, wifi_log, ieee80211_send_mgmt, ieee80211_sta_new_state | Data refs: g_ic, .rodata_wlog_debug.67, g_osi_funcs_p, .rodata_wlog_debug.68
- * Fidelity: low - 106 insns, 18 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 106 insns, 18 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 sta_auth_shared(u32 a2, u32 a5)
 {
     /* frame: entry a1,32; 106 insns, 18 cond-branches, 0 loops, 6 jumps */
@@ -1160,7 +1160,7 @@ u32 sta_auth_shared(u32 a2, u32 a5)
 
 /* sta_auth_sae @ ieee80211_sta.o 0x00000028 size 330B bind GLOBAL
  * Calls: sta_is_wpa3_enabled, indirect(a9), ieee80211_send_mgmt, pm_on_coex_schm_status_config, indirect(a10), pm_on_coex_schm_process_restart, indirect(a3), indirect(a3), indirect(a3), indirect(a2), ieee80211_sta_new_state, ieee80211_sta_new_state | Data refs: g_ic, g_osi_funcs_p, cnx_auth_timeout
- * Fidelity: low - 120 insns, 18 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 120 insns, 18 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 sta_auth_sae(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6)
 {
     /* frame: entry a1,48; 120 insns, 18 cond-branches, 0 loops, 8 jumps */
@@ -1395,7 +1395,7 @@ u32 sta_sa_query_process_timeout(u32 a4, u32 a5)
 
 /* sta_try_sa_query_process @ ieee80211_sta.o 0x00000030 size 362B bind GLOBAL
  * Calls: wifi_log, wifi_log, indirect(a8), indirect(a8), indirect(a8), indirect(a8), indirect(a8), indirect(a8), indirect(a8), indirect(a3), indirect(a3), indirect(a4), indirect(a3), sta_sa_query_process_timeout, ieee80211_send_action | Data refs: g_ic, .rodata_wlog_warning.105, .rodata_wlog_info.106, g_osi_funcs_p, .text.sta_sa_query_timeout, .text.sta_try_sa_query
- * Fidelity: low - 136 insns, 4 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 136 insns, 4 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 sta_try_sa_query_process(u32 a2)
 {
     /* frame: entry a1,48; 136 insns, 4 cond-branches, 0 loops, 3 jumps */

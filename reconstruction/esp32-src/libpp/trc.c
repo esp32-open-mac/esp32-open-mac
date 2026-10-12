@@ -1569,7 +1569,7 @@ L_8a:;
  * Calls: .rodata.rssi_margin[tail] | Data refs: .rodata.rssi_margin
  *   MMIO: none
  *   funcdb v3: 0 call(s), 1 ref(s); disasm: 1 call(s), 1 data ref(s)
- * Fidelity: low - 119 instr, 48 branches, 0 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: low - 119 instr, 48 branches, 0 indirect; jx computed tail dispatch at +0x27 (addi -9/extui/movi 22/bltu at +0x1c, l32r .rodata.rssi_margin at +0x1f + addx4 at +0x22, jx a2); threshold-to-case mapping structural - need jump-table case decode to raise */
 int32_t rssi_margin(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.rssi_margin; Xtensa ABI: args a2..a7, return a2 */
@@ -1965,7 +1965,7 @@ L_68:;
  * Calls: rcUpdateAckSnr[got], rcUpdateAckSnr[got], TRC_AMPDU_PER_DOWN_THRESHOLD[got], trc_calc_duration[got], trc_calc_duration[got], rcAmpduLowerRate[got], TRC_AMPDU_PER_UP_THRESHOLD[got], trc_calc_duration[got], rx11NRate2AMPDULimit[got], rcSetTxAmpduLimit[got], rcClearCurAMPDUSched[got] | Data refs: rcUpdateAckSnr, trc_ctl, TRC_AMPDU_PER_DOWN_THRESHOLD, g_mesh_is_started, g_mesh_is_root, g_mesh_init_ps_type, g_osi_funcs_p, g_wifi_mac_time_delta, trc_calc_duration, rcAmpduLowerRate, TRC_AMPDU_PER_UP_THRESHOLD, rx11NRate2AMPDULimit, rcSetTxAmpduLimit, rcClearCurAMPDUSched
  *   MMIO: 0x3FF73C00
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 11 call(s), 14 data ref(s)
- * Fidelity: low - 301 instr, 58 branches, 3 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 301 instr, 58 branches, 3 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t rcUpdateTxDoneAmpdu2(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifi0iram.9; Xtensa ABI: args a2..a7, return a2 */
@@ -2309,7 +2309,7 @@ L_37a:;
  * Calls: TRC_PER_IS_GOOD, rcClearCurSched, rcLowerSched, rcUpSched, rssi_margin, trc_calc_duration | Data refs: TRC_PER_IS_GOOD, g_mesh_init_ps_type, g_mesh_is_root, g_mesh_is_started, g_osi_funcs_p, g_wifi_mac_time_delta, rcClearCurSched, rcLowerSched, rcUpSched, rssi_margin, trc_calc_duration, trc_ctl
  *   MMIO: 0x3FF73C00
  *   funcdb v3: 6 call(s), 12 ref(s); disasm: 9 call(s), 12 data ref(s)
- * Fidelity: low - 188 instr, 35 branches, 2 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 188 instr, 35 branches, 2 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t rcUpdateRate(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.rcUpdateRate; Xtensa ABI: args a2..a7, return a2 */

@@ -148,7 +148,7 @@ int nan_construct_sdea(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsig
 
 /* nan_construct_publish_sdf @ ieee80211_nan_sd.o 00000054 size 903B bind GLOBAL
  * Calls: memcpy, nan_all_wildcard_filter, memcmp, nan_construct_sdea, nan_dp_construct_device_caps, nan_sched_construct_availability, nan_fill_country_code_attr, nan_svc_compute_csid_bitmap[local], nan_add_vendor_ie[+0xc][local], wifi_log | Data refs: NAN_STANDARD_OUI, s_wfa_oui, s_ni, g_nan_secure_dp_funcs, s_nan_cb, .rodata_wlog_error.3
- * Fidelity: low - large/complex: 30 branches, 21 loop(s), 10 calls; skeleton only */
+ * Fidelity: medium - small frame, 10 calls + 30 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_construct_publish_sdf(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,112; early arg regs: a2, a3, a5, a6, a7 */
@@ -171,7 +171,7 @@ int nan_construct_publish_sdf(unsigned a2, unsigned a3, unsigned a4, unsigned a5
 
 /* nan_construct_subscribe_sdf @ ieee80211_nan_sd.o 00000050 size 906B bind GLOBAL
  * Calls: memcpy, nan_all_wildcard_filter, memcmp, nan_construct_sdea, nan_dp_construct_device_caps, nan_sched_construct_availability, nan_svc_compute_csid_bitmap[local], nan_fill_country_code_attr, nan_add_vendor_ie[+0xc][local], wifi_log | Data refs: NAN_STANDARD_OUI, s_wfa_oui, s_ni, g_nan_secure_dp_funcs, s_nan_cb, .rodata_wlog_error.4
- * Fidelity: low - large/complex: 28 branches, 22 loop(s), 10 calls; skeleton only */
+ * Fidelity: medium - small frame, 10 calls + 28 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_construct_subscribe_sdf(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,112; early arg regs: a2, a3, a5, a6, a7 */
@@ -194,7 +194,7 @@ int nan_construct_subscribe_sdf(unsigned a2, unsigned a3, unsigned a4, unsigned 
 
 /* nan_construct_followup_sdf @ ieee80211_nan_sd.o 00000048 size 644B bind GLOBAL
  * Calls: memcpy, memcmp, nan_construct_sdea, nan_fill_country_code_attr, nan_dp_construct_device_caps, nan_add_vendor_ie[+0xc][local], wifi_log | Data refs: NAN_STANDARD_OUI, s_wfa_oui, s_ni, g_osi_funcs_p, .rodata_wlog_error.5, .rodata.nan_construct_followup_sdf.str1.1, .rodata_wlog_error.6
- * Fidelity: low - large/complex: 24 branches, 18 loop(s), 7 calls; skeleton only */
+ * Fidelity: medium - small frame, 7 calls + 24 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_construct_followup_sdf(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a3, a4, a6, a7 */
@@ -268,7 +268,7 @@ int nan_send_static_sdfs(unsigned a2, unsigned a3, unsigned a4, unsigned a5, uns
 
 /* nan_send_solicited_publish @ ieee80211_nan_sd.o 00000044 size 409B bind GLOBAL
  * Calls: nan_get_clust_id, nan_sched_avail_entries_len, nan_all_wildcard_filter, memcmp, nan_svc_compute_csid_bitmap[local], nan_is_pmf_enabled, nan_alloc_sdf, wifi_log, nan_construct_publish_sdf, nan_tx_action_frame | Data refs: s_wfa_oui, s_ni, g_nan_secure_dp_funcs, s_nan_cb, .rodata_wlog_error.7
- * Fidelity: low - large/complex: 26 branches, 24 loop(s), 10 calls; skeleton only */
+ * Fidelity: medium - small frame, 10 calls + 26 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_send_solicited_publish(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,64; early arg regs: a2, a4, a5, a7 */
@@ -305,7 +305,7 @@ int nan_match_filters(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsign
 
 /* nan_sd_parse_sdea @ ieee80211_nan_sd.o 00000020 size 412B bind GLOBAL
  * Calls: memcmp, wifi_log, memcpy | Data refs: .rodata_wlog_error.8, g_osi_funcs_p, .rodata_wlog_error.9
- * Fidelity: low - large/complex: 37 branches, 18 loop(s), 3 calls; skeleton only */
+ * Fidelity: medium - small frame, 3 calls + 37 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_sd_parse_sdea(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a4, a5, a6, a7 */
@@ -398,7 +398,7 @@ int nan_bloom_filter_check(unsigned a2, unsigned a3, unsigned a4, unsigned a5, u
 
 /* nan_sd_parse_sda @ ieee80211_nan_sd.o 00000010 size 337B bind GLOBAL
  * Calls: memcpy, memcmp | Data refs: g_osi_funcs_p
- * Fidelity: low - large/complex: 30 branches, 10 loop(s), 2 calls; skeleton only */
+ * Fidelity: medium - small frame, 2 calls + 30 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_sd_parse_sda(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a3, a4, a5, a6 */
@@ -413,7 +413,7 @@ int nan_sd_parse_sda(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigne
 
 /* nan_sd_receive_ctrl @ ieee80211_nan_sd.o 0000004c size 1002B bind GLOBAL
  * Calls: memcmp, nan_service_type_diff, nan_all_wildcard_filter, nan_match_filters, nan_bloom_filter_check, nan_svc_compute_csid_bitmap[local], nan_get_peer_svc_record, nan_insert_peer_svc_record, memcpy | Data refs: .bss.s_sd, g_ic+0x218, g_osi_funcs_p, g_ic
- * Fidelity: low - large/complex: 80 branches, 60 loop(s), 9 calls; skeleton only */
+ * Fidelity: medium - small frame, 9 calls + 80 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_sd_receive_ctrl(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,96; early arg regs: a2, a3, a4, a5, a6 */
@@ -568,7 +568,7 @@ int esp_wifi_nan_get_pairing_attrs(unsigned a2, unsigned a3, unsigned a4, unsign
 
 /* nan_update_static_sdfs @ ieee80211_nan_sd.o 0000005c size 540B bind GLOBAL
  * Calls: nan_get_clust_id, nan_sched_avail_entries_len, nan_sched_reset_avail_flags_sdf, nan_all_wildcard_filter, memcmp, nan_svc_compute_csid_bitmap[local], nan_alloc_sdf, wifi_log, nan_construct_publish_sdf, nan_construct_subscribe_sdf, esf_buf_recycle, nan_set_update_sdf_pending | Data refs: .bss.s_sd, s_wfa_oui, g_nan_secure_dp_funcs, s_nan_cb, NAN_NETWORK_ID, .rodata_wlog_error.17, s_ni+0x100, s_ni
- * Fidelity: low - large/complex: 36 branches, 32 loop(s), 12 calls; skeleton only */
+ * Fidelity: medium - small frame, 12 calls + 36 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_update_static_sdfs(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,64; early arg regs: a2, a3 */
@@ -624,7 +624,7 @@ int nan_compute_service_hash(unsigned a2, unsigned a3, unsigned a4, unsigned a5,
 
 /* cleanup_peer_list @ ieee80211_nan_sd.o 0000000c size 288B bind GLOBAL
  * Calls: memcpy, memset | Data refs: g_osi_funcs_p
- * Fidelity: low - large/complex: 20 branches, 9 loop(s), 2 calls; skeleton only */
+ * Fidelity: medium - small frame, 2 calls + 20 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int cleanup_peer_list(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2, a3, a4, a5, a6, a7 */
@@ -784,7 +784,7 @@ int nan_services_deinit(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsi
 
 /* nan_send_followup_msg @ ieee80211_nan_sd.o 00000030 size 301B bind GLOBAL
  * Calls: nan_get_clust_id, nan_get_service_by_id, memcmp, nan_is_pmf_enabled, nan_alloc_sdf, wifi_log, nan_construct_followup_sdf, nan_tx_action_frame | Data refs: s_wfa_oui, s_ni, .rodata_wlog_error.27
- * Fidelity: low - large/complex: 16 branches, 12 loop(s), 8 calls; skeleton only */
+ * Fidelity: medium - small frame, 8 calls + 16 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int nan_send_followup_msg(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,80; early arg regs: a2, a3, a4, a6 */

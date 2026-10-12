@@ -1509,7 +1509,7 @@ L_28:;
  * Calls: memcpy, memset, wDev_GetNoiseFloor | Data refs: g_osi_funcs_p, g_wdev_csi_rx, g_wdev_csi_rx_ctx, memcpy, memset, wDevCtrl, wDev_GetNoiseFloor
  *   MMIO: none
  *   funcdb v3: 3 call(s), 7 ref(s); disasm: 5 call(s), 7 data ref(s)
- * Fidelity: low - 102 instr, 10 branches, 3 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 102 instr, 10 branches, 3 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t wdev_csi_rx_process(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.wdev_csi_rx_process; Xtensa ABI: args a2..a7, return a2 */
@@ -1632,7 +1632,7 @@ L_134:;
  * Calls: memcpy, pp_post, wdev_csi_hw_bug_check, wdev_csi_len_align, wdev_csi_rx_process | Data refs: g_osi_funcs_p, memcpy, pp_post, wDevCtrl, wdev_csi_hw_bug_check, wdev_csi_len_align, wdev_csi_rx_process
  *   MMIO: none
  *   funcdb v3: 5 call(s), 7 ref(s); disasm: 11 call(s), 7 data ref(s)
- * Fidelity: low - 235 instr, 26 branches, 4 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 235 instr, 26 branches, 4 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t wDev_SnifferRxData(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.wDev_SnifferRxData; Xtensa ABI: args a2..a7, return a2 */
@@ -2205,7 +2205,7 @@ L_6c:;
  * Calls: memset, wDev_Rxbuf_Deinit, wifi_log | Data refs: .rodata_wlog_error.31, .rodata_wlog_error.35, .rodata_wlog_info.32, .rodata_wlog_info.33, .rodata_wlog_info.34, .rodata_wlog_warning.30, g_osi_funcs_p, g_wifi_menuconfig, memset, pTxRx, wDevCtrl, wDev_Rxbuf_Deinit, wifi_log
  *   MMIO: none
  *   funcdb v3: 3 call(s), 13 ref(s); disasm: 8 call(s), 13 data ref(s)
- * Fidelity: low - 196 instr, 12 branches, 2 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 196 instr, 12 branches, 2 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t wDev_Rxbuf_Init(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.wDev_Rxbuf_Init; Xtensa ABI: args a2..a7, return a2 */
@@ -3002,7 +3002,7 @@ L_8:;
  * Calls: esf_buf_alloc[got], esf_buf_alloc[got], wifi_gpio_debug[got], wifi_gpio_debug[got], wDev_DiscardFrame[got], wdev_csi_len_align[got], wdev_csi_hw_bug_check[got], memcpy[got], memcpy[got], memcpy[got], memcpy[got], memcpy[got], memcpy[got], wdev_csi_rx_process[got], wDev_DiscardFrame[got], lmacRxDone[got] | Data refs: wDevCtrl, pTxRx, esf_buf_alloc, wifi_gpio_debug, wDev_DiscardFrame, wdev_csi_len_align, wdev_csi_hw_bug_check, memcpy, wdev_csi_rx_process, lmacRxDone
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 16 call(s), 10 data ref(s)
- * Fidelity: low - 257 instr, 22 branches, 0 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 257 instr, 22 branches, 0 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t wDev_IndicateFrame(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifislprxiram.21; Xtensa ABI: args a2..a7, return a2 */
@@ -3291,7 +3291,7 @@ L_2e0:;
  * Calls: wdev_csi_len_align[got], wdev_csi_hw_bug_check[got], wDev_RxSecError[got], roundup2[got], esf_buf_alloc[got], memcpy[got], memcpy[got], esf_buf_recycle[got], memcpy[got], roundup2[got], memcpy[got], roundup2[got], wdev_csi_rx_process[got], wDev_SnifferRxAmpdu[got], lmacRxDone[got], esf_buf_recycle[got], wDev_DiscardFrame[got] | Data refs: wDevCtrl, wdev_csi_len_align, wdev_csi_hw_bug_check, wDev_RxSecError, roundup2, esf_buf_alloc, memcpy, esf_buf_recycle, wdev_csi_rx_process, wDev_SnifferRxAmpdu, lmacRxDone, wDev_DiscardFrame
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 17 call(s), 12 data ref(s)
- * Fidelity: low - 295 instr, 38 branches, 0 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 295 instr, 38 branches, 0 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t wDev_IndicateAmpdu(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifirxiram.23; Xtensa ABI: args a2..a7, return a2 */
@@ -3621,7 +3621,7 @@ L_329:;
  * Calls: wDev_GetNoiseFloor[got], wdev_csi_len_align[got], wdev_csi_hw_bug_check[got], wDev_SnifferRxData[got], wDev_SnifferRxData[got], ic_interface_enabled[got], wifi_sta_rx_probe_req[got], ic_interface_enabled[got], wDev_ProcessRxData_NAN_Interface_Hook[got], ic_interface_enabled[got], wDev_ProcessRxData_NAN_Interface_Hook[got], wDev_IndicateCtrlFrame[got], ic_interface_enabled[got], ic_interface_enabled[got], ic_interface_enabled[got], wDev_DiscardFrame[got], wifi_assert[got], wDev_IndicateAmpdu[got], wDev_IndicateFrame[got] | Data refs: wDevCtrl, wDev_GetNoiseFloor, wdev_csi_len_align, wdev_csi_hw_bug_check, wDev_SnifferRxData, g_lmac_cnt, ic_interface_enabled, wifi_sta_rx_probe_req, wDev_ProcessRxData_NAN_Interface_Hook, wDev_IndicateCtrlFrame, g_osi_funcs_p, wDev_DiscardFrame, .rodata.__FUNCTION__$3, .rodata.str1.1, wifi_assert, wDev_IndicateAmpdu, wDev_IndicateFrame
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 19 call(s), 17 data ref(s)
- * Fidelity: low - 349 instr, 68 branches, 1 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 349 instr, 68 branches, 1 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t wDev_ProcessRxSucData(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifislprxiram.27; Xtensa ABI: args a2..a7, return a2 */

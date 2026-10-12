@@ -255,3 +255,19 @@ All former `(local-section)` call sites now resolve to these names (0 remain).
   (`mask=(1<<(mi+1))−1`), `.byte` padding skip, `bbsi/bbci`, `l16ui`,
   float/bool regs (`lsi/ssi/wfr/rfr/ufloat.s/olt.s…` + `bt/bf`), `mul16u`,
   `src` (SAR-untracked placeholder), funcdb-v2→v3 label rollover, clone pass.
+
+## 9. Mid-size (257–1024B) pass 2026-10-12 (offline, disasm-grounded)
+
+Only `Fidelity: low` functions in range touched; others byte-identical.
+Braces/parens balanced; non-Fidelity lines identical (span-masked diff).
+
+- Sharpened (remain low, exact blocker + resolver): `esp_mesh_nvs_operate`
+  (bltui 6 +0xc2, `.rodata.esp_mesh_nvs_operate` l32r +0xc8, jx +0xd0),
+  `mesh_nwk_io_process` (bgeu 12 +0xaa, `.rodata.mesh_nwk_io_process` +0xb0,
+  jx +0xb8), `ieee80211_mesh_quick_get/set` (bgeu 24 +0x3c/+0x40,
+  `.rodata.ieee80211_mesh_quick_{get,set}` +0x42/+0x46, jx +0x4a/+0x4e),
+  `esp_mesh_tx_task_init` (bltu 13 +0x121, `.rodata.esp_mesh_tx_task_init`
+  +0x124, jx +0x12c), `mesh_check_tid_mbox_full` (bltu 13 +0x7e,
+  `.rodata.mesh_check_tid_mbox_full` +0x81, jx +0x89). All 6 keep low per
+  the jx rule; resolver is rodata table dump + per-case target walk.
+  Counts unchanged (10 low).

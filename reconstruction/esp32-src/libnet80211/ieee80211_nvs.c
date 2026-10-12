@@ -495,7 +495,7 @@ u32 wifi_nvs_commit(u32 a2)
 
 /* wifi_nvs_set @ ieee80211_nvs.o 0x0000003c size 359B bind GLOBAL
  * Calls: indirect(a4), wifi_log, strncpy, memcpy, indirect(a4), wifi_log, wifi_log | Data refs: .rodata_wlog_warning.8, g_wifi_menuconfig, .bss.g_wifi_nvs_cfg, .rodata.wifi_nvs_set, g_wifi_nvs, g_osi_funcs_p, .rodata_wlog_warning.9, .rodata_wlog_warning.10, .rodata_wlog_warning.11, .rodata_wlog_warning.12
- * Fidelity: low - 132 insns, 9 branches, 0 loops; skeleton only */
+ * Fidelity: low - 132 insns, 9 branches, 0 loops; jx a2 at +0x78 (l8ui at +0x67, bltui bound 8 at +0x6a, l32r at +0x70 + addx4 at +0x73); per-case targets structural - need jump-table case decode to raise */
 u32 wifi_nvs_set(u32 a2, u32 a3, u32 a4)
 {
     /* frame: entry a1,32; 132 insns, 9 cond-branches, 0 loops, 11 jumps */
@@ -553,7 +553,7 @@ u32 ieee80211_adjust_2nd_chan(u32 a2)
 
 /* wifi_nvs_compare_cfg_diff @ ieee80211_nvs.o 0x00000018 size 386B bind GLOBAL
  * Calls: indirect(a5), indirect(a5), indirect(a5), indirect(a6), indirect(a8), memcpy, memcmp, indirect(a3) | Data refs: g_ic, .bss.g_wifi_nvs_cfg, g_wifi_nvs, g_osi_funcs_p
- * Fidelity: low - 145 insns, 16 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 145 insns, 16 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 wifi_nvs_compare_cfg_diff(u32 a2, u32 a3, u32 a4)
 {
     /* frame: entry a1,48; 145 insns, 16 cond-branches, 0 loops, 8 jumps */
@@ -835,7 +835,7 @@ u32 wifi_nvs_validate_lr_info(void)
 
 /* wifi_nvs_load @ ieee80211_nvs.o 0x00000054 size 822B bind LOCAL
  * Calls: indirect(a3), wifi_log, memset, wifi_log, indirect(a9), indirect(a9), indirect(a9), indirect(a9), indirect(a9), indirect(a9), indirect(a9), indirect(a2), memcpy, wifi_nvs_validate_sta_sae_identifier, wifi_nvs_validate_sta_password, wifi_nvs_validate_sta_listen_interval, wifi_nvs_validate_country, wifi_nvs_validate_ap_ssid, wifi_nvs_validate_ap_password, wifi_nvs_validate_ap_chan, wifi_nvs_validate_ap_num, ieee80211_adjust_2nd_chan, wifi_nvs_validate_lr_info, wifi_nvs_commit, indirect(a2) | Data refs: g_osi_funcs_p, .rodata_wlog_warning.13, .bss.g_wifi_nvs_cfg, .rodata_wlog_warning.14, g_wifi_menuconfig, g_wifi_nvs
- * Fidelity: low - 274 insns, 40 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 274 insns, 40 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 wifi_nvs_load(u32 a4, u32 a7)
 {
     /* frame: entry a1,48; 274 insns, 40 cond-branches, 0 loops, 20 jumps */

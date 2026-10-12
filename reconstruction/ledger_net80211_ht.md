@@ -230,3 +230,48 @@ Braces balanced (comment/string-aware recount). Constants verbatim from disasm;
 | ieee80211_nan_datapath.c | nan_parse_ndp_resp(1084B) | low -> medium | resp parse (get_peer_ndl, ndpa/avail/elem_container, node_available, confirm_peer, send_confirm x2, cbs, delete_peer) |
 | ieee80211_nan_common.c | nan_input(1340B) | low -> medium | NAN dispatch (search_node, ampdu_reorder, decap/bip/ccmp gates; beqi 8/128, bnei 4/7, bgeui 2/6; sdf vs naf vs action vs pasn -> recycle) |
 | ieee80211_supplicant.c | esp_wifi_set_nan_key_internal(1704B) | low -> medium | NAN key install (NM-TK, clear_peer_integrity, del_ptk_gtk, init_key, del/set_key, bigtk/igtk idx + peer_keys; beqi 2/3, key_len 16) |
+
+## §9 Mid-size (257–1024B) pass 2026-10-12 (offline, disasm-grounded)
+
+Only in-range `Fidelity: low` functions touched (50 low->medium, 11 sharpened
+low); all others byte-identical. Braces balanced; non-Fidelity lines
+identical. Upgraded functions verified against section disasm (0 backward
+conditionals, 0 `loop` insns, 0 `jx`); branch/call counts preserved,
+predicates opaque. phy/coex untouched (other workers).
+
+- `ieee80211_ht.c` (9): `addba_response_txcb`(431B),
+  `ht_recv_action_ba_addba_response`(409B), `ieee80211_ht_attach`(563B),
+  `ht_recv_action_ba_addba_request`(405B), `ieee80211_ampdu_reorder`(542B),
+  `ieee80211_ht_updateparams`(390B), `ieee80211_add_htinfo_body`(292B),
+  `ht_send_action_ba_addba`(370B), `ieee80211_decap_amsdu`(260B).
+- `ieee80211_supplicant.c` (3): `esp_wifi_set_ap_key_internal`(361B),
+  `ppInstallKey`(310B), `esp_wifi_op_class_supported_internal`(669B).
+- `ieee80211_regdomain.c` (1): `ieee80211_regdomain_update`(352B).
+  `ieee80211_mesh_quick.c` (1): `ieee80211_mesh_quick_init`(354B).
+- `ieee80211_nan_common.c` (3): `nan_transmit_bcn`(335B),
+  `nan_alloc_sdf`(341B), `nan_transmit_action`(410B).
+- `ieee80211_nan_datapath.c` (18): `nan_sched_alloc_conditional`(313B),
+  `nan_dp_delete_peer`(347B), `nan_dp_post_tx`(264B),
+  `nan_construct_ndp_confirm`(620B), `nan_send_ndp_confirm`(268B),
+  `nan_construct_ndp_security_key_install`(574B),
+  `nan_send_security_key_install`(396B), `nan_send_ndp_resp`(722B),
+  `nan_send_ndp_req`(295B), `nan_dp_parse_ndpa`(721B),
+  `nan_dp_parse_elem_container`(308B), `nan_sched_parse_avail_entries`(419B),
+  `nan_dp_parse_availability`(948B), `nan_parse_ndp_req`(947B),
+  `nan_parse_ndp_confirm`(934B), `nan_parse_ndp_security_install`(639B),
+  `nan_datapath_send_req`(700B), `nan_datapath_send_resp`(368B).
+- `ieee80211_nan_disc.c` (5): `nan_update_amr_for_non_anchor`(653B),
+  `nan_stop_handler`(399B), `nan_common_dwend_ops`(488B),
+  `nan_init_event_hdlr`(356B), `nan_dwstart_timeout`(356B).
+- `ieee80211_nan_sd.c` (10): `nan_construct_publish_sdf`(903B),
+  `nan_construct_subscribe_sdf`(906B), `nan_construct_followup_sdf`(644B),
+  `nan_send_solicited_publish`(409B), `nan_sd_parse_sdea`(412B),
+  `nan_sd_parse_sda`(337B), `nan_sd_receive_ctrl`(1002B),
+  `nan_update_static_sdfs`(540B), `cleanup_peer_list`(288B),
+  `nan_send_followup_msg`(301B).
+- Sharpened, remain low: `ieee80211_add_htcap_body` (loops +0x176/+0x1a2),
+  `ieee80211_parse_htcap` (loop +0xfd), `nan_sched_allocate_crbs` (loop
+  +0x113), `nan_dp_parse_time_bitmap` (loop +0x12d), `nan_rx_naf` (2 jx:
+  +0xe3/+0x193), `nan_naf_txcb` (jx +0x11a), `nan_nmns/nms/master/am_event_hdlr`
+  (jx +0x68/+0x71/+0x78/+0xac), `wifi_set_rx_policy` (jx +0x7c) — each note
+  cites exact bounds/table/jx/loop offsets + decode resolver.

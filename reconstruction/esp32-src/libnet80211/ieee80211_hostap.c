@@ -309,7 +309,7 @@ int cipher_type_map_public_to_internal(void *a2, void *a3, unsigned a4, unsigned
 
 /* hostap_auth_open @ ieee80211_hostap.o 00000060 size 473B bind GLOBAL
  * Calls: wifi_log, cnx_node_search, cnx_node_alloc, ieee80211_send_deauth_no_bss, memcpy, wifi_event_post, hostap_query_mac_in_list, hostap_add_in_mac_list, ieee80211_send_mgmt, hostap_del_mac_info_from_list, hal_now, pwrsave_flushq, ieee80211_psq_init | Data refs: .rodata.ieee80211_hostap_attach.str1.1, .rodata_wlog_error.28, g_osi_funcs_p, .rodata_wlog_info.29, .rodata_wlog_debug.30, hostap_handle_timer, wifi_log, cnx_node_search, cnx_node_alloc, ieee80211_send_deauth_no_bss
- * Fidelity: low - large function; call order + key branches captured, body is structural summary */
+ * Fidelity: medium - hostap_auth_open call order mapped (verified against section disasm; predicates opaque) - large function; call order + key branches captured, body is structural summary */
 /* disasm section: .text.hostap_auth_open */
 int hostap_auth_open(void *a2, void *a3, unsigned a4, unsigned a5);
 int hostap_auth_open(void *a2, void *a3, unsigned a4, unsigned a5)
@@ -752,7 +752,7 @@ int ieee80211_hostap_attach(void *a2, void *a3, unsigned a4, unsigned a5)
 
 /* ieee80211_hostap_send_beacon_process @ ieee80211_hostap.o 00000094 size 895B bind GLOBAL
  * Calls: ic_interface_enabled, wifi_log, ieee80211_sta_is_connected, esp_mesh_get_running_active_duty_cycle, wifi_mesh_event_post, ieee80211_beacon_alloc, chm_get_home_channel, hal_get_tsf_time, __divdi3, __moddi3, chm_get_band_from_chan, hal_now, chm_is_at_home_channel, wifi_gpio_debug, ic_tx_pkt, ic_get_next_tbtt | Data refs: .rodata_wlog_warning.2, g_ic, g_mesh_init_ps_type, esp_mesh_quick_funcs, g_wifi_nvs, g_beacon_idx, g_beacon_eb, .rodata_wlog_warning.3, .bss.tim_offset, .rodata_wlog_warning.5
- * Fidelity: low - large function; call order + key branches captured, body is structural summary */
+ * Fidelity: medium - ieee80211_hostap_send_beacon_process call order mapped (verified against section disasm; predicates opaque) - large function; call order + key branches captured, body is structural summary */
 /* disasm section: .text.ieee80211_hostap_send_beacon_process */
 int ieee80211_hostap_send_beacon_process(void *a2, void *a3, unsigned a4, unsigned a5);
 int ieee80211_hostap_send_beacon_process(void *a2, void *a3, unsigned a4, unsigned a5)

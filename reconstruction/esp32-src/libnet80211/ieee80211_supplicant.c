@@ -956,7 +956,7 @@ int esp_wifi_get_user_init_flag_internal(unsigned a2, unsigned a3, unsigned a4, 
 
 /* wifi_set_rx_policy @ ieee80211_supplicant.o 0000005c size 374B bind GLOBAL
  * Calls: ic_set_mac, ic_set_rx_policy, ic_set_bssid, nan_get_clust_id, ic_set_rx_policy_ubssid_check | Data refs: g_ic, .rodata.wifi_set_rx_policy, g_ic+0x212, g_ic+0x20c, g_ic+0x218, g_offchan_ctx, g_ic+0x200
- * Fidelity: low - large/complex: 16 branches, 13 loop(s), 5 calls; skeleton only */
+ * Fidelity: low - large/complex: 16 branches, 13 loops, 5 calls; jx a9 at +0x7c (bgeu at +0x6b, l32r at +0x71 + addx4 at +0x74); per-case targets structural - need jump-table case decode to raise */
 int wifi_set_rx_policy(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3, a4 */
@@ -1170,7 +1170,7 @@ int wifi_init_key(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a
 
 /* esp_wifi_set_ap_key_internal @ ieee80211_supplicant.o 0000004c size 361B bind GLOBAL
  * Calls: ieee80211_set_gtk, ieee80211_get_ptk, ic_del_key, ic_del_ptk_and_gtk_alg, memcpy, wifi_ap_pmf_enabled, ieee80211_get_spp, ic_set_key, ppClearRxFragment, wifi_init_key, ieee80211_set_key | Data refs: g_ic, g_osi_funcs_p, tkip, ccmp, wep
- * Fidelity: low - large/complex: 16 branches, 14 loop(s), 11 calls; skeleton only */
+ * Fidelity: medium - small frame, 11 calls + 16 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int esp_wifi_set_ap_key_internal(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,96; early arg regs: a2, a3, a4, a7 */
@@ -1194,7 +1194,7 @@ int esp_wifi_set_ap_key_internal(unsigned a2, unsigned a3, unsigned a4, unsigned
 
 /* ppInstallKey @ ieee80211_supplicant.o 00000040 size 310B bind GLOBAL
  * Calls: ieee80211_set_sta_gtk_index, ppClearRxFragment, ic_del_key, ieee80211_get_spp, ic_set_key, wifi_init_key, ieee80211_set_key, memcpy | Data refs: g_osi_funcs_p, g_ic, tkip, ccmp, wep, sms4
- * Fidelity: low - large/complex: 14 branches, 11 loop(s), 8 calls; skeleton only */
+ * Fidelity: medium - small frame, 8 calls + 14 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int ppInstallKey(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,64; early arg regs: a3, a4, a5, a7 */
@@ -1819,7 +1819,7 @@ int esp_wifi_set_sigma_internal(unsigned a2, unsigned a3, unsigned a4, unsigned 
 
 /* esp_wifi_op_class_supported_internal @ ieee80211_supplicant.o 00000024 size 669B bind GLOBAL
  * Calls: esp_wifi_get_country_code, ieee80211_get_regdomain, esp_wifi_get_band_mode, ieee80211_regdomain_chan_in_range, get_channel_max_bandwidth, chm_get_band_from_chan | Data refs: .rodata
- * Fidelity: low - large/complex: 59 branches, 28 loop(s), 6 calls; skeleton only */
+ * Fidelity: medium - small frame, 6 calls + 59 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int esp_wifi_op_class_supported_internal(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,80; early arg regs: a2, a3, a4, a5, a6 */

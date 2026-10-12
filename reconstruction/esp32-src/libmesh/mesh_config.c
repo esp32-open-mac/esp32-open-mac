@@ -100,7 +100,7 @@ u32 esp_mesh_nvs_init(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
 
 /* esp_mesh_nvs_operate @ mesh_config.o 00000060 size 788B bind GLOBAL
  * Calls: esp_mesh_get_storage, nvs_op2str | indirect[22]: mem[a4+0x158]; mem[a4+0x150]; mem[a5+0x138]; mem[a8+0x134] | Data refs: .data.mesh_nvs_handle, g_osi_funcs_p, .rodata.esp_mesh_nvs_operate.str1.1, .rodata.esp_mesh_nvs_operate, .bss.mesh_nvs_settings, g_log_level, g_mesh_nvs_settings, g_mesh_max_layer
- * Fidelity: low - jump-table switch present; cases not recovered
+ * Fidelity: low - jx dispatch on op id (bltui bound 6 at +0xc2, table .rodata.esp_mesh_nvs_operate via l32r at +0xc8 + (idx<<2) load at +0xcb, jx a2 at +0xd0); per-case targets structural - need rodata table dump + per-case target walk to raise
  * Edges: funcdb-v3 (calls=2, refs=10); reloc-direct=2, funcdb-attributed=0, unknown-indirect=22 */
 u32 esp_mesh_nvs_operate(u32 a2, u32 a3, u32 a4, u32 a5, u32 a6, u32 a7) {
   u32 a1 = 0; /* stack pointer on entry (spill offsets preserved) */

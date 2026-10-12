@@ -167,3 +167,15 @@ hostap/input/output still `gcc -fsyntax-only -std=c99 -w` clean.
 | ieee80211_input.c | ieee80211_parse_rsn(2558B) | low -> medium | RSN IE field map (id 48 @+0, len @+1, ver @+2 beqi 1, group @+4, pairwise cnt/list @+8, AKM, caps beqi 32, PMKID) + better_pairwise + ent/11r/wpa3 gates + override-OUI |
 | ieee80211_input.c | ieee80211_parse_beacon(1535B) | low -> medium | IE walk (beqi 1 arm; ids 0/1/3/5/7/HT/RSN/WPA, 221/127 markers) + regdomain_chan_in_range x2 gate |
 | ieee80211_output.c | ieee80211_assoc_req_construct(1267B) | low -> medium | IE build order (capinfo, lora/vnd size, getmgtframe, rates/chan/xrates, htcap gate, idle/dh/vendor/ht-vendor, appie x2, esp-mfr, lora/vnd set) |
+
+## 8. Mid-size (257–1024B) pass 2026-10-12 (offline, disasm-grounded)
+
+Only in-range `Fidelity: low` functions touched (3 low->medium); all others
+byte-identical. Braces balanced; non-Fidelity lines identical. All 3 verified
+against section disasm (0 backward conditionals, 0 `loop` insns, 0 `jx`).
+
+| file | function(size) | old -> new | unlock notes |
+|---|---|---|---|
+| ieee80211_hostap.c | hostap_auth_open(473B) | low -> medium | call order mapped (verified against section disasm; predicates opaque) |
+| ieee80211_hostap.c | ieee80211_hostap_send_beacon_process(895B) | low -> medium | call order mapped (verified against section disasm; predicates opaque) |
+| ieee80211_output.c | ieee80211_send_probereq(684B) | low -> medium | call order mapped (verified against section disasm; predicates opaque) |

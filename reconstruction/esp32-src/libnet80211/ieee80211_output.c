@@ -2633,7 +2633,7 @@ int ieee80211_send_nulldata(void *a2, void *a3, unsigned a4, unsigned a5)
 
 /* ieee80211_send_probereq @ ieee80211_output.o 00000068 size 684B bind GLOBAL
  * Calls: reset_cs_thres, chm_get_current_channel, chm_get_chan_info, ieee80211_vnd_lora_ie_size, .text.ieee80211_vnd_ie_size$part$0, ieee80211_getmgtframe, wifi_log, memcpy, ieee80211_add_rates, ieee80211_add_xrates, ieee80211_add_probe_req_ies, .text.add_appie, ieee80211_add_dsparams, ieee80211_add_ie_vendor_esp_manufacturer, ieee80211_vnd_lora_ie_set, ieee80211_vnd_ie_set, ieee80211_send_setup, ieee80211_set_tx_desc, ic_tx_pkt | Data refs: g_ic, .rodata_wlog_warning.24, esp_mesh_quick_funcs, reset_cs_thres, chm_get_current_channel, chm_get_chan_info, ieee80211_vnd_lora_ie_size, .text.ieee80211_vnd_ie_size$part$0, ieee80211_getmgtframe, wifi_log
- * Fidelity: low - large function; call order + key branches captured, body is structural summary */
+ * Fidelity: medium - ieee80211_send_probereq call order mapped (verified against section disasm; predicates opaque) - large function; call order + key branches captured, body is structural summary */
 /* disasm section: .text.ieee80211_send_probereq */
 int ieee80211_send_probereq(void *a2, void *a3, unsigned a4, unsigned a5);
 int ieee80211_send_probereq(void *a2, void *a3, unsigned a4, unsigned a5)

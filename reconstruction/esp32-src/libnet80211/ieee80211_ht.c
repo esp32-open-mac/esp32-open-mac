@@ -171,7 +171,7 @@ static int addba_get_rap_from_private(unsigned a2, unsigned a3, unsigned a4, uns
 
 /* addba_response_txcb @ ieee80211_ht.o 00000000 size 431B bind LOCAL (no symbol; sec .text.addba_response_txcb)
  * Calls: wifi_log, memcmp, cnx_node_search, nan_dp_search_node, addba_get_rap_from_private[local], ic_add_rx_ba | Data refs: .rodata_wlog_error.7, g_ic, .rodata_wlog_error.8, .rodata_wlog_error.9, .rodata_wlog_error.10, .rodata_wlog_error.11, .rodata_wlog_error.12, .rodata_wlog_error.13, .rodata_wlog_error.14, .rodata_wlog_error.15, .rodata_wlog_error.16
- * Fidelity: low - large/complex: 22 branches, 4 loop(s), 6 calls; skeleton only */
+ * Fidelity: medium - small frame, 6 calls + 22 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 static int addba_response_txcb(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,96; early arg regs: a2, a3, a4, a5 */
@@ -190,7 +190,7 @@ static int addba_response_txcb(unsigned a2, unsigned a3, unsigned a4, unsigned a
 
 /* ht_recv_action_ba_addba_response @ ieee80211_ht.o 00000000 size 409B bind LOCAL (no symbol; sec .text.ht_recv_action_ba_addba_response)
  * Calls: wifi_log, addba_stop_timeout[+0x4][local], ic_ampdu_op | Data refs: .rodata.ht_recv_action_ba_addba_response.st~, .rodata_wlog_warning.29, .rodata_wlog_warning.30, .rodata_wlog_warning.31, g_wifi_menuconfig, g_ic
- * Fidelity: low - large/complex: 21 branches, 1 loop(s), 3 calls; skeleton only */
+ * Fidelity: medium - small frame, 3 calls + 21 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 static int ht_recv_action_ba_addba_response(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2, a3, a4, a5, a6 */
@@ -206,7 +206,7 @@ static int ht_recv_action_ba_addba_response(unsigned a2, unsigned a3, unsigned a
 
 /* ieee80211_add_htcap_body @ ieee80211_ht.o 00000000 size 509B bind LOCAL (no symbol; sec .text.ieee80211_add_htcap_body)
  * Calls: wifi_log, memset | Data refs: .rodata.ieee80211_add_htcap_body.str1.1, .rodata_wlog_error.70, g_ic
- * Fidelity: low - large/complex: 25 branches, 5 loop(s), 2 calls; skeleton only */
+ * Fidelity: low - large/complex: 25 branches, 5 loops, 2 calls; hardware loop insns at +0x176 (loop a12, movi 14) and +0x1a2 (loop a12, movi 24); trip/stride mapping needed - need loop-trip decode to raise */
 static int ieee80211_add_htcap_body(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a3, a4 */
@@ -234,7 +234,7 @@ static int ieee80211_ampdu_stop_age_timer_isra_0(unsigned a2, unsigned a3, unsig
 
 /* ieee80211_ht_attach @ ieee80211_ht.o 00000078 size 563B bind GLOBAL
  * Calls: wifi_log, chm_get_current_band, ieee80211_is_40mhz_valid_bw, ic_register_tx_cb, ieee80211_recv_action_register, ieee80211_send_action_register | Data refs: g_wifi_menuconfig, .rodata.ieee80211_add_htcap_body.str1.1, .rodata_wlog_error.2, g_phy_cap_rx_stbc, g_ic, .text.ieee80211_ampdu_timeout, g_ic+0x258, g_osi_funcs_p, .text.addba_response_txcb, .text.ht_recv_action_ba_delba, .text.ht_recv_action_ba_addba_request, .text.ht_send_action_ba_addba, .text.ht_recv_action_ba_addba_response, .text.ht_send_action_ba_delba, .text.public_recv_action_ht2040_coex, g_ic+0x200
- * Fidelity: low - large/complex: 30 branches, 28 loop(s), 6 calls; skeleton only */
+ * Fidelity: medium - small frame, 6 calls + 30 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int ieee80211_ht_attach(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a3, a4, a5, a6 */
@@ -328,7 +328,7 @@ static int ampdu_rx_start_constprop_0(unsigned a2, unsigned a3, unsigned a4, uns
 
 /* ht_recv_action_ba_addba_request @ ieee80211_ht.o 00000000 size 405B bind LOCAL (no symbol; sec .text.ht_recv_action_ba_addba_request)
  * Calls: wifi_log, ampdu_rx_start_constprop_0[+0x28][local], ampdu_rx_stop_constprop_0[+0x18][local], ieee80211_send_action | Data refs: g_wifi_menuconfig, .rodata.ieee80211_add_htcap_body.str1.1, .rodata_wlog_error.75, g_ic
- * Fidelity: low - large/complex: 21 branches, 2 loop(s), 4 calls; skeleton only */
+ * Fidelity: medium - small frame, 4 calls + 21 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 static int ht_recv_action_ba_addba_request(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,80; early arg regs: a2, a3, a4 */
@@ -565,7 +565,7 @@ int ampdu_process_multicast_address_qos_frame(unsigned a2, unsigned a3, unsigned
 
 /* ieee80211_ampdu_reorder @ ieee80211_ht.o 0000004c size 542B bind GLOBAL
  * Calls: wifi_log, ampdu_process_multicast_address_qos_frame, ampdu_dispatch, ampdu_dispatch_as_many_as_possible, ieee80211_ampdu_start_age_timer, ampdu_dispatch_upto, ampdu_dispatch_all, ic_reset_rx_ba, ic_ebuf_recycle_rx | Data refs: .rodata.ieee80211_add_htcap_body.str1.1, .rodata_wlog_error.49, .rodata_wlog_warning.50, .rodata_wlog_warning.51, g_hmac_cnt
- * Fidelity: low - large/complex: 33 branches, 22 loop(s), 9 calls; skeleton only */
+ * Fidelity: medium - small frame, 9 calls + 33 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int ieee80211_ampdu_reorder(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2, a3, a4, a6 */
@@ -645,7 +645,7 @@ int ieee80211_ht_node_init(unsigned a2, unsigned a3, unsigned a4, unsigned a5, u
 
 /* ieee80211_parse_htcap @ ieee80211_ht.o 00000020 size 302B bind GLOBAL
  * Calls: wifi_log, memcpy | Data refs: .rodata.ieee80211_add_htcap_body.str1.1, .rodata_wlog_error.54, g_ic, .rodata
- * Fidelity: low - large/complex: 20 branches, 18 loop(s), 2 calls; skeleton only */
+ * Fidelity: low - large/complex: 20 branches, 18 loops, 2 calls; hardware loop at +0xfd (loop a9, movi 8); trip/stride mapping needed - need loop-trip decode to raise */
 int ieee80211_parse_htcap(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2, a3, a4, a5, a6 */
@@ -754,7 +754,7 @@ int ieee80211_ht_updatehtcap(unsigned a2, unsigned a3, unsigned a4, unsigned a5,
 
 /* ieee80211_ht_updateparams @ ieee80211_ht.o 00000040 size 390B bind GLOBAL
  * Calls: chm_get_home_channel, wifi_log, ieee80211_parse_htcap, ieee80211_update_channel, ic_set_sta, ieee80211_max_bandwidth_negotiation_process | Data refs: .rodata.ieee80211_add_htcap_body.str1.1, .rodata_wlog_error.64, .rodata_wlog_verbose.65, .rodata_wlog_verbose.66
- * Fidelity: low - large/complex: 23 branches, 17 loop(s), 6 calls; skeleton only */
+ * Fidelity: medium - small frame, 6 calls + 23 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int ieee80211_ht_updateparams(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a5, a6 */
@@ -829,7 +829,7 @@ int ieee80211_add_htcap_vendor(unsigned a2, unsigned a3, unsigned a4, unsigned a
 
 /* ieee80211_add_htinfo_body @ ieee80211_ht.o 00000018 size 292B bind GLOBAL
  * Calls: wifi_log, memset, chm_get_home_channel | Data refs: .rodata.ieee80211_add_htcap_body.str1.1, .rodata_wlog_error.72
- * Fidelity: low - large/complex: 16 branches, 7 loop(s), 3 calls; skeleton only */
+ * Fidelity: medium - small frame, 3 calls + 16 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int ieee80211_add_htinfo_body(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a3, a4 */
@@ -904,7 +904,7 @@ static int ht_send_action_ba_delba(unsigned a2, unsigned a3, unsigned a4, unsign
 
 /* ht_send_action_ba_addba @ ieee80211_ht.o 00000000 size 370B bind LOCAL (no symbol; sec .text.ht_send_action_ba_addba)
  * Calls: wifi_log, ieee80211_get_robustmgtframe, ht_action_output, ampdu_rx_stop_constprop_0[+0x18][local] | Data refs: .rodata.ieee80211_add_htcap_body.str1.1, .rodata_wlog_error.76, .rodata_wlog_warning.77
- * Fidelity: low - large/complex: 10 branches, 1 loop(s), 4 calls; skeleton only */
+ * Fidelity: medium - small frame, 4 calls + 10 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 static int ht_send_action_ba_addba(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2 */
@@ -935,7 +935,7 @@ int ieee80211_decap1(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigne
 
 /* ieee80211_decap_amsdu @ ieee80211_ht.o 00000028 size 260B bind GLOBAL
  * Calls: ieee80211_decap1, ic_ebuf_alloc, memcpy, memcmp, ieee80211_output, ic_ebuf_recycle_rx | Data refs: g_ic, sta_rxcb, ap_rxcb, g_ic+0x20c
- * Fidelity: low - large/complex: 10 branches, 5 loop(s), 6 calls; skeleton only */
+ * Fidelity: medium - small frame, 6 calls + 10 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int ieee80211_decap_amsdu(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,64; early arg regs: a3, a4, a5 */

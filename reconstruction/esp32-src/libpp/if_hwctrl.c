@@ -1146,7 +1146,7 @@ L_4:;
  * Calls: ic_disable_crypto, ic_disable_sniffer, ic_enable_sniffer, memcpy, pm_force_scan_unlock, rc_disable_trc_by_interface, wifi_log, wifi_set_rx_policy | Data refs: .rodata_wlog_debug.3, .rodata_wlog_debug.4, .rodata_wlog_debug.5, .rodata_wlog_debug.6, .rodata_wlog_debug.7, .rodata_wlog_debug.8, .rodata_wlog_error.9, ic_disable_crypto, ic_disable_sniffer, ic_enable_sniffer, if_ctrl, memcpy, pm_force_scan_unlock, rc_disable_trc_by_interface, wDevCtrl, wifi_log, wifi_set_rx_policy
  *   MMIO: 0x3FF73084
  *   funcdb v3: 8 call(s), 17 ref(s); disasm: 15 call(s), 17 data ref(s)
- * Fidelity: low - 165 instr, 24 branches, 0 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 165 instr, 24 branches, 0 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t ic_set_vif(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.ic_set_vif; Xtensa ABI: args a2..a7, return a2 */

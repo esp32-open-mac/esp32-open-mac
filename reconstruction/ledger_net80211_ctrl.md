@@ -146,3 +146,53 @@ Only `Fidelity: low` functions touched; others byte-identical. Braces balanced.
 | ieee80211_nvs.c | wifi_nvs_cfg_init(3244B) | low -> medium | NVS table init (~90 item_init over verbatim s_wifi_nvs offsets; memset + warn/err gates) |
 | wl_cnx.c | cnx_auth_done(1181B) | low -> medium | auth-done (OWE, nvs set/commit, phy_mode/cipher_name, remove_rc_except/clear_blacklist, coex, sta_pm/wake, save_ap_channel, event, obss_scan; CSWTCH$289 arms) |
 | wl_cnx.c | cnx_update_bss_more(1139B) | low -> medium | BSS-more (memcpy/memset, connected gate, shortslot/WME/rates/phy/HT/update_channel/regdomain/max-rate/OBSS) |
+
+## 8. Mid-size (257–1024B) pass 2026-10-12 (offline, disasm-grounded)
+
+Only in-range `Fidelity: low` functions touched (64 low->medium, 4 sharpened
+low); others byte-identical. Braces balanced; non-Fidelity lines identical.
+Every upgraded function verified against its section disasm (0 backward
+conditionals, 0 `loop` insns, 0 `jx`); counts preserved, predicates opaque.
+phy/coex functions untouched (other workers).
+
+- `ieee80211_api.c` (14): `esp_wifi_get_negotiated_bw_local`(260B),
+  `wifi_station_get_config_local`(500B), `wifi_softap_get_config`(434B),
+  `wifi_set_user_ie`(278B), `esp_wifi_init_internal`(275B),
+  `esp_wifi_stop`(394B), `esp_wifi_scan_start`(390B),
+  `esp_wifi_config_80211_tx`(456B), `esp_wifi_ipc_internal`(278B),
+  `esp_wifi_nan_load_saved_creds`(341B),
+  `esp_wifi_nan_save_creds_for_peer`(312B),
+  `esp_wifi_scan_get_cur_ap_record`(316B),
+  `esp_wifi_scan_sort_ap_records`(342B),
+  `esp_wifi_scan_sort_get_cur_ap_record`(404B).
+- `ieee80211_ioctl.c` (26): `print_sta_pmk`(272B), `_do_wifi_stop`(311B),
+  `_do_wifi_disconnect`(283B), `wifi_set_mac_process`(322B),
+  `wifi_hw_start`(286B), `wifi_hw_stop`(268B), `wifi_set_mode_process`(339B),
+  `wifi_menuconfig_init`(429B), `wifi_init_process`(372B),
+  `wifi_stop_process`(314B), `wifi_connect_process`(880B),
+  `wifi_scan_start_process`(393B), `wifi_get_ap_list_process`(270B),
+  `wifi_get_ap_info_process`(350B), `wifi_get_sta_list_process`(312B),
+  `wifi_set_protocol_process`(279B), `wifi_set_channel_process`(344B),
+  `wifi_set_country`(388B), `wifi_set_band_process`(380B),
+  `wifi_set_band_mode_process`(434B), `wifi_set_vnd_ie_process`(266B),
+  `ieee80211_set_appie`(401B), `wifi_send_mgmt_frame`(744B),
+  `wifi_disable_pmf_config_process`(398B),
+  `wifi_ap_remove_sta_node_process`(364B), `ieee80211_ioctl`(442B).
+- `ieee80211_sta.c` (4): `sta_rx_csa`(532B), `sta_auth_shared`(294B),
+  `sta_auth_sae`(330B), `sta_try_sa_query_process`(362B).
+- `wl_cnx.c` (16): `cnx_connect_op`(531B), `cnx_sta_scan_cmd`(774B),
+  `cnx_softap_csa`(369B), `cnx_connect_to_bss`(676B),
+  `cnx_csa_fn_process`(268B), `cnx_bss_alloc`(332B), `cnx_choose_rc`(642B),
+  `cnx_do_handoff`(992B), `cnx_sta_connect_cmd`(622B),
+  `ieee80211_max_bandwidth_negotiation_process`(470B),
+  `mgd_probe_send_timeout_process`(274B), `cnx_node_remove`(389B),
+  `cnx_sta_leave`(694B), `cnx_sta_associated`(348B), `cnx_node_leave`(618B),
+  `cnx_node_join`(806B).
+- `ieee80211.c` (1): `ieee80211_recv_sa_query_resp`(258B).
+  `ieee80211_debug.c` (1): `dbg_hmac_rxtx_statis_dump`(471B).
+  `ieee80211_nvs.c` (2): `wifi_nvs_compare_cfg_diff`(386B),
+  `wifi_nvs_load`(822B).
+- Sharpened, remain low: `wifi_mode_set` (jx a2 +0x62, bltui 5),
+  `wifi_hw_mode_switch` (jx a3 +0x41, bltui 5), `wifi_nvs_set` (jx a2 +0x78,
+  bltui 8), `cnx_obss_scan_done_cb` (loop a11 +0x109) — each note cites exact
+  bounds/table/jx/loop offsets + case-decode or loop-trip resolver.

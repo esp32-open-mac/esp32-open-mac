@@ -103,3 +103,14 @@ globals (+2 locals), wapi 8/8 globals (locals prototyped, summarized).
    need a linked binary (e.g. libnet80211-linked ELF) to give load addresses.
 10. `wapi_txcb` buffer roles (0x150B copy, swap windows, vtable+4 target) —
     need caller context (`ic_register_tx_cb` registration site); would raise low.
+
+## Mid-size (257–1024B) pass 2026-10-12 (offline, disasm-grounded)
+
+Only the 2 in-range `Fidelity: low` functions touched; others byte-identical.
+Braces balanced; non-Fidelity lines identical.
+
+- `wapi_sm_parse_wapi_ie` (550B), `wapi_sm_set_assoc_wapi_ie_default` (364B):
+  both remain low with sharpened notes (selector words
+  0x00147201/0x00147202, AKM 1<<13/1<<12, length-cap 23, count-field roles
+  structural; resolver is WAPI IE spec GB15629.11 + live trace). Counts
+  unchanged.

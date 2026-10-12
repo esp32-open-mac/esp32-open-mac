@@ -3729,7 +3729,7 @@ L_0:;
  * Calls: config_get_wifi_task_stack_size, wifi_log, s_wifi_queue[got], xphyQueue[got], g_osi_funcs_p[got], g_osi_funcs_p[got] | Data refs: .bss.pp_task_hdl, .bss.s_pp_task_create_sem, .rodata.pp_create_task.str1.1, .rodata_wlog_error.55, .rodata_wlog_error.56, .rodata_wlog_error.57, .rodata_wlog_error.58, .rodata_wlog_info.59, .rodata_wlog_warning.53, .rodata_wlog_warning.54, config_get_wifi_task_stack_size, g_osi_funcs_p, g_wifi_menuconfig, ppTask, s_wifi_queue, wifi_log, xphyQueue
  *   MMIO: none
  *   funcdb v3: 2 call(s), 17 ref(s); disasm: 13 call(s), 17 data ref(s)
- * Fidelity: low - 150 instr, 11 branches, 6 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 150 instr, 11 branches, 6 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pp_create_task(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .text.pp_create_task; Xtensa ABI: args a2..a7, return a2 */
@@ -4269,7 +4269,7 @@ L_50:;
  * Calls: pp_sig_cnt[got], g_intr_lock_mux[got], xphyQueue[got], xphyQueue[got], pp_sig_cnt[got], g_intr_lock_mux[got], g_osi_funcs_p[got], g_intr_lock_mux[got], wifi_log[got] | Data refs: g_osi_funcs_p, g_intr_lock_mux, pp_sig_cnt, xphyQueue, pTxRx, .rodata_wlog_warning.68, wifi_log
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 9 call(s), 7 data ref(s)
- * Fidelity: low - 133 instr, 15 branches, 3 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 133 instr, 15 branches, 3 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t pp_post(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .iram1.67; Xtensa ABI: args a2..a7, return a2 */
@@ -5392,7 +5392,7 @@ L_3a:;
  * Calls: ic_interface_enabled[got], wifi_log[got], wifi_log[got], ppTxProtoProc[got], ppProcTxSecFrame[got], rcGetSched[got], ppCalFrameTimes[got], ppMapTxQueue[got], lmacIsIdle[got], pp_post[got], wifi_log[got], esf_buf_recycle[got], pp_process_hmac_waiting_txq[got] | Data refs: ic_interface_enabled, .rodata_wlog_warning.13, wifi_log, .rodata.pp_default_event_handler.str1.1, .rodata_wlog_error.14, ppTxProtoProc, ppProcTxSecFrame, rcGetSched, ppCalFrameTimes, ppMapTxQueue, g_mesh_is_started, g_mesh_is_root, g_mesh_init_ps_type, g_osi_funcs_p, g_wifi_mac_time_delta, pTxRx, lmacIsIdle, pp_post, .rodata_wlog_warning.15, esf_buf_recycle, pp_process_hmac_waiting_txq
  *   MMIO: 0x3FF73C00
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 13 call(s), 21 data ref(s)
- * Fidelity: low - 183 instr, 28 branches, 2 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 183 instr, 28 branches, 2 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t ppTxPkt(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifi0iram.12; Xtensa ABI: args a2..a7, return a2 */
@@ -5845,7 +5845,7 @@ L_60:;
  * Calls: rcGetAmpduSched[got], ppCheckTxAMPDUlength[got], ppEmptyDelimiterLength[got], ppCalSubFrameLength[got], ppCalSubFrameLength[got], wifi_log[got], lmacAdjustTimestamp[got], ppCheckTxAMPDUlength[got], ppEmptyDelimiterLength[got], ppEmptyDelimiterLength[got], ppAssembleAMPDU[got], ppPauseTxAMPDU[got] | Data refs: rcGetAmpduSched, pTxRx, ppCheckTxAMPDUlength, ppEmptyDelimiterLength, ppCalSubFrameLength, .rodata.pp_default_event_handler.str1.1, .rodata_wlog_error.43, wifi_log, lmacAdjustTimestamp, ppAssembleAMPDU, ppPauseTxAMPDU
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 12 call(s), 11 data ref(s)
- * Fidelity: low - 271 instr, 25 branches, 0 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 271 instr, 25 branches, 0 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t ppCalTxAMPDULength(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifi0iram.42; Xtensa ABI: args a2..a7, return a2 */
@@ -6360,7 +6360,7 @@ L_144:;
  * Calls: GetAccess[got], wifi_log[got], memcpy[got], lmacMSDUAged[got], ppCalSubFrameLength[got], ppSubFromAMPDU[got], lmacRecycleMPDU[got], lmacDiscardAgedMSDU[got], rcUpdateTxDoneAmpdu2[got], trc_isTxAmpduOperational[got], trc_tid_isTxAmpduOperational[got], ppAMPDU2Normal[got], ppFillAMPDUBar[got], ppReSendBar[got], ppResumeTxAMPDU[got], ppProcessTxQ[got] | Data refs: pTxRx, GetAccess, .rodata.pp_default_event_handler.str1.1, .rodata_wlog_error.46, wifi_log, memcpy, lmacMSDUAged, ppCalSubFrameLength, ppSubFromAMPDU, lmacRecycleMPDU, lmacDiscardAgedMSDU, rcUpdateTxDoneAmpdu2, trc_isTxAmpduOperational, trc_tid_isTxAmpduOperational, ppAMPDU2Normal, ppFillAMPDUBar, ppReSendBar, ppResumeTxAMPDU, ppProcessTxQ
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 16 call(s), 19 data ref(s)
- * Fidelity: low - 384 instr, 55 branches, 0 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 384 instr, 55 branches, 0 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t ppResortTxAMPDU(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifi0iram.45; Xtensa ABI: args a2..a7, return a2 */
@@ -6792,7 +6792,7 @@ L_43c:;
  * Calls: .rodata[tail], .rodata[got], pp_timer_do_process[got], pp_timer_do_process[got], .bss.g_timer_func[got], .bss.g_timer_func[got], ppProcessTxQ[got], ppProcTxDone[got], .bss.g_net80211_tx_func[got], ppRxPkt[got], .bss.g_net80211_tx_func[got], ppResortTxAMPDU[got], .bss.g_net80211_tx_func[got], ppProcessRxPktHdr[got], .bss.g_net80211_tx_func[got], lmacProcessTxTimeout[got], .bss.g_net80211_tx_func[got], lmacProcessTxComplete[got], .bss.g_net80211_tx_func[got], lmacProcessCollisions_task[got], .bss.g_net80211_tx_func[got], wifi_gpio_debug[got], .bss.g_net80211_tx_func[got], wdevProcessRxSucDataAll[got], .bss.g_net80211_tx_func[got], wdev_process_misc_pkt[got], wifi_log[got], pp_default_event_handler[got], .bss.s_pp_task_create_sem[got], .bss.s_pp_task_del_sem[got], .bss.s_pp_task_create_sem[got], g_osi_funcs_p[got] | Data refs: g_osi_funcs_p, .bss.s_pp_task_create_sem, xphyQueue, g_intr_lock_mux, pp_sig_cnt, .rodata, pp_timer_do_process, .bss.g_timer_func, .bss.g_config_func, ppProcessTxQ, .bss.g_net80211_tx_func, ppProcTxDone, ppRxPkt, ppResortTxAMPDU, ppProcessRxPktHdr, lmacProcessTxTimeout, lmacProcessTxComplete, lmacProcessCollisions_task, wifi_gpio_debug, wdevProcessRxSucDataAll, wdev_process_misc_pkt, .rodata_wlog_error.10, wifi_log, pp_default_event_handler, .bss.s_pp_task_del_sem, s_wifi_queue, .bss.pp_task_hdl
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 32 call(s), 27 data ref(s)
- * Fidelity: low - 198 instr, 26 branches, 5 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: low - 198 instr, 26 branches, 5 indirect; jx computed dispatch at +0xf8 (movi 26 at +0xe6, bgeu at +0xea, l32r at +0xf0 + addx4 at +0xf3, jx a5); per-case targets structural - need jump-table case decode to raise */
 int32_t ppTask(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifi0iram.9; Xtensa ABI: args a2..a7, return a2 */

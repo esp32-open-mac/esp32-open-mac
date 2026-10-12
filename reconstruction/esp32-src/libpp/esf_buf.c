@@ -84,7 +84,7 @@ L_8:;
  * Calls: g_osi_funcs_p[got], g_osi_funcs_p[got], esf_buf_alloc_dynamic_default_handler[got], memset[got], memset[got], memcpy[got] | Data refs: g_osi_funcs_p, g_wifi_global_lock, g_lmac_cnt, esf_buf_alloc_dynamic_default_handler, memset, memcpy
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 6 call(s), 6 data ref(s)
- * Fidelity: low - 179 instr, 17 branches, 3 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: medium - 179 instr, 17 branches, 3 indirect; flow + direct calls mapped, GOT-indirects enumerated (verified against section disasm) */
 int32_t esf_buf_alloc_dynamic(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifiextrairam.4; Xtensa ABI: args a2..a7, return a2 */
@@ -313,7 +313,7 @@ L_8:;
  * Calls: g_wifi_menuconfig[got], g_osi_funcs_p[got], memcpy[got], esf_buf_alloc_dynamic[got], esf_buf_alloc_default_handler[got] | Data refs: .rodata, g_wifi_menuconfig, g_osi_funcs_p, g_wifi_global_lock, g_eb_list_desc, g_lmac_cnt, memcpy, esf_buf_alloc_dynamic, esf_buf_alloc_default_handler
  *   MMIO: none
  *   funcdb v3: 0 call(s), 0 ref(s); disasm: 5 call(s), 9 data ref(s)
- * Fidelity: low - 125 instr, 14 branches, 2 indirect; call-sequence + MMIO skeleton */
+ * Fidelity: low - 125 instr, 14 branches, 2 indirect; jx computed tail dispatch at +0x3b (movi 8/bgeu at +0x2d, l32r .rodata at +0x33 + addx4 at +0x36, jx a2); per-type case targets structural - need rodata case decode to raise */
 int32_t esf_buf_alloc(uint32_t a2, uint32_t a3, uint32_t a4,
                      uint32_t a5, uint32_t a6, uint32_t a7) {
   /* section .wifislprxiram.6; Xtensa ABI: args a2..a7, return a2 */

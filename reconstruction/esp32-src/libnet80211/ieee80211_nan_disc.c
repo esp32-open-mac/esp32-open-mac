@@ -149,7 +149,7 @@ static int nan_compare_mr(unsigned a2, unsigned a3, unsigned a4, unsigned a5, un
 
 /* nan_update_amr_for_non_anchor @ ieee80211_nan_disc.o 00000000 size 653B bind LOCAL (no symbol; sec .text.nan_update_amr_for_non_anchor)
  * Calls: memcpy, nan_compare_mr[+0x4][local], memcmp | Data refs: none
- * Fidelity: low - large/complex: 13 branches, 0 loop(s), 3 calls; skeleton only */
+ * Fidelity: medium - small frame, 3 calls + 13 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 static int nan_update_amr_for_non_anchor(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,48; early arg regs: a2, a3, a6, a7 */
@@ -209,7 +209,7 @@ static int nan_recycle_rx_bcn(unsigned a2, unsigned a3, unsigned a4, unsigned a5
 
 /* nan_stop_handler @ ieee80211_nan_disc.o 00000000 size 399B bind LOCAL (no symbol; sec .text.nan_stop_handler)
  * Calls: nan_recycle_rx_bcn[+0x4][local], ic_ebuf_recycle_tx | Data refs: g_osi_funcs_p
- * Fidelity: low - large/complex: 4 branches, 0 loop(s), 2 calls; skeleton only */
+ * Fidelity: medium - small frame, 2 calls + 4 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 static int nan_stop_handler(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,64; early arg regs: a2, a3, a4, a5, a6, a7 */
@@ -224,7 +224,7 @@ static int nan_stop_handler(unsigned a2, unsigned a3, unsigned a4, unsigned a5, 
 
 /* nan_common_dwend_ops @ ieee80211_nan_disc.o 00000000 size 488B bind LOCAL (no symbol; sec .text.nan_common_dwend_ops)
  * Calls: memcmp, nan_compare_mr[+0x4][local], nan_get_tsf, nan_dp_schedule_next_faw, nan_dp_schedule_ndc_start, nan_dp_has_active_datapath, nan_get_random_byte | Data refs: g_osi_funcs_p
- * Fidelity: low - large/complex: 30 branches, 10 loop(s), 7 calls; skeleton only */
+ * Fidelity: medium - small frame, 7 calls + 30 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 static int nan_common_dwend_ops(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3, a4, a5, a6 */
@@ -260,7 +260,7 @@ static int nan_update_bcn_stats(unsigned a2, unsigned a3, unsigned a4, unsigned 
 
 /* nan_init_event_hdlr @ ieee80211_nan_disc.o 00000000 size 356B bind LOCAL (no symbol; sec .text.nan_init_event_hdlr)
  * Calls: memcpy, memset, nan_recycle_rx_bcn[+0x4][local] | Data refs: g_ic, .text.nan_scan_timeout, g_osi_funcs_p, .text.nan_warmup_timeout, .text.nan_dwstart_timeout, .text.nan_dwend_timeout, .text.nan_sync_bcn_timeout, .text.nan_disc_bcn_timeout, .text.nan_action_timeout, .text.nan_faw_start_timeout, .text.nan_faw_end_timeout, .text.nan_ndc_start_timeout
- * Fidelity: low - large/complex: 7 branches, 0 loop(s), 3 calls; skeleton only */
+ * Fidelity: medium - small frame, 3 calls + 7 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 static int nan_init_event_hdlr(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a2, a3 */
@@ -405,7 +405,7 @@ static int nan_scan_timeout(unsigned a2, unsigned a3, unsigned a4, unsigned a5, 
 
 /* nan_dwstart_timeout @ ieee80211_nan_disc.o 00000000 size 356B bind LOCAL (no symbol; sec .text.nan_dwstart_timeout)
  * Calls: wifi_log, chm_is_at_home_channel, chm_return_home_channel, nan_action_frames_queued, nan_static_sdfs_present, nan_get_random_word, ieee80211_timer_process | Data refs: g_nan_started, .rodata_wlog_warning.7, .rodata_wlog_warning.2, .rodata_wlog_info.3, g_osi_funcs_p
- * Fidelity: low - large/complex: 8 branches, 0 loop(s), 7 calls; skeleton only */
+ * Fidelity: medium - small frame, 7 calls + 8 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 static int nan_dwstart_timeout(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a3, a4 */
@@ -439,7 +439,7 @@ static int nan_is_ambtt_too_old_isra_0(unsigned a2, unsigned a3, unsigned a4, un
 
 /* nan_nmns_event_hdlr @ ieee80211_nan_disc.o 0000004c size 321B bind GLOBAL
  * Calls: nan_common_dwstart_ops[+0x8][local], nan_common_dwend_ops[+0x30][local], nan_is_in_dw, nan_is_ambtt_too_old_isra_0[+0x4][local], nan_update_amr_for_non_anchor[+0x24][local], nan_adjust_non_anchor_tsf[+0x14][local], nan_update_bcn_stats[+0x10][local], nan_recycle_rx_bcn[+0x4][local], nan_stop_handler[+0x14][local], nan_send_static_sdfs, nan_tx_queued_action_frames, wifi_log, nan_dp_indicate_faw_start, nan_dp_schedule_next_faw, nan_dp_indicate_ndc_start | Data refs: .rodata.nan_nmns_event_hdlr, g_osi_funcs_p, .rodata_wlog_debug.26
- * Fidelity: low - large/complex: 21 branches, 15 loop(s), 15 calls; skeleton only */
+ * Fidelity: low - large/complex: 21 branches, 15 loops, 15 calls; jx a3 at +0x68 (addi -1 at +0x59, movi 12, bltu at +0x5d, l32r at +0x60 + addx4 at +0x63); per-case targets structural - need jump-table case decode to raise */
 int nan_nmns_event_hdlr(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a3, a4 */
@@ -467,7 +467,7 @@ int nan_nmns_event_hdlr(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsi
 
 /* nan_nms_event_hdlr @ ieee80211_nan_disc.o 00000054 size 352B bind GLOBAL
  * Calls: nan_common_dwstart_ops[+0x8][local], nan_common_dwend_ops[+0x30][local], nan_is_in_dw, nan_is_ambtt_too_old_isra_0[+0x4][local], nan_update_amr_for_non_anchor[+0x24][local], nan_adjust_non_anchor_tsf[+0x14][local], nan_update_bcn_stats[+0x10][local], nan_recycle_rx_bcn[+0x4][local], nan_transmit_bcn, nan_send_static_sdfs, nan_tx_queued_action_frames, wifi_log, nan_dp_indicate_faw_start, nan_dp_schedule_next_faw, nan_dp_indicate_ndc_start, nan_stop_handler[+0x14][local] | Data refs: .rodata.nan_nms_event_hdlr, g_osi_funcs_p, .rodata_wlog_debug.25
- * Fidelity: low - large/complex: 26 branches, 16 loop(s), 16 calls; skeleton only */
+ * Fidelity: low - large/complex: 26 branches, 16 loops, 16 calls; jx a8 at +0x71 (addi -1 at +0x5f, movi 12, bgeu at +0x63, l32r at +0x69 + addx4 at +0x6c); per-case targets structural - need jump-table case decode to raise */
 int nan_nms_event_hdlr(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a3 */
@@ -523,7 +523,7 @@ int nan_schedule_disc_bcn(unsigned a2, unsigned a3, unsigned a4, unsigned a5, un
 
 /* nan_master_event_hdlr @ ieee80211_nan_disc.o 0000005c size 373B bind GLOBAL
  * Calls: nan_schedule_disc_bcn, nan_common_dwstart_ops[+0x8][local], nan_common_dwend_ops[+0x30][local], nan_is_in_dw, nan_is_ambtt_too_old_isra_0[+0x4][local], nan_update_amr_for_non_anchor[+0x24][local], nan_adjust_non_anchor_tsf[+0x14][local], nan_update_bcn_stats[+0x10][local], nan_recycle_rx_bcn[+0x4][local], nan_transmit_bcn, nan_send_static_sdfs, nan_tx_queued_action_frames, wifi_log, nan_dp_indicate_faw_start, nan_dp_schedule_next_faw, nan_dp_indicate_ndc_start, nan_stop_handler[+0x14][local] | Data refs: .rodata.nan_master_event_hdlr, .rodata_wlog_debug.24
- * Fidelity: low - large/complex: 27 branches, 22 loop(s), 17 calls; skeleton only */
+ * Fidelity: low - large/complex: 27 branches, 22 loops, 17 calls; jx a3 at +0x78 (addi -1 at +0x69, movi 12, bltu at +0x6d, l32r at +0x70 + addx4 at +0x73); per-case targets structural - need jump-table case decode to raise */
 int nan_master_event_hdlr(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a3, a4 */
@@ -637,7 +637,7 @@ returns a2; predicates/fields untyped */
 
 /* nan_am_event_hdlr @ ieee80211_nan_disc.o 00000090 size 840B bind GLOBAL
  * Calls: memcmp, memcpy, memset, nan_schedule_disc_bcn, nan_get_random_byte, nan_fill_dynamic_attr, nan_common_dwstart_ops[+0x8][local], nan_common_dwend_ops[+0x30][local], nan_is_in_dw, nan_is_ambtt_too_old_isra_0[+0x4][local], nan_compare_mr[+0x4][local], nan_update_tsf_from_bcn[+0xc][local], nan_update_bcn_stats[+0x10][local], nan_recycle_rx_bcn[+0x4][local], nan_transmit_bcn, nan_send_static_sdfs, nan_tx_queued_action_frames, wifi_log, nan_dp_indicate_faw_start, nan_dp_schedule_next_faw, nan_dp_indicate_ndc_start, nan_stop_handler[+0x14][local] | Data refs: .rodata.nan_am_event_hdlr, g_osi_funcs_p, .rodata_wlog_debug.23
- * Fidelity: low - large/complex: 38 branches, 29 loop(s), 22 calls; skeleton only */
+ * Fidelity: low - large/complex: 38 branches, 29 loops, 22 calls; jx a3 at +0xac (addi -1 at +0x9d, movi 12, bltu at +0xa1, l32r at +0xa4 + addx4 at +0xa7); per-case targets structural - need jump-table case decode to raise */
 int nan_am_event_hdlr(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,32; early arg regs: a3, a4, a6 */

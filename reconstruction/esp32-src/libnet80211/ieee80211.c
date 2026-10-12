@@ -170,7 +170,7 @@ u32 ieee80211_recv_sa_query_req(u32 a2, u32 a4)
 
 /* ieee80211_recv_sa_query_resp @ ieee80211.o 0x0000001c size 258B bind LOCAL
  * Calls: wifi_log, indirect(a8), indirect(a8), indirect(a8), indirect(a4), wifi_log, hostap_query_mac_in_list, hostap_del_mac_info_from_list | Data refs: .rodata_wlog_info.9, g_osi_funcs_p, .rodata_wlog_warning.10
- * Fidelity: low - 87 insns, 6 branches, 0 loops; skeleton only */
+ * Fidelity: medium - 87 insns, 6 branches, 0 loops; branchy but loop-free, call sequence mapped (verified against section disasm; predicates opaque) */
 u32 ieee80211_recv_sa_query_resp(u32 a2, u32 a4)
 {
     /* frame: entry a1,64; 87 insns, 6 cond-branches, 0 loops, 3 jumps */
@@ -731,7 +731,7 @@ u32 wifi_create_sta(u32 a4, u32 a5)
 
 /* wifi_mode_set @ ieee80211.o 0x0000004c size 379B bind GLOBAL
  * Calls: wifi_log, wifi_destroy_sta, indirect(a2), wifi_destroy_nan, wifi_create_sta, wifi_destroy_nan, indirect(a2), indirect(a10), wifi_destroy_nan, wifi_destroy_sta, wifi_log, wifi_create_nan, wifi_destroy_sta, indirect(a3), wifi_log, wifi_log | Data refs: .rodata.wifi_mode_set, .rodata_wlog_info.3, net80211_funcs, g_ic, .rodata_wlog_info.5, .rodata_wlog_info.4, .rodata_wlog_info.6
- * Fidelity: low - 139 insns, 12 branches, 0 loops; skeleton only */
+ * Fidelity: low - 139 insns, 12 branches, 0 loops; jx computed dispatch at +0x62 (bltui bound 5 at +0x54, l32r table at +0x5a + addx4 at +0x5d, jx a2); per-case targets structural - need jump-table case decode (rodata table dump + per-case target walk) to raise */
 u32 wifi_mode_set(u32 a2)
 {
     /* frame: entry a1,80; 139 insns, 12 cond-branches, 0 loops, 8 jumps */

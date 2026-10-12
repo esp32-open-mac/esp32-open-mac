@@ -86,7 +86,7 @@ int ieee80211_update_phy_country(unsigned a2, unsigned a3, unsigned a4, unsigned
 
 /* ieee80211_regdomain_update @ ieee80211_regdomain.o 00000028 size 352B bind GLOBAL
  * Calls: chm_get_current_band, memset, memcmp, ieee80211_update_phy_country, memcpy, ieee80211_regdomain_update[v2-only] | Data refs: g_wifi_nvs, g_ic
- * Fidelity: low - large/complex: 19 branches, 15 loop(s), 6 calls; skeleton only */
+ * Fidelity: medium - small frame, 6 calls + 19 branches mapped (backward-edge marks kept; predicates opaque; verified against section disasm + EXPAND relocs) */
 int ieee80211_regdomain_update(unsigned a2, unsigned a3, unsigned a4, unsigned a5, unsigned a6, unsigned a7)
 {
     /* entry a1,64; early arg regs: a4, a5, a6, a7 */
